@@ -1,0 +1,9 @@
+syntax: glob
+*\bin\*
+*.pyc
+icons_rc.py
+ui*
+*.so
+*.dll
+dist
+build
