@@ -10,8 +10,8 @@ def createHydrojunctionLayer():
     points). It requires River, Borehole and Irrigation be loaded in the
     project"""
     
-    # Get segments of "River" shapefile
-    riverLayer=ftools_utils.getVectorLayerByName(constants.riverLayer)
+    # Get segments of River layer
+    riverLayer=ftools_utils.getVectorLayerByName(constants.riverLayer.filename)
     riverProvider=riverLayer.dataProvider()
     riverSegments=riverProvider.getFeatures()
     
@@ -20,7 +20,7 @@ def createHydrojunctionLayer():
         setErrorHappend("River is not a line layer!")
         return
 
-    # Loop through segments of "River" layer
+    # Loop through segments of River layer to get ending nodes
     inFeat = QgsFeature()
     rivXList= []
     rivYList= []
@@ -36,8 +36,8 @@ def createHydrojunctionLayer():
             rivYList.append(segment.yat(-1))
         i += 1
     
-     # Get the polygons of "Irrigation" layer
-    irrigLayer=ftools_utils.getVectorLayerByName(constants.irrigLayer)
+     # Get the polygons of Irrigation layer
+    irrigLayer=ftools_utils.getVectorLayerByName(constants.irrigLayer.filename)
     irrigProvider=irrigLayer.dataProvider()
     irrigPolygons=irrigProvider.getFeatures()
     
@@ -46,7 +46,7 @@ def createHydrojunctionLayer():
         setErrorHappend("Irrigation is not a polygon layer!")
         return
 
-    # Loop through polygons of Irrigation layer
+    # Loop through polygons of Irrigation layer to get their centroids
     inFeat = QgsFeature()
     irgXList= []
     irgYList= []
@@ -55,6 +55,22 @@ def createHydrojunctionLayer():
         irgXList.append(centrpoint.x)
         irgXList.append(centrpoint.y)
 
+    # Get the points of Borhold layer
+    inFeat = QgsFeature()
+    borXList= []
+    borYList= []
+
+    # Create a new layer or update the existing
+    fieldX= rivXList+irgXList+borXList
+    fieldY= rivYList+irgYList+borYList
+    fieldJuncType= [ [constants.nodeRivId]*len(rivXList) + 
+                      [constants.nodeIrgId]*len(irgXList) + 
+                      [constants.nodeBorId]*len(borXList) ]
+    createPointLayer(constants.hydroJunctLayer.filename, 
+                     constants.hydroJunctLayer.fieldnames, 
+                     [fieldJuncType, [], [], [], [], fieldX, fieldY, [] ]
+
+
 
 def buildRiverductTopologyr(riverDuct, reversDirect):
     """ This function builds the topology of River or Aqueduct shapefiles
@@ -62,8 +78,8 @@ def buildRiverductTopologyr(riverDuct, reversDirect):
     direction the topology is built (River is built with revers direction i.e.
     from exit to upstream nodes""" 
 
-    # Get points of "HydroJunction" shapefile
-    hydroJunctLayer=ftools_utils.getVectorLayerByName(constants.hydroJunctLayer)
+    # Get points of HydroJunction layer
+    hydroJunctLayer=ftools_utils.getVectorLayerByName(constants.hydroJunctLayer.filename)
     hydroJunctProvider= hydroJunctLayer.dataProvider()
     hydroJunctPoints= hydroJunctProvider.getFeatures()
 
