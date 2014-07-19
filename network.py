@@ -1,6 +1,40 @@
 import ftools_utils
 import constants
+import auxiliary
 from qgis.core import *
+
+
+
+def layerNameTypeOK(layerFileName, layerType):
+    """This function checks if the type of a layer is what is supposed to be"""
+    layer=ftools_utils.getVectorLayerByName(layerFileName)
+    if riverLayer.type() != layerType:
+        message=layerFileName + " is not a "+ str(layerType) + " layer!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+        return False
+    return True
+
+
+
+def layersNameTypeOK():
+    """This function checks the type of layers employed in topology operations.
+    The function returns True if the name and the type of layers is what is 
+    supposed to be"""
+    
+    # Check if River is a line layer
+    if not layerNameTypeOK(constants.riverLayer.filename, QGis.Line):
+        return False
+
+    # Check if Irrigation is a poly layer
+    if not layerNameTypeOK(constants.irrigLayer.filename, QGis.Polygon):
+        return False
+
+    # Check if Borehold is a point layer
+    if not layerNameTypeOK(constants.borehLayer.filename, QGis.Point):
+        return False
+
+    return True
+
 
 
 def createHydrojunctionLayer(): 
@@ -9,16 +43,14 @@ def createHydrojunctionLayer():
     Irrigation (polygon centroids) and Borehole (centroid of a group of
     points). It requires River, Borehole and Irrigation be loaded in the
     project"""
+
+    if not layersNameTypeOK:
+        return False
     
     # Get segments of River layer
     riverLayer=ftools_utils.getVectorLayerByName(constants.riverLayer.filename)
     riverProvider=riverLayer.dataProvider()
     riverSegments=riverProvider.getFeatures()
-    
-    # Check if it is a line layer
-    if riverLayer.type() != QGis.Point:
-        setErrorHappend("River is not a line layer!")
-        return
 
     # Loop through segments of River layer to get ending nodes
     inFeat = QgsFeature()
@@ -40,11 +72,6 @@ def createHydrojunctionLayer():
     irrigLayer=ftools_utils.getVectorLayerByName(constants.irrigLayer.filename)
     irrigProvider=irrigLayer.dataProvider()
     irrigPolygons=irrigProvider.getFeatures()
-    
-    # Check if it is a poly layer
-    if riverLayer.type() != QGis.Polygon
-        setErrorHappend("Irrigation is not a polygon layer!")
-        return
 
     # Loop through polygons of Irrigation layer to get their centroids
     inFeat = QgsFeature()
@@ -57,8 +84,19 @@ def createHydrojunctionLayer():
 
     # Get the points of Borhold layer
     inFeat = QgsFeature()
-    borXList= []
-    borYList= []
+    pointsXList= []
+    pointsYList= []
+    borGrpId= []
+    groupfield=getFieldIndexByName(riverDuct, "GROUP")
+    if fieldId==-1: return False
+    while irrigPolygons.nextFeature(inFeat)
+        point=inFeat.geometry()
+        pointsXList.append(point.x)
+        pointsYList.append(point.y)
+        attribs=point.attributes()
+        borGrpId.append(attribs(groupField))
+
+    # List of coords for the gravity centres of the pnts of Borhole groups
 
     # Create a new layer or update the existing
     fieldX= rivXList+irgXList+borXList
@@ -95,8 +133,15 @@ def buildRiverductTopologyr(riverDuct, reversDirect):
     riverDuctProvider= riverDuct.dataProvider() 
     riverDuctSegments= riverDuctProvider.getFeatures()
 
+    # Get the id of the fields FROM_NODE, TO_NODE
+    fromNode=getFieldIndexByName(riverDuct, "FROM_NODE")
+    if fromNode==-1: return False
+    toNode=getFieldIndexByName(riverDuct, "TO_NODE")
+    if toNode==-1: return False
+
     # Loop through segments of riverDuct
     inFeat = QgsFeature()
+    i=0
     while riverDuctSegments.nextFeature(inFeat)
         segment= inFeat.geometry() 
         if reversDirect:  # If topology is built reverse direction
@@ -111,10 +156,9 @@ def buildRiverductTopologyr(riverDuct, reversDirect):
             endtpntY= segment.yat(-1)
         j=0
         for hydroJunctPntX, hydroJunctPntY in zip(xList,yList):
-            if strtpntX==hydroJunctPntX and strpntY==hydroJunctPntY:
-                # inFeat.attribute("from_node")=j
+            if strtpntX==hydroJunctPntX and strtpntY==hydroJunctPntY:
+                riverDuctSegments.changeAttributeValues({i:{fromNode, j})
             if endtpntX==hydroJunctPntX and endpntY==hydroJunctPntY:
-                # inFeat.attribute("to_node")=j
-
-
-
+                riverDuctSegments.changeAttributeValues({i:{toNode, j})
+            j=j+1
+        i=i+1 
