@@ -120,7 +120,7 @@ def createHydrojunctionLayer(path):
                  [constants.nodeIrgId]*len(irgXList) + 
                  [constants.nodeBorId]*len(borXList) ]
     runOK=createPointLayer(path, constants.hydroJunctLayer.filename, 
-                           constants.hydroJunctLayer.fieldnames, 
+                           # the follwing should be a list of QgsField
                            ["JUNCT_TYPE", "DESCR", "NAME", "TS_ID",
                              "X", "Y", "Z"], 
                            xCoords, yCoords, 

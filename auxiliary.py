@@ -9,8 +9,8 @@ def getFieldIndexByName(vlayer, name):
         fields= getFieldList(vlayer) 
         return [i for i in fields if i == name][0]
     except ValueError:
-        #QtGui.QMessageBox.critical(None, 'Error', 'The field '+name+ 
-        #                           ' not found', QtGui.QMessageBox.Yes)
+        message="Field with name "+name+"not found!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
         return -1
 
 
@@ -24,3 +24,45 @@ def getElementIndexByVal(alist, value):
 
 def createPointLayer(path, filename, xList, yList, fieldnames, attrValues):
     """Creates a shapefile with points and populates its attribute table"""
+
+    # Check arguments
+    if len(fieldnames) != len(attrValues):
+        message="Field with name "+name+"not found!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+        return False
+
+    # Delete existing layer
+    check = QFile(path+filename)
+    if check.exists():
+        if not QgsVectorFileWriter.deleteShapeFile(path+filename)
+            message="Can't delete shapefile\n%s")%(path+filename)
+            QtGui.QMessageBox.warning(None,'Error',message, 
+                                      QtGui.QMessageBox.Yes) 
+            return False
+
+    # Add points to layer
+    layer=QgsVectorLayer()
+    layer.startEditing()
+    j=0
+    for name in fieldnames:
+        layer.addAttribute(j,name)
+        j=j+1
+    i=0
+    for x, y in zip(xList,yList):
+        feat = QgsFeature()
+        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(x,y)))
+        # Add values to attribute table
+        j=0
+        for name in fieldnames:
+            if len(attrValues[j])>i:
+                feat.addAttribute(j,name)
+            j=i+1
+        layer.dataProvider().addFeatures([feat])
+        i=i+1
+ 
+    # Write shapefile
+    layer.commitChanges()
+    QgsVectorFileWriter.writeAsVectorFormat(layer, path+filename, 
+                                            "utf8", None, "ESRI Shapefile") 
+
+    return True
