@@ -6,8 +6,11 @@ def getFieldIndexByName(vlayer, name):
     of the layer 'vlayer'. If no field with name 'name', returns -1 and 
     displays an error dialog."""
     try:
-        fields= getFieldList(vlayer) 
-        return [i for i in fields if i == name][0]
+        i = 0
+        for field in getFieldList(vlayer)
+            if field.name==name:
+                return i
+            i = i + 1
     except ValueError:
         message="Field with name "+name+"not found!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
@@ -66,3 +69,18 @@ def createPointLayer(path, filename, xList, yList, fieldnames, attrValues):
                                             "utf8", None, "ESRI Shapefile") 
 
     return True
+
+
+def getPointLayerCoords(layer):
+    # Get points of HydroJunction layer
+    provider= layer.dataProvider()
+    points= provider.getFeatures()
+    # Get X,Y of each Hydrojunction point
+    xList= []
+    yList= []
+    inFeat = QgsFeature()
+    while points.nextFeature(inFeat)
+         xList.append(inFeat.geometry().x )
+         yList.append(inFeat.geometry().y )
+
+    return [xList, yList]
