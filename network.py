@@ -1,23 +1,9 @@
-import ftools_utils
-import constants
-import auxiliary
-from qgis.core import *
 from __future__ import division
+import ftools_utils
+import h_const
+import h_utils
+from qgis.core import *
 
-
-
-def layerNameTypeOK(layerFileName, layerType):
-    """This function checks if the type of a layer is what is supposed to be"""
-    layer=ftools_utils.getVectorLayerByName(layerFileName)
-    if layer==None:
-        message=layerFileName + "  not a "+ " found!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
-        return False
-    if riverLayer.type() != layerType:
-        message=layerFileName + " is not a "+ str(layerType) + " layer!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
-        return False
-    return True
 
 
 
@@ -27,15 +13,15 @@ def layerNamesTypesOK():
     supposed to be"""
     
     # Check if River is a line layer
-    if not layerNameTypeOK(constants.riverLayerName, QGis.Line):
+    if not h_utils.layerNameTypeOK(h_const.riverLayerName, QGis.Line):
         return False
 
     # Check if Irrigation is a poly layer
-    if not layerNameTypeOK(constants.irrigLayerName, QGis.Polygon):
+    if not h_utils.layerNameTypeOK(h_const.irrigLayerName, QGis.Polygon):
         return False
 
     # Check if Borehold is a point layer
-    if not layerNameTypeOK(constants.borehLayerName, QGis.Point):
+    if not h_utils.layerNameTypeOK(h_const.borehLayerName, QGis.Point):
         return False
 
     return True
@@ -53,17 +39,16 @@ def createHydrojunctionLayer(path):
         return False
     
     # Get segments of River layer
-    riverLayer=ftools_utils.getVectorLayerByName(constants.riverLayerName)
-    riverProvider=riverLayer.dataProvider()
-    riverSegments=riverProvider.getFeatures()
+    riverSegments=h_utils.getLayerFeatures(h_const.riverLayerName)
+    if riverSegments==False: return False
 
     # Loop through segments of River layer to get ending nodes
     inFeat = QgsFeature()
     rivXList= []
     rivYList= []
     i = 0
-    while riverSegments.nextFeature(inFeat)
-        if i=0:  # If this is first segment (river exit), get first point 
+    while riverSegments.nextFeature(inFeat):
+        if i==0:  # If this is first segment (river exit), get first point 
             segment=inFeat.geometry()
             rivXList.append(segment.xat(0) )
             rivYList.append(segment.yat(0) )
@@ -73,33 +58,32 @@ def createHydrojunctionLayer(path):
             rivYList.append(segment.yat(-1))
         i += 1
     
-     # Get the polygons of Irrigation layer
-    irrigLayer=ftools_utils.getVectorLayerByName(constants.irrigLayerName)
-    irrigProvider=irrigLayer.dataProvider()
-    irrigPolygons=irrigProvider.getFeatures()
+    # Get the polygons of Irrigation layer 
+    irrigLayer=h_utils.getLayerFeatures(h_const.irrigLayerName)
+    if not irrigLayer: return False
 
     # Loop through polygons of Irrigation layer to get their centroids
     inFeat = QgsFeature()
     irgXList= []
     irgYList= []
-    while irrigPolygons.nextFeature(inFeat)
+    while irrigPolygons.nextFeature(inFeat):
         centrpoint = inFeat.geometry().centroid()
         irgXList.append(centrpoint.x)
         irgXList.append(centrpoint.y)
     
     # Get the points of Borhole layer
-    borLayer=ftools_utils.getVectorLayerByName(constants.borehLayerName)
-    borProvider=borLayer.dataProvider()
-    borPolygons=borProvider.getFeatures()
+    borLayer=h_utils.getLayerFeatures(h_const.borehLayerName)
+    if not borLayer: return False 
 
     # Get the coords and group_id of points of Borhole layer
     inFeat = QgsFeature()
     pointsXList= []
     pointsYList= []
     pointsId= []
-    groupfield=getFieldIndexByName(borLayer, constants.borehFieldNameGrp)
-    if groupfield==-1: return False
-    while borhPoints.nextFeature(inFeat)
+    groupfield=h_utils.getFieldIndexByName(h_const.borehLayerName,
+                                           h_const.borehFieldNameGrp)
+    if not groupfield: return False
+    while borhPoints.nextFeature(inFeat):
         point=inFeat.geometry()
         pointsXList.append(point.x)
         pointsYList.append(point.y)
@@ -111,7 +95,7 @@ def createHydrojunctionLayer(path):
     borYList= []
     borGrpId=set(pointsId)
     for grpid in borGrpId:
-        indexes=getElementIndexByVal(pointsId, grpid)
+        indexes=h_utils.getElementIndexByVal(pointsId, grpid)
         groupXvals= [pointsXList[i] for i in indexes]
         borXList.append( sum(groupXvals)/len(groupXvals) )
         groupYvals= [pointsYList[i] for i in indexes]
@@ -121,12 +105,12 @@ def createHydrojunctionLayer(path):
     xCoords= rivXList+irgXList+borXList
     yCoords= rivYList+irgYList+borYList
     # get the z values of the [xCoords yCoords] points
-    JunctType= [ [constants.hydroJncIdNodeRiv]*len(rivXList) + 
-                 [constants.hydroJncIdNodeIrg]*len(irgXList) + 
-                 [constants.hydroJncIdNodeBor]*len(borXList) ]
-    createOK=createPointLayer(path, constants.hydroJncLayerName,
+    JunctType= [ [h_const.hydroJncIdNodeRiv]*len(rivXList) + 
+                 [h_const.hydroJncIdNodeIrg]*len(irgXList) + 
+                 [h_const.hydroJncIdNodeBor]*len(borXList) ]
+    createOK=createPointLayer(path, h_const.hydroJncLayerName,
                            [ QgsField(field, QVariant.String) 
-                             for field in constants.hydroJncFieldNames ],
+                             for field in h_const.hydroJncFieldNames ],
                            xCoords, yCoords, 
                            [JunctType, [], [], [], xCoords, xCoords, height ] )
     if not createOK: return False
@@ -135,62 +119,130 @@ def createHydrojunctionLayer(path):
 
 
 
-def linkdRiverductHydrojunction(riverDuct, reversDirect): 
-    """ This function builds the topology of River or Aqueduct shapefiles
+def linkRiverductHydrojunction(riverDuct, reversDirect): 
+    """ This function builds the topology of River or Aqueduct layers
     (RiverDuct) assigning the appropriate Hydrojunction ids to from_node,
-    to_node fields. The arguments are the shapefile (River or Aqueduct) and the
-    direction the topology is built (River is built with revers direction i.e.
-    from exit to upstream nodes).""" 
+    to_node fields. The arguments are the shapefile name (River or Aqueduct) 
+    and the direction the topology is built (River is built with revers 
+    direction i.e. from exit to upstream nodes).""" 
 
     # Get Hydrojunction layer coordinates
-    hydroJncLayer=ftools_utils.getVectorLayerByName(constants.hydroJncLayerName)
-    [xList, yList]= getPointLayerCoords(hydroJncLayer)
+    [xList, yList]= h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
+    if not xList: return False 
 
-    # Get segments of riverDuct shapefile
-    riverDuctProvider= riverDuct.dataProvider() 
-    riverDuctSegments= riverDuctProvider.getFeatures()
+    # Get provider and segments of riverDuct shapefile
+    riverDuctProvider= h_utils.getLayerProvider(riverDuct);
+    riverDuctSegments= h_utils.getLayerFeatures(riverDuct);
+    if not riverDuctSegments: return False
 
     # Get the id of the fields FROM_NODE, TO_NODE
-    fromNode=getFieldIndexByName(riverDuct, constants.riverFieldNameFromNode)
-    if fromNode==-1: return False
-    toNode=getFieldIndexByName(riverDuct, constants.riverFieldNameToNode)
-    if toNode==-1: return False
+    fromNode=h_utils.getFieldIndexByName(riverDuct, 
+                                         h_const.riverFieldNameFromNode)
+    if not fromNode: return False
+    toNode=h_utils.getFieldIndexByName(riverDuct, 
+                                       h_const.riverFieldNameToNode)
+    if not toNode: return False
 
     # Loop through segments of riverDuct
     inFeat = QgsFeature()
     i=0
-    while riverDuctSegments.nextFeature(inFeat)
+    while riverDuctSegments.nextFeature(inFeat):
         segment= inFeat.geometry() 
         if reversDirect:  # Topology is built following reverse direction
-            strtpntX= segment.xat(-1)
-            strtpntY= segment.yat(-1)
-            endtpntX= segment.xat(0)
-            endtpntY= segment.yat(0)
+            strtPntX= segment.xat(-1)
+            strtPntY= segment.yat(-1)
+            endPntX= segment.xat(0)
+            endPntY= segment.yat(0)
         else:
-            strtpntX= segment.xat(0)
-            strtpntY= segment.yat(0)
-            endtpntX= segment.xat(-1)
-            endtpntY= segment.yat(-1)
+            strtPntX= segment.xat(0)
+            strtPntY= segment.yat(0)
+            endPntX= segment.xat(-1)
+            endPntY= segment.yat(-1)
         j=0
         for hydroJunctPntX, hydroJunctPntY in zip(xList,yList):
-            if strtpntX==hydroJunctPntX and strtpntY==hydroJunctPntY:
-                riverDuctSegments.changeAttributeValues({i:{fromNode, j})
-            if endtpntX==hydroJunctPntX and endpntY==hydroJunctPntY:
-                riverDuctSegments.changeAttributeValues({i:{toNode, j})
+            if strtPntX==hydroJunctPntX and strtPntY==hydroJunctPntY:
+                inFeat.changeAttributeValue(fromNode, j)
+            if endPntX==hydroJunctPntX and endPntY==hydroJunctPntY:
+                inFeat.changeAttributeValue(toNode, j)
             j=j+1
         i=i+1 
 
 
-def linkIrrigHydrojunction(layer): 
+
+def linkIrrigHydrojunction(): 
     pass
 
 
-def linkBorehHydrojunction(layer): 
+
+def linkBorehHydrojunction(): 
     pass
 
 
-def addLengthToAtrrTable(layer): 
-    pass
 
-def addAreaToAtrrTable(layer): 
-    pass
+def linkSubbasinRiver():
+    """This function finds for each subbasin the corresponding river_id,
+    node_id and length of the primary river segment """
+
+    # Get River layer
+    riverSegments= h_utils.getLayerFeatures(h_const.riverLayerName)
+    if not riverSegments: return False
+
+    # Get Subbasin layer
+    subbPolygons= h_utils.getLayerFeatures(h_const.subbasLayerName)
+    if not subbPolygons: return False
+
+    # Find the columns of attribute table
+    rivId=h_utils.getFieldIndexByName(h_const.subbasLayerName,
+                                      h_const.subbasFieldNameRivId)
+    rivNode=h_utils.getFieldIndexByName(h_const.subbasLayerName,
+                                        h_const.subbasFieldNameRivNode)
+    primLen=h_utils.getFieldIndexByName(h_const.subbasLayerName,
+                                        h_const.subbasFieldNamePrimLen)
+    if not (rivId and rivNode and primLen): return False
+
+    # Get coords of hydrojunction layer points
+    [xList, yList]= getPointLayerCoords(h_const.hydroJncLayerName)
+
+    # Check that number of river segments euqals the number of subbasins
+    riversNum= getLayerFeaturesCount(h_const.riverLayerName)
+    if not layerFeaturesNumberOK(h_const.subbasLayerName, riversNum): 
+        return False 
+
+    # Loop through segments of River
+    inFeat = QgsFeature()
+    while riverSegments.nextFeature(inFeat):
+        # Get first and last point of river segment
+        segment= inFeat.geometry() 
+        strtPntX= segment.xat(0)
+        strtPntY= segment.yat(0)
+        endPntX= segment.xat(-1)
+        endPntY= segment.yat(-1)
+        strtPnt = QgsGeometry.fromPoint(QgsPoint(strtPntX,strtPntY))
+        endPnt = QgsGeometry.fromPoint(QgsPoint(endPntX,endPntY))
+        # Reset found-flag
+        foundStart= False
+        # Find in which subbasin this point belongs to
+        inFeat2= QgsFeature()
+        j=0
+        while subbPolygons.nextFeature(inFeat2):
+            if inFeat2.geometry().contains(strtPntX):
+                if not foundStart: foundStart= True
+                else:
+                    message="Polygons of Subbasin overlap!"
+                    QtGui.QMessageBox.critical(None,'Error',message, 
+                                                QtGui.QMessageBox.Yes)
+                    return False 
+                # Set the attributes of this polygon
+                inFeat2.changeAttributeValue(rivId, inFeat1.id())
+                inFeat2.changeAttributeValue(primLen,
+                                             inFeat2.geometry().length())
+                if (endPntX, endPntY) in zip(xList, yList):
+                    k=h_utils.getElementIndexByVal(zip(xList, yList), 
+                                                   (endPntX, endPntY) )
+                    inFeat2.changeAttributeValue(rivNode, k)
+                j=j+1
+        if not foundStart:
+                message="The start of a segment is outside of the subbasin!"
+                QtGui.QMessageBox.critical(None,'Error',message, 
+                                            QtGui.QMessageBox.Yes)
+                return False 
