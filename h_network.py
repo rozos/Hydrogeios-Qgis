@@ -5,6 +5,24 @@ import h_utils
 from qgis.core import *
 
 
+def layerConsistenciesOK():
+    """This functions checks that the area of all shapes of a polygon layer
+    is positive and the the length of all shapes of a line layer is positive"""
+    
+    if not getMinFeatureMeasure(h_const.subbasLayerName, 
+                                h_const.subbasLayerType):
+    return False
+
+    if not getMinFeatureMeasure(h_const.groundLayerName, 
+                                h_const.groundLayerType):
+    return False
+
+    if not getMinFeatureMeasure(h_const.riverLayerName, 
+                                h_const.riverLayerType):
+    return False
+
+    # Consistency OK
+    return True
 
 
 def layerNamesTypesOK():
@@ -13,17 +31,21 @@ def layerNamesTypesOK():
     supposed to be"""
     
     # Check if River is a line layer
-    if not h_utils.layerNameTypeOK(h_const.riverLayerName, QGis.Line):
+    if not h_utils.layerNameTypeOK(h_const.riverLayerName, 
+                                   h_const.riverLayerType):
         return False
 
     # Check if Irrigation is a poly layer
-    if not h_utils.layerNameTypeOK(h_const.irrigLayerName, QGis.Polygon):
+    if not h_utils.layerNameTypeOK(h_const.irrigLayerName, 
+                                   h_const.irrigLayerType):
         return False
 
-    # Check if Borehold is a point layer
-    if not h_utils.layerNameTypeOK(h_const.borehLayerName, QGis.Point):
+    # Check if Borehole is a point layer
+    if not h_utils.layerNameTypeOK(h_const.borehLayerName, 
+                                   h_const.borehLayerType):
         return False
 
+    # All names and types are what expected to be
     return True
 
 
@@ -104,15 +126,20 @@ def createHydrojunctionLayer(path):
     # Create a new layer or update the existing
     xCoords= rivXList+irgXList+borXList
     yCoords= rivYList+irgYList+borYList
-    # get the z values of the [xCoords yCoords] points
-    JunctType= [ [h_const.hydroJncIdNodeRiv]*len(rivXList) + 
+    # Create a list with id of the junction type of each junciton
+    junctType= [ [h_const.hydroJncIdNodeRiv]*len(rivXList) + 
                  [h_const.hydroJncIdNodeIrg]*len(irgXList) + 
                  [h_const.hydroJncIdNodeBor]*len(borXList) ]
+    # Get the z values of the [xCoords yCoords] points
+    height = []
+    for x,y in zip(xCoords, yCoords):
+        height.append(getCellValue(h_consts.dtmLayerName, x, y))
+    # Create the Hydrojunction layer
     createOK=createPointLayer(path, h_const.hydroJncLayerName,
                            [ QgsField(field, QVariant.String) 
                              for field in h_const.hydroJncFieldNames ],
                            xCoords, yCoords, 
-                           [JunctType, [], [], [], xCoords, xCoords, height ] )
+                           [junctType, [], [], [], xCoords, xCoords, height ] )
     if not createOK: return False
 
     return True
@@ -130,8 +157,7 @@ def linkRiverductHydrojunction(riverDuct, reversDirect):
     [xList, yList]= h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
     if not xList: return False 
 
-    # Get provider and segments of riverDuct shapefile
-    riverDuctProvider= h_utils.getLayerProvider(riverDuct);
+    # Get segments of riverDuct shapefile
     riverDuctSegments= h_utils.getLayerFeatures(riverDuct);
     if not riverDuctSegments: return False
 
@@ -170,12 +196,30 @@ def linkRiverductHydrojunction(riverDuct, reversDirect):
 
 
 def linkIrrigHydrojunction(): 
-    pass
+    """This function finds for each Irrigation polygon the corresponding 
+    hydrojunciton node"""
 
+    # Get Hydrojunction layer coordinates (x,y pairs)
+    [xList, yList]= h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
+    if not xList: return False 
 
+    # Get polygons of Irrigation shapefile
+    irrigPolygons= h_utils.getLayerFeatures(h_const.irrigLayerName);
+    if not irrigPolygons: return False
 
-def linkBorehHydrojunction(): 
-    pass
+    # Get the index of "junct_id" column
+    JncId=getFieldIndexByName(h_const.irrigLayerName, 
+                              h_const.irrigFieldNameJncId);
+    if not JncId: return False
+
+    # Find to which x,y pair the centroid of each polygon corresponds
+    inFeat=QgsFeature()
+    while irrigPolygons.nextFeature(inFeat):
+        centrpoint = inFeat.geometry().centroid()
+        if (centrpoint.x, centrpoint.y) in zip(xList, yList):
+            k=getElementIndexByVal(zip(xList, yList), 
+                                   (centrpoint.x, centrpoint.y) )
+            inFeat.changeAttributeValue(JuncId, k)
 
 
 
@@ -223,7 +267,6 @@ def linkSubbasinRiver():
         foundStart= False
         # Find in which subbasin this point belongs to
         inFeat2= QgsFeature()
-        j=0
         while subbPolygons.nextFeature(inFeat2):
             if inFeat2.geometry().contains(strtPntX):
                 if not foundStart: foundStart= True
@@ -240,7 +283,6 @@ def linkSubbasinRiver():
                     k=h_utils.getElementIndexByVal(zip(xList, yList), 
                                                    (endPntX, endPntY) )
                     inFeat2.changeAttributeValue(rivNode, k)
-                j=j+1
         if not foundStart:
                 message="The start of a segment is outside of the subbasin!"
                 QtGui.QMessageBox.critical(None,'Error',message, 
