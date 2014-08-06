@@ -1,17 +1,18 @@
 from ftools_utils import *
 from qgis.core import *
 from PyQt4 import QtGui
+import os.path
 
 def layerNameTypeOK(layerName, layerType):
     """This function checks if the type of a layer is what is supposed to be"""
     layer=getVectorLayerByName(layerName)
     if layer==None:
         message=layerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
-    if riverLayer.type() != layerType:
-        message=layerName + " is not a "+ str(layerType) + " layer!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+    if layer.geometryType() != layerType:
+        message=layerName + " is not a type "+ str(layerType) + " layer!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     return True
 
@@ -23,29 +24,30 @@ def layerFeaturesNumberOK(layerName, featuresNum):
     nfeats=getLayerFeaturesCount(layerName)
     if nfeats!=featuresNum:
         message=layerName+" has not "+ str(featuresNum) + " features!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     return True
 
 
 
 def getFieldIndexByName(layerName, fieldname):
-    """ Returns the index of the field named 'name' of the attribute table
+    """Returns the index of the field named 'name' of the attribute table
     of the layer 'vlayer'. If no field with name 'name', returns False and 
     displays an error dialog."""
-    provider.getLayerProvider(layerName)
+    provider=getLayerProvider(layerName)
     if provider:
         i = 0
         fieldsList=provider.fields()
         for field in fieldsList:
-            if field.name==fieldname:
+            if field.name()==fieldname:
                 return i
             i = i + 1
-    if not provider:
-        message=layerName+" not found!"
-    else:
-        message="Field with name "+fieldname+"not found!"
-    QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+    #else:
+    #    return False
+
+    # No field with this name found
+    #message="Field with name "+str(fieldname)+" not found!"
+    #QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
     return False
 
 
@@ -71,8 +73,8 @@ def getPointLayerCoords(layerName):
     yList= []
     inFeat = QgsFeature()
     while points.nextFeature(inFeat):
-         xList.append(inFeat.geometry().x )
-         yList.append(inFeat.geometry().y )
+         xList.append(inFeat.geometry().asPoint().x() )
+         yList.append(inFeat.geometry().asPoint().y() )
 
     return [xList, yList]
 
@@ -83,7 +85,7 @@ def getLayerProvider(layerName):
     layer=getVectorLayerByName(layerName)
     if layer==None:
         message=layerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False 
     provider= layer.dataProvider()
 
@@ -104,7 +106,7 @@ def getLayerFeaturesCount(layerName):
     """This function returns the number of features of a shapefile."""
     provider= getLayerProvider(layerName)
     if not provider: return False
-    return provider.freatureCount()
+    return provider.featureCount()
 
 
 
@@ -114,16 +116,21 @@ def getMinFeatureMeasure(layerName, layerType):
     # Check that type is what is supposed to be
     if not layerNameTypeOK(layerName, layerType): return False
 
+    # Return 0 if it is point layer
+    if layerType==QGis.Point: return 0
+
     # Get features
     features= getLayerFeatures(layerName)
     if not features: return False
 
     # Loop to find smalest polygon
     inFeat= QgsFeature()
-    minfeature=0
-    while polygons.nextFeature(inFeat):
-        if layerType==QGis.Polygon: minfeature=min(minfeature, inFeat.area())
-        if layerType==QGis.Line: minfeature=min(minfeature, inFeat.length())
+    minfeature=1e12 # An arbitrary large number
+    while features.nextFeature(inFeat):
+        if layerType==QGis.Polygon: 
+            minfeature=min(minfeature, inFeat.geometry().area() )
+        if layerType==QGis.Line: 
+            minfeature=min(minfeature, inFeat.geometry().length() )
 
     return minfeature
 
@@ -141,15 +148,24 @@ def getRasterlayerByName(layerName):
 
 
 
-def getCellValue(layerName, x, y):
+def getCellValue(layerName, coords, band):
     """Returns the value of the cell of the layerName raster mape that has
     coordinates x,y"""
-    rlayer=getRasterlayerByName(layerName)
-    if rlayer==None:
-        message=layerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
-        return False 
-    return rlayer.identify(QgsPoint(x,y) )
+    message=""
+    if len(coords)!=2:
+        message="A pair of two numbers only is required for coordinates!"
+    else:
+        rlayer=getRasterlayerByName(layerName)
+        if rlayer==None: message=layerName + "  not loaded or not a raster!"
+        elif band<1 or band>rlayer.bandCount():
+            message=layerName + "  has not that many bands!"
+    if len(message)>0:
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+
+    identity=rlayer.dataProvider().identify( QgsPoint(coords[0], coords[1]),  
+                                           QgsRaster.IdentifyFormatValue )
+    return identity.results()[band]
 
 
 
@@ -166,69 +182,85 @@ def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
     if len(xList) != len(yList):
         message="Number of x values <> number of y values!"
     if len(message)!=0:
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Yes)
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
     # Delete existing layer
-    check = QFile(path+filename)
-    if check.exists():
-        if not QgsVectorFileWriter.deleteShapeFile(path+filename):
-            message=("Can't delete shapefile\n%s")%(path+filename)
-            QtGui.QMessageBox.warning(None,'Error',message, 
-                                      QtGui.QMessageBox.Yes) 
+    pathFilename=os.path.join(path, filename)
+    fileExists= os.path.isfile(pathFilename+".shp")
+    if fileExists:
+        message="Shapefile "+filename+" alredy there. Delete?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
+        if reply==QtGui.QMessageBox.No: return False
+        if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
+            message=("Can't delete shapefile\n%s")%(pathFilename)
+            QtGui.QMessageBox.warning(None,'Error',message,QtGui.QMessageBox.Ok)
             return False
 
+    # Create empty point layer and add attribute fields
+    fieldList = QgsFields()
+    for i,j in zip(fieldNames, fieldTypes):
+        fieldList.append(QgsField(i,j) )
+    writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
+                                QGis.WKBPoint, None, "ESRI Shapefile")
+    if writer.hasError() != QgsVectorFileWriter.NoError:
+        message="Error creating shapefile "+filename
+        QtGui.QMessageBox.warning(None,'Error',message,QtGui.QMessageBox.Ok)
+        return False
+
     # Add points to layer
-    layer=QgsVectorLayer()
-    layer.startEditing()
-    provider=layer.dataProvider()
-    provider.addAttributes(zip(fieldNames, fieldTypes))
     for i, x, y in zip( range(0,len(xList)), xList, yList ):
         feat = QgsFeature()
         feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(x,y)))
         # Add values to attribute table
+        rowValues=[]
         for j in range(0, len(fieldNames)):
-            if len(attrValues[j])>i: feat.addAttribute(j,attrValues[j][i])
-        provider.addFeatures([feat])
+            if len(attrValues[j])>i: rowValues.append(attrValues[j][i])
+            else: rowValues.append(None)
+            feat.setAttributes(rowValues)
+        writer.addFeature(feat)
  
-    # Write shapefile
-    layer.commitChanges()
-    QgsVectorFileWriter.writeAsVectorFormat(layer, path+filename, 
-                                            "utf8", None, "ESRI Shapefile") 
-
-    return True 
+    # Delete the writer to flush features to disk (optional)
+    del writer
+    
 
 
-
-def addMeasureToAtrrTable(layerName, layerType, fieldname):
+def addMeasureToAttrTable(layerName, layerType, fieldname):
     """Add area/length of each feature to the attribute table of a 
     polygon/line shapefile"""
     # Check that type is what is supposed to be
     if not layerNameTypeOK(layerName, layerType): return False
     
-    # Get provider and features
+    # Turn on editing, get provider and features
+    layer=getVectorLayerByName(layerName)
+    if not layer: return False
+    layer.startEditing()
     provider= getLayerProvider(layerName)
     features= getLayerFeatures(layerName)
-    if not features: return False
 
     # Check if the fieldname already exists and if not add one
     fieldIndex=getFieldIndexByName(layerName, fieldname)
     if not fieldIndex:
         res = provider.addAttributes( [ QgsField(fieldname,QVariant.Double) ] )
         if not res: 
-            message="Could not add a field to layer" + layerName 
-            QtGui.QMessageBox.warning(None,'Error',message, 
-                                      QtGui.QMessageBox.Yes) 
+            message="Could not add a field to layer" + str(layerName)
+            QtGui.QMessageBox.warning(None,'Error',message,QtGui.QMessageBox.Ok)
             return False
+        layer.updateFields()
         fieldIndex=getFieldIndexByName(layerName, fieldname)
 
     # Add area/length to attribute table
     inFeat= QgsFeature()
-    while polygons.nextFeature(inFeat):
+    while features.nextFeature(inFeat):
         if layerType==QGis.Polygon: 
-            inFeat.changeAttributeValue(fieldIndex, inFeat.area() )
+            layer.changeAttributeValue(inFeat.id(), fieldIndex, 
+                                       inFeat.geometry().area() )
         if layerType==QGis.Line:
-            inFeat.changeAttributeValue(fieldIndex, inFeat.length() )
+            layer.changeAttributeValue(inFeat.id(), fieldIndex, 
+                                       inFeat.geometry().length() )
 
     # All went OK
+    layer.updateFields()
+    layer.commitChanges()
     return True

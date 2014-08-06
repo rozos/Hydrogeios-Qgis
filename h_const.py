@@ -4,8 +4,8 @@ from PyQt4.QtCore import QVariant
 # Irrigation layer constants
 irrigLayerName="Irrigation"
 irrigLayerType=QGis.Polygon
-irrigFieldNameJncId="junct_id"
-irrigFieldNameArea="irrig_area"
+irrigFieldNameJncId="JUNCT_ID"
+irrigFieldNameArea="IRRIG_AREA"
 
 # River layer constants
 riverLayerName="River"
@@ -31,16 +31,17 @@ hydroJncIdNodeBor=3
 # Subbasing layer constants
 subbasLayerName="Subbasin"
 subbasLayerType=QGis.Polygon
-subbasFieldNameRivId="river_id"
-subbasFieldNameRivNode="river_node"
-subbasFieldNamePrimLen="pr_length"
+subbasFieldNameRivId="RIVER_ID"
+subbasFieldNameRivNode="RIVER_NODE"
+subbasFieldNamePrimLen="PR_LENGTH"
 
 # River Aqueduct constants
 aquedLayerName= "Aqueduct"
+aquedLayerType= QGis.Line
 
 # Groundwater cells
 groundLayerName= "Groundwater"
 groundLayerType= QGis.Polygon
 
 # DTB
-dtmLayerName= "hdr.bgd"
+dtmLayerName= "hdr"
