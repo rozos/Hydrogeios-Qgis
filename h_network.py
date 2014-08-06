@@ -11,15 +11,15 @@ def layerConsistenciesOK():
     
     if not getMinFeatureMeasure(h_const.subbasLayerName, 
                                 h_const.subbasLayerType):
-    return False
+        return False
 
     if not getMinFeatureMeasure(h_const.groundLayerName, 
                                 h_const.groundLayerType):
-    return False
+        return False
 
     if not getMinFeatureMeasure(h_const.riverLayerName, 
                                 h_const.riverLayerType):
-    return False
+        return False
 
     # Consistency OK
     return True

@@ -1,4 +1,5 @@
 from qgis.core import *
+from PyQt4.QtCore import QVariant
 
 # Irrigation layer constants
 irrigLayerName="Irrigation"

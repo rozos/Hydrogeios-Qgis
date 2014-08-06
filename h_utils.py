@@ -121,7 +121,7 @@ def getMinFeatureMeasure(layerName, layerType):
     # Loop to find smalest polygon
     inFeat= QgsFeature()
     minfeature=0
-    while polygons.nextFeature(inFeat)
+    while polygons.nextFeature(inFeat):
         if layerType==QGis.Polygon: minfeature=min(minfeature, inFeat.area())
         if layerType==QGis.Line: minfeature=min(minfeature, inFeat.length())
 
@@ -223,7 +223,7 @@ def addMeasureToAtrrTable(layerName, layerType, fieldname):
 
     # Add area/length to attribute table
     inFeat= QgsFeature()
-    while polygons.nextFeature(inFeat)
+    while polygons.nextFeature(inFeat):
         if layerType==QGis.Polygon: 
             inFeat.changeAttributeValue(fieldIndex, inFeat.area() )
         if layerType==QGis.Line:
