@@ -152,6 +152,7 @@ def getCellValue(layerName, x, y):
     return rlayer.identify(QgsPoint(x,y) )
 
 
+
 def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
                      attrValues):
     """Creates a shapefile with points and populates its attribute table"""

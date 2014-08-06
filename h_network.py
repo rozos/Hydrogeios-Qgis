@@ -25,6 +25,7 @@ def layerConsistenciesOK():
     return True
 
 
+
 def layerNamesTypesOK():
     """This function checks the type of layers employed in topology operations.
     The function returns True if the name and the type of layers is what is 
