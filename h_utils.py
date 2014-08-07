@@ -249,18 +249,18 @@ def addMeasureToAttrTable(layerName, layerType, fieldname):
             return False
         layer.updateFields()
         fieldIndex=getFieldIndexByName(layerName, fieldname)
+        pass
 
     # Add area/length to attribute table
     inFeat= QgsFeature()
     while features.nextFeature(inFeat):
         if layerType==QGis.Polygon: 
-            layer.changeAttributeValue(inFeat.id(), fieldIndex, 
+            res=layer.changeAttributeValue(inFeat.id(), fieldIndex, 
                                        inFeat.geometry().area() )
         if layerType==QGis.Line:
-            layer.changeAttributeValue(inFeat.id(), fieldIndex, 
+            res=layer.changeAttributeValue(inFeat.id(), fieldIndex, 
                                        inFeat.geometry().length() )
 
-    # All went OK
-    layer.updateFields()
+    # Save changes
     layer.commitChanges()
-    return True
+    return res
