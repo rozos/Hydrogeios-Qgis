@@ -3,21 +3,22 @@ import ftools_utils
 import h_const
 import h_utils
 from qgis.core import *
+from PyQt4.QtCore import QVariant
 
 
 def layerConsistenciesOK():
     """This functions checks that the area of all shapes of a polygon layer
     is positive and the the length of all shapes of a line layer is positive"""
     
-    if not getMinFeatureMeasure(h_const.subbasLayerName, 
+    if not h_utils.getMinFeatureMeasure(h_const.subbasLayerName, 
                                 h_const.subbasLayerType):
         return False
 
-    if not getMinFeatureMeasure(h_const.groundLayerName, 
+    if not h_utils.getMinFeatureMeasure(h_const.groundLayerName, 
                                 h_const.groundLayerType):
         return False
 
-    if not getMinFeatureMeasure(h_const.riverLayerName, 
+    if not h_utils.getMinFeatureMeasure(h_const.riverLayerName, 
                                 h_const.riverLayerType):
         return False
 
@@ -71,19 +72,19 @@ def createHydrojunctionLayer(path):
     rivYList= []
     i = 0
     while riverSegments.nextFeature(inFeat):
+        nodes=inFeat.geometry().asPolyline()
         if i==0:  # If this is first segment (river exit), get first point 
-            segment=inFeat.geometry()
-            rivXList.append(segment.xat(0) )
-            rivYList.append(segment.yat(0) )
-        else:    # Get the last point of segment
-            lasttpoint=inFeat.geometry()
-            rivXList.append(segment.xat(-1))
-            rivYList.append(segment.yat(-1))
+            coordsNum=0
+        else:     # Get the last point of segment
+            coordsNum=len(nodes)-1
+        x,y = 0,1
+        rivXList.append( nodes[coordsNum][x] )
+        rivYList.append( nodes[coordsNum][y] )
         i += 1
     
     # Get the polygons of Irrigation layer 
-    irrigLayer=h_utils.getLayerFeatures(h_const.irrigLayerName)
-    if not irrigLayer: return False
+    irrigPolygons=h_utils.getLayerFeatures(h_const.irrigLayerName)
+    if not irrigPolygons: return False
 
     # Loop through polygons of Irrigation layer to get their centroids
     inFeat = QgsFeature()
@@ -91,28 +92,19 @@ def createHydrojunctionLayer(path):
     irgYList= []
     while irrigPolygons.nextFeature(inFeat):
         centrpoint = inFeat.geometry().centroid()
-        irgXList.append(centrpoint.x)
-        irgXList.append(centrpoint.y)
+        irgXList.append(centrpoint.asPoint().x() )
+        irgYList.append(centrpoint.asPoint().y() )
     
     # Get the points of Borhole layer
-    borLayer=h_utils.getLayerFeatures(h_const.borehLayerName)
-    if not borLayer: return False 
+    borehPoints=h_utils.getLayerFeatures(h_const.borehLayerName)
+    if not borehPoints: return False 
 
     # Get the coords and group_id of points of Borhole layer
-    inFeat = QgsFeature()
-    pointsXList= []
-    pointsYList= []
-    pointsId= []
-    groupfield=h_utils.getFieldIndexByName(h_const.borehLayerName,
-                                           h_const.borehFieldNameGrp)
-    if not groupfield: return False
-    while borhPoints.nextFeature(inFeat):
-        point=inFeat.geometry()
-        pointsXList.append(point.x)
-        pointsYList.append(point.y)
-        attribs=point.attributes()
-        pointsId.append(attribs(groupField))
-
+    ( pointsXList, 
+      pointsYList  ) = h_utils.getPointLayerCoords(h_const.borehLayerName)
+    pointsId= h_utils.getFieldAttrValues(h_const.borehLayerName, 
+                                         h_const.borehFieldNameGrp)
+ 
     # Make a List of coords of the gravity centres of the Borhole groups points
     borXList= []
     borYList= []
@@ -126,28 +118,26 @@ def createHydrojunctionLayer(path):
 
     # Create a new layer or update the existing
     xCoords= rivXList+irgXList+borXList
-    yCoords= rivYList+irgYList+borYList
+    yCoords= rivYList+irgYList+borYList 
     # Create a list with id of the junction type of each junciton
-    junctType= [ [h_const.hydroJncIdNodeRiv]*len(rivXList) + 
+    junctType= ( [h_const.hydroJncIdNodeRiv]*len(rivXList) + 
                  [h_const.hydroJncIdNodeIrg]*len(irgXList) + 
-                 [h_const.hydroJncIdNodeBor]*len(borXList) ]
+                 [h_const.hydroJncIdNodeBor]*len(borXList)  )
     # Get the z values of the [xCoords yCoords] points
     height = []
     for x,y in zip(xCoords, yCoords):
-        height.append(getCellValue(h_consts.dtmLayerName, x, y))
+        height.append(h_utils.getCellValue(h_const.dtmLayerName, (x, y), 1) )
     # Create the Hydrojunction layer
-    createOK=createPointLayer(path, h_const.hydroJncLayerName,
-                           [ QgsField(field, QVariant.String) 
-                             for field in h_const.hydroJncFieldNames ],
-                           xCoords, yCoords, 
+    createOK=h_utils.createPointLayer(path, h_const.hydroJncLayerName,
+                           xCoords, yCoords, h_const.hydroJncFieldNames,
+                           h_const.hydroJncFieldTypes, 
                            [junctType, [], [], [], xCoords, xCoords, height ] )
-    if not createOK: return False
 
-    return True
-
+    return createOK
 
 
-def linkRiverductHydrojunction(riverDuct, reversDirect): 
+
+def linkRiverductHydrojunction(layerName, reversDirect): 
     """ This function builds the topology of River or Aqueduct layers
     (RiverDuct) assigning the appropriate Hydrojunction ids to from_node,
     to_node fields. The arguments are the shapefile name (River or Aqueduct) 
@@ -159,40 +149,49 @@ def linkRiverductHydrojunction(riverDuct, reversDirect):
     if not xList: return False 
 
     # Get segments of riverDuct shapefile
-    riverDuctSegments= h_utils.getLayerFeatures(riverDuct);
+    riverDuctSegments= h_utils.getLayerFeatures(layerName);
     if not riverDuctSegments: return False
 
+    # Start editing layer
+    layer=ftools_utils.getVectorLayerByName(layerName)
+    layer.startEditing()
+
     # Get the id of the fields FROM_NODE, TO_NODE
-    fromNode=h_utils.getFieldIndexByName(riverDuct, 
-                                         h_const.riverFieldNameFromNode)
+    fromNode=h_utils.getFieldIndexByName(layerName, 
+                                         h_const.fromNodeFieldName)
     if not fromNode: return False
-    toNode=h_utils.getFieldIndexByName(riverDuct, 
-                                       h_const.riverFieldNameToNode)
+    toNode=h_utils.getFieldIndexByName(layerName, 
+                                       h_const.toNodeFieldName)
     if not toNode: return False
 
     # Loop through segments of riverDuct
     inFeat = QgsFeature()
-    i=0
     while riverDuctSegments.nextFeature(inFeat):
-        segment= inFeat.geometry() 
+        nodes=inFeat.geometry().asPolyline()
+        lastnode=len(nodes)-1
+        frstnode=0
+        x,y = 0,1
         if reversDirect:  # Topology is built following reverse direction
-            strtPntX= segment.xat(-1)
-            strtPntY= segment.yat(-1)
-            endPntX= segment.xat(0)
-            endPntY= segment.yat(0)
+            strtPntX= nodes[lastnode][x]
+            strtPntY= nodes[lastnode][y]
+            endPntX=  nodes[frstnode][x]
+            endPntY=  nodes[frstnode][y]
         else:
-            strtPntX= segment.xat(0)
-            strtPntY= segment.yat(0)
-            endPntX= segment.xat(-1)
-            endPntY= segment.yat(-1)
-        j=0
-        for hydroJunctPntX, hydroJunctPntY in zip(xList,yList):
+            strtPntX= nodes[frstnode][x]
+            strtPntY= nodes[frstnode][y]
+            endPntX=  nodes[lastnode][x]
+            endPntY=  nodes[lastnode][y]
+        jxyList=zip(range(0,len(xList)), xList, yList)
+        for j, hydroJunctPntX, hydroJunctPntY in jxyList:
             if strtPntX==hydroJunctPntX and strtPntY==hydroJunctPntY:
-                inFeat.changeAttributeValue(fromNode, j)
+                inFeat.setAttribute(fromNode, j)
             if endPntX==hydroJunctPntX and endPntY==hydroJunctPntY:
-                inFeat.changeAttributeValue(toNode, j)
-            j=j+1
-        i=i+1 
+                inFeat.setAttribute(toNode, j)
+            layer.updateFeature(inFeat)
+
+    # Save edits
+    layer.commitChanges()
+    return True
 
 
 

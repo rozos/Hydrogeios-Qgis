@@ -10,13 +10,15 @@ irrigFieldNameArea="IRRIG_AREA"
 # River layer constants
 riverLayerName="River"
 riverLayerType=QGis.Line
-riverFieldNameFromNode = "FROM_NODE"
-riverFieldNameToNode =   "TO_NODE"
+
+# Field names given to start/end nodes of a segment
+fromNodeFieldName= "FROM_NODE"
+toNodeFieldName =   "TO_NODE"
 
 # Borehole layer constants
 borehLayerName="Borehole"
 borehLayerType=QGis.Point
-borehFieldNameGrp="GROUP"
+borehFieldNameGrp="GROUP_ID"
 
 # Hydrojunction layer constants
 hydroJncLayerName="HydroJunction"
@@ -40,7 +42,7 @@ aquedLayerName= "Aqueduct"
 aquedLayerType= QGis.Line
 
 # Groundwater cells
-groundLayerName= "Groundwater"
+groundLayerName= "GroundWater"
 groundLayerType= QGis.Polygon
 
 # DTB

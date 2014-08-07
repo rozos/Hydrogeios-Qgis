@@ -30,7 +30,7 @@ def layerFeaturesNumberOK(layerName, featuresNum):
 
 
 
-def getFieldIndexByName(layerName, fieldname):
+def getFieldIndexByName(layerName, fieldName):
     """Returns the index of the field named 'name' of the attribute table
     of the layer 'vlayer'. If no field with name 'name', returns False and 
     displays an error dialog."""
@@ -39,15 +39,15 @@ def getFieldIndexByName(layerName, fieldname):
         i = 0
         fieldsList=provider.fields()
         for field in fieldsList:
-            if field.name()==fieldname:
+            if field.name()==fieldName:
                 return i
             i = i + 1
-    #else:
-    #    return False
+    else:
+        return False
 
     # No field with this name found
-    #message="Field with name "+str(fieldname)+" not found!"
-    #QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+    message="Field with name "+str(fieldName)+" not found!"
+    QtGui.QMessageBox.warning(None,'Error',message, QtGui.QMessageBox.Ok)
     return False
 
 
@@ -76,7 +76,7 @@ def getPointLayerCoords(layerName):
          xList.append(inFeat.geometry().asPoint().x() )
          yList.append(inFeat.geometry().asPoint().y() )
 
-    return [xList, yList]
+    return (xList, yList)
 
 
 
@@ -169,6 +169,23 @@ def getCellValue(layerName, coords, band):
 
 
 
+def getFieldAttrValues(layerName, fieldName):
+    """Gets all values of a field of an attribute table."""
+    features=getLayerFeatures(layerName)
+    if not features:return False
+    fieldIndex=getFieldIndexByName(layerName, fieldName)
+    if not fieldIndex:return False
+
+    values= []
+    inFeat= QgsFeature()
+    while features.nextFeature(inFeat):
+        attribs=inFeat.attributes()
+        values.append(attribs[fieldIndex])
+
+    return values
+
+
+
 def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
                      attrValues):
     """Creates a shapefile with points and populates its attribute table"""
@@ -195,7 +212,7 @@ def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
         if reply==QtGui.QMessageBox.No: return False
         if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
             message=("Can't delete shapefile\n%s")%(pathFilename)
-            QtGui.QMessageBox.warning(None,'Error',message,QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
             return False
 
     # Create empty point layer and add attribute fields
@@ -206,7 +223,7 @@ def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
                                 QGis.WKBPoint, None, "ESRI Shapefile")
     if writer.hasError() != QgsVectorFileWriter.NoError:
         message="Error creating shapefile "+filename
-        QtGui.QMessageBox.warning(None,'Error',message,QtGui.QMessageBox.Ok)
+        QtGui.QMessageBox.critical(None,'Error',message,QtGui.QMessageBox.Ok)
         return False
 
     # Add points to layer
@@ -223,32 +240,34 @@ def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
  
     # Delete the writer to flush features to disk (optional)
     del writer
-    
+    return True
+ 
 
 
-def addMeasureToAttrTable(layerName, layerType, fieldname):
+def addMeasureToAttrTable(layerName, layerType, fieldName):
     """Add area/length of each feature to the attribute table of a 
     polygon/line shapefile"""
     # Check that type is what is supposed to be
     if not layerNameTypeOK(layerName, layerType): return False
     
     # Turn on editing, get provider and features
-    layer=getVectorLayerByName(layerName)
-    if not layer: return False
-    layer.startEditing()
     provider= getLayerProvider(layerName)
     features= getLayerFeatures(layerName)
+    layer=getVectorLayerByName(layerName)
+    layer.startEditing()
 
-    # Check if the fieldname already exists and if not add one
-    fieldIndex=getFieldIndexByName(layerName, fieldname)
+    # Check if the fieldName already exists and if not add one
+    fieldIndex=getFieldIndexByName(layerName, fieldName)
     if not fieldIndex:
-        res = provider.addAttributes( [ QgsField(fieldname,QVariant.Double) ] )
+        message="Field "+str(fieldName)+" is added to the layer "+str(layerName)
+        QtGui.QMessageBox.warning(None,'Info',message,QtGui.QMessageBox.Ok)
+        res = provider.addAttributes( [ QgsField(fieldName,QVariant.Double) ] )
         if not res: 
             message="Could not add a field to layer" + str(layerName)
-            QtGui.QMessageBox.warning(None,'Error',message,QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
             return False
         layer.updateFields()
-        fieldIndex=getFieldIndexByName(layerName, fieldname)
+        fieldIndex=getFieldIndexByName(layerName, fieldName)
         pass
 
     # Add area/length to attribute table
@@ -260,6 +279,7 @@ def addMeasureToAttrTable(layerName, layerType, fieldname):
         if layerType==QGis.Line:
             res=layer.changeAttributeValue(inFeat.id(), fieldIndex, 
                                        inFeat.geometry().length() )
+        layer.updateFeature(inFeat)
 
     # Save changes
     layer.commitChanges()
