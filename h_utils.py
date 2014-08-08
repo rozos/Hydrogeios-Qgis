@@ -136,18 +136,6 @@ def getMinFeatureMeasure(layerName, layerType):
 
 
 
-def getRasterlayerByName(layerName):
-    """Returns a raster layer given its name"""
-    layermap = QgsMapLayerRegistry.instance().mapLayers()
-    for name, layer in layermap.iteritems():
-        if layer.type() == QgsMapLayer.RasterLayer and layer.name()==layerName:
-            if layer.isValid():
-                return layer
-            else:
-                return None
-
-
-
 def getCellValue(layerName, coords, band):
     """Returns the value of the cell of the layerName raster mape that has
     coordinates x,y"""
@@ -155,7 +143,7 @@ def getCellValue(layerName, coords, band):
     if len(coords)!=2:
         message="A pair of two numbers only is required for coordinates!"
     else:
-        rlayer=getRasterlayerByName(layerName)
+        rlayer=getRasterLayerByName(layerName)
         if rlayer==None: message=layerName + "  not loaded or not a raster!"
         elif band<1 or band>rlayer.bandCount():
             message=layerName + "  has not that many bands!"
