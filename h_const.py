@@ -1,6 +1,9 @@
 from qgis.core import *
 from PyQt4.QtCore import QVariant
 
+# Precision of floats' comparisons
+precise=3
+
 # Irrigation layer constants
 irrigLayerName="Irrigation"
 irrigLayerType=QGis.Polygon
@@ -26,7 +29,8 @@ hydroJncFieldNames=("JUNCT_TYPE", "DESCR", "NAME", "TS_ID", "X", "Y", "Z")
 hydroJncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                     QVariant.Int, QVariant.Double, QVariant.Double,
 		    QVariant.Double)
-hydroJncIdNodeRiv=1
+hydroJncIdNodeRiv=0
+hydroJncIdNodeAqu=1
 hydroJncIdNodeIrg=2
 hydroJncIdNodeBor=3
 

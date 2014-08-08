@@ -2,6 +2,23 @@ from ftools_utils import *
 from qgis.core import *
 from PyQt4 import QtGui
 import os.path
+import h_const
+
+def floatsEqual(afloat, bfloat, exponent):
+    """Returns true if float numbers are close enough (enough is defined by
+    the power."""
+    precision=1./pow(10,exponent)
+    if type(afloat) in (tuple, list): 
+        valuelen=len(afloat)
+        if valuelen!=len(bfloat): return None
+    else: 
+        return abs(afloat-bfloat) <= precision
+    equal= True
+    for i in range(valuelen):
+        equal=equal and ( abs(afloat[i]-bfloat[i]) <= precision )
+    return equal
+
+
 
 def layerNameTypeOK(layerName, layerType):
     """This function checks if the type of a layer is what is supposed to be"""
@@ -46,7 +63,8 @@ def getFieldIndexByName(layerName, fieldName):
         return False
 
     # No field with this name found
-    message="Field with name "+str(fieldName)+" not found!"
+    message="Field with name "+str(fieldName)+" not found in layer " +\
+             str(layerName)
     QtGui.QMessageBox.warning(None,'Error',message, QtGui.QMessageBox.Ok)
     return False
 
@@ -55,7 +73,7 @@ def getFieldIndexByName(layerName, fieldName):
 def getElementIndexByVal(alist, value):
     """Finds the indexes of the elements of the list 'alist' that are equal 
     to the value 'value'."""
-    return [i for i in range(len(alist)) if alist[i]==value]    
+    return [i for i in range(len(alist)) if floatsEqual(alist[i],value,h_const.precise)]    
 
 
 
@@ -158,7 +176,7 @@ def getCellValue(layerName, coords, band):
 
 
 def getFieldAttrValues(layerName, fieldName):
-    """Gets all values of a field of an attribute table."""
+    """Gets all values of a field of the attribute table."""
     features=getLayerFeatures(layerName)
     if not features:return False
     fieldIndex=getFieldIndexByName(layerName, fieldName)
@@ -272,3 +290,32 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
     # Save changes
     layer.commitChanges()
     return res
+
+
+
+def setFieldAttrValues(layerName, fieldName, values):
+    """Sets all values of a field of the attribute table."""
+
+    # Get features of layer
+    features= getLayerFeatures(layerName)
+    if not features: return False
+
+    # Get the index of fieldName
+    fieldIndex=getFieldIndexByName(layerName, fieldName)
+    if not fieldIndex: return False
+
+    # Start editing layer
+    layer=getVectorLayerByName(layerName)
+    layer.startEditing()
+
+    # Set the values of the fieldName of the attribute table
+    i=0
+    inFeat=QgsFeature()
+    while features.nextFeature(inFeat):
+        inFeat.setAttribute(fieldIndex, values[i])
+        layer.updateFeature(inFeat)
+        i=i+1
+
+    # Save edits
+    layer.commitChanges()
+    return True
