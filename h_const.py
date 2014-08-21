@@ -7,8 +7,10 @@ precise=3
 # Irrigation layer constants
 irrigLayerName="Irrigation"
 irrigLayerType=QGis.Polygon
-irrigFieldNameJncId="JUNCT_ID"
-irrigFieldNameArea="IRRIG_AREA"
+irrigFieldNames=("IRRIG_AREA", "JUNCT_ID", "RET_PIPE", "RET_RATIO")
+irrigFieldTypes=(QVariant.Double, QVariant.Int, QVariant.Int, QVariant.Double)
+irrigFieldNameJncId=irrigFieldNames[1]
+irrigFieldNameArea=irrigFieldNames[0]
 
 # River layer constants
 riverLayerName="River"
@@ -37,9 +39,17 @@ hydroJncIdNodeBor=3
 # Subbasing layer constants
 subbasLayerName="Subbasin"
 subbasLayerType=QGis.Polygon
-subbasFieldNameRivId="RIVER_ID"
-subbasFieldNameRivNode="RIVER_NODE"
-subbasFieldNamePrimLen="PR_LENGTH"
+subbasFieldNames=("AREA", "X_CENTROID", "Y_CENTROID", "NAME", "DESCR", 
+                  "RIVER_NODE", "RIVER_ID", "MEAN_SLOPE", "MEAN_ELEV", 
+                  "PR_LENGTH", "LAG")
+subbasFieldTypes=(QVariant.Double, QVariant.Double, QVariant.Double, 
+                  QVariant.String, QVariant.String, QVariant.Int, QVariant.Int,
+                  QVariant.Double, QVariant.Double, QVariant.Double, 
+                  QVariant.Double)
+subbasFieldNameArea=subbasFieldNames[0]
+subbasFieldNameRivNode=subbasFieldNames[5]
+subbasFieldNameRivId=subbasFieldNames[6]
+subbasFieldNamePrimLen=subbasFieldNames[9]
 
 # River Aqueduct constants
 aquedLayerName= "Aqueduct"

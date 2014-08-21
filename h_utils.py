@@ -254,6 +254,8 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 
     # Get layer and enable editing
     layer=getVectorLayerByName(layerName)
+    if not layer: return False
+
     layer.startEditing()
 
     # Get dataprovider
