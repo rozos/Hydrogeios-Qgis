@@ -49,5 +49,11 @@ aquedLayerType= QGis.Line
 groundLayerName= "GroundWater"
 groundLayerType= QGis.Polygon
 
+# Outlet layer constants
+outletLayerName="Outlet"
+outletLayerType=QGis.Point
+outletFieldNames=( "X", "Y")
+outletFieldTypes=(QVariant.Double, QVariant.Double)
+
 # DTB
 dtmLayerName= "hdr"

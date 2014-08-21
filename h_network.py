@@ -124,11 +124,12 @@ def createHydrojunctionLayer(path):
                  [h_const.hydroJncIdNodeBor]*len(borXList)  )
     # Get the z values of the [xCoords yCoords] points
     height = []
-    for x,y in zip(xCoords, yCoords):
-        height.append(h_utils.getCellValue(h_const.dtmLayerName, (x, y), 1) )
+    coordinates=zip(xCoords, yCoords)
+    for xy in coordinates:
+        height.append(h_utils.getCellValue(h_const.dtmLayerName, xy, 1) )
     # Create the Hydrojunction layer
     createOK=h_utils.createPointLayer(path, h_const.hydroJncLayerName,
-                           xCoords, yCoords, h_const.hydroJncFieldNames,
+                           coordinates, h_const.hydroJncFieldNames,
                            h_const.hydroJncFieldTypes, 
                            [junctType, [], [], [], xCoords, xCoords, height ] )
 

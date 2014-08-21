@@ -192,7 +192,7 @@ def getFieldAttrValues(layerName, fieldName):
 
 
 
-def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
+def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
                      attrValues):
     """Creates a shapefile with points and populates its attribute table"""
 
@@ -202,8 +202,6 @@ def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
         message="Number of field names <> number of attribute columns!"
     if len(fieldNames) != len(fieldTypes):
         message="Number of field names <> number of field types!"
-    if len(xList) != len(yList):
-        message="Number of x values <> number of y values!"
     if len(message)!=0:
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
@@ -233,9 +231,9 @@ def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
         return False
 
     # Add points to layer
-    for i, x, y in zip( range(0,len(xList)), xList, yList ):
+    for i, xy in zip( range(0,len(coords)), coords):
         feat = QgsFeature()
-        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(x,y)))
+        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(xy[0],xy[1])))
         # Add values to attribute table
         rowValues=[]
         for j in range(0, len(fieldNames)):
