@@ -247,51 +247,41 @@ def createPointLayer(path, filename, xList, yList, fieldNames, fieldTypes,
     # Delete the writer to flush features to disk (optional)
     del writer
     return True
- 
 
 
-def addMeasureToAttrTable(layerName, layerType, fieldName):
-    """Add area/length of each feature to the attribute table of a 
-    polygon/line shapefile"""
-    # Check that type is what is supposed to be
-    if not layerNameTypeOK(layerName, layerType): return False
-    
-    # Turn on editing, get provider and features
-    provider= getLayerProvider(layerName)
-    features= getLayerFeatures(layerName)
+
+def addFieldToAttrTable(layerName, fieldName, fieldType):
+    """Add a fieldName to attribute table of layerName. Returns the index
+    off added field"""
+
+    # Get layer and enable editing
     layer=getVectorLayerByName(layerName)
     layer.startEditing()
 
+    # Get dataprovider
+    provider=getLayerProvider(layerName)
+
     # Check if the fieldName already exists and if not add one
     fieldIndex=getFieldIndexByName(layerName, fieldName)
-    if not fieldIndex:
+    if fieldIndex:
+        # Make sure fieldName is fieldType
+        pass
+    else:
         message="Field "+str(fieldName)+" is added to the layer "+str(layerName)
         QtGui.QMessageBox.warning(None,'Info',message,QtGui.QMessageBox.Ok)
-        res = provider.addAttributes( [ QgsField(fieldName,QVariant.Double) ] )
+        res = provider.addAttributes( [ QgsField(fieldName,fieldType) ] )
         if not res: 
             message="Could not add a field to layer" + str(layerName)
             QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
             return False
         layer.updateFields()
         fieldIndex=getFieldIndexByName(layerName, fieldName)
-        pass
 
-    # Add area/length to attribute table
-    inFeat= QgsFeature()
-    while features.nextFeature(inFeat):
-        if layerType==QGis.Polygon: 
-            res=layer.changeAttributeValue(inFeat.id(), fieldIndex, 
-                                       inFeat.geometry().area() )
-        if layerType==QGis.Line:
-            res=layer.changeAttributeValue(inFeat.id(), fieldIndex, 
-                                       inFeat.geometry().length() )
-        layer.updateFeature(inFeat)
-
-    # Save changes
+    # Save changes and return field index
     layer.commitChanges()
-    return res
+    return fieldIndex
 
-
+ 
 
 def setFieldAttrValues(layerName, fieldName, values):
     """Sets all values of a field of the attribute table."""
@@ -319,3 +309,31 @@ def setFieldAttrValues(layerName, fieldName, values):
     # Save edits
     layer.commitChanges()
     return True
+
+
+
+def addMeasureToAttrTable(layerName, layerType, fieldName):
+    """Add area/length of each feature to the attribute table of a 
+    polygon/line shapefile"""
+    # Check that type is what is supposed to be
+    if not layerNameTypeOK(layerName, layerType): return False
+
+    # Make sure fieldName is already there or create one
+    fieldIndex=addFieldToAttrTable(layerName, fieldName, QVariant.Double )
+    if not fieldIndex: return False
+    
+    # Get features
+    features= getLayerFeatures(layerName)
+    if not features: return False
+
+    # Add area/length to attribute table
+    inFeat= QgsFeature()
+    measures= []
+    while features.nextFeature(inFeat):
+        if layerType==QGis.Polygon: 
+            measures.append(inFeat.geometry().area() )
+        if layerType==QGis.Line:
+            measures.append(inFeat.geometry().length() )
+    res=setFieldAttrValues(layerName, fieldName, measures)
+
+    return res 
