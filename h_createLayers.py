@@ -80,6 +80,8 @@ def initIrrigLayer(path):
                        h_const.irrigFieldNames, h_const.irrigFieldTypes)
     if not ok: return False
 
+    return True
+
 
 
 def initSubbasinLayer(path):
@@ -97,6 +99,7 @@ def initSubbasinLayer(path):
 
     # Get centroids
     centroids=getPolyLayerCentroids(h_const.subbasLayerName)
+    if not centroids: return False
 
     # Add coordinates of polygon centroids to attribute table
     xCoord=[]
@@ -104,7 +107,47 @@ def initSubbasinLayer(path):
     for (x,y) in centroids:
         xCoord.append(x)
         yCoord.append(y)
-    res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
+    ok= h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.subbasFieldNameX, xCoord);
-    res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
+    if not ok: return False
+    ok=h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.subbasFieldNameY, yCoord);
+    if not ok: return False
+
+    return True
+
+
+
+def initGrdWatLayer(path):
+    """Initialize groundwater layer"""
+    ok= initilizeLayer(path, h_const.grdwatLayerName, h_const.grdwatLayerType,
+                       h_const.grdwatFieldNames, h_const.grdwatFieldTypes)
+    if not ok: return False
+    return True
+
+
+
+def initSpringLayer(path):
+    """Initialize spring layer"""
+    ok= initilizeLayer(path, h_const.springLayerName, h_const.springLayerType,
+                       h_const.springFieldNames, h_const.springFieldTypes)
+    if not ok: return False
+    return True
+
+
+
+def initBorehLayer(path):
+    """Initialize boreholes layer"""
+    ok= initilizeLayer(path, h_const.borehLayerName, h_const.borehLayerType,
+                       h_const.borehFieldNames, h_const.borehFieldTypes)
+    if not ok: return False
+    return True
+
+
+
+def initBorehLayer(path):
+    """Initialize river layer"""
+    ok= initilizeLayer(path, h_const.riverLayerName, h_const.riverLayerType,
+                       h_const.riverFieldNames, h_const.riverFieldTypes)
+    if not ok: return False 
+    return True

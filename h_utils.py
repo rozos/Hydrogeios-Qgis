@@ -109,8 +109,7 @@ def getPolyLayerCentroids(layername):
 
     # Get polygons of layername
     polygons= h_utils.getLayerFeatures(layername)
-    if not polygons: 
-        return False 
+    if not polygons: return False 
 
     coords= []
     inFeat=QgsFeature()
