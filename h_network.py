@@ -199,19 +199,12 @@ def linkIrrigHydrojunction():
     [xList, yList]= h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
     if not xList: return False 
 
-    # Get polygons of Irrigation shapefile
-    irrigPolygons= h_utils.getLayerFeatures(h_const.irrigLayerName);
-    if not irrigPolygons: return False 
-
     # Find to which x,y pair the centroid of each polygon corresponds
-    inFeat=QgsFeature()
+    centroids=getPolyLayerCentroids(h_const.irrigLayerName)
     values= []
-    while irrigPolygons.nextFeature(inFeat):
-        centrpoint = inFeat.geometry().centroid().asPoint()
-        #if ( centrpoint.x(), centrpoint.y() ) in zip(xList, yList):
-        k=h_utils.getElementIndexByVal(zip(xList, yList), 
-                                   (centrpoint.x(), centrpoint.y()) )
-        values.append(k[0])
+    for xy in centroids:
+        junctid= h_utils.getElementIndexByVal( zip(xList, yList), xy )[0]
+        values.append(junctid)
 
     # Save edits
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 

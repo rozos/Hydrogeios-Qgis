@@ -100,6 +100,28 @@ def getPointLayerCoords(layerName):
 
 
 
+def getPolyLayerCentroids(layername):
+    """Get centroids of a polygon layer."""
+
+    # Make sure this is a polygon layer
+    if not layerNameTypeOK(layerName, QGis.Polygon):
+        return False
+
+    # Get polygons of layername
+    polygons= h_utils.getLayerFeatures(layername)
+    if not polygons: 
+        return False 
+
+    coords= []
+    inFeat=QgsFeature()
+    while polygons.nextFeature(inFeat):
+        centrpoint = inFeat.geometry().centroid().asPoint()
+        coords.append( (centrpoint.x(), centrpoint.y() )
+
+    return coords 
+
+
+
 def getLayerProvider(layerName):
     """This function returns the dataprovider of a loaded layer""" 
     layer=getVectorLayerByName(layerName)
