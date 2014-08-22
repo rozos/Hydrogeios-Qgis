@@ -50,6 +50,8 @@ subbasFieldNameArea=subbasFieldNames[0]
 subbasFieldNameRivNode=subbasFieldNames[5]
 subbasFieldNameRivId=subbasFieldNames[6]
 subbasFieldNamePrimLen=subbasFieldNames[9]
+subbasFieldNameX=subbasFieldNames[1]
+subbasFieldNameY=subbasFieldNames[2]
 
 # River Aqueduct constants
 aquedLayerName= "Aqueduct"

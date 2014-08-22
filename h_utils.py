@@ -116,7 +116,7 @@ def getPolyLayerCentroids(layername):
     inFeat=QgsFeature()
     while polygons.nextFeature(inFeat):
         centrpoint = inFeat.geometry().centroid().asPoint()
-        coords.append( (centrpoint.x(), centrpoint.y() )
+        coords.append( (centrpoint.x(), centrpoint.y()) )
 
     return coords 
 

@@ -57,7 +57,7 @@ def initilizeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     # Make sure the layer is loaded
     if not ftools_utils.addShapeToCanvas(pathFilename):
         message="Error loading output shapefile:\n%s"  %(pathFilename)
-        QtGui.QMessageBox.critical( None, 'Error', message QtGui.QMessageBox.Ok)
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
 
     # Make sure all required fields are there
