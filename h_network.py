@@ -206,7 +206,7 @@ def linkIrrigHydrojunction():
         junctid= h_utils.getElementIndexByVal( zip(xList, yList), xy )[0]
         values.append(junctid)
 
-    # Save edits
+    # Write centroids to attribute table
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 
                                    h_const.irrigFieldNameJncId, values);
     return res

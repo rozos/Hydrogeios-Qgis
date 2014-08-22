@@ -95,5 +95,16 @@ def initSubbasinLayer(path):
                               h_const.subbasFieldNameArea)
     if not ok: return False
 
+    # Get centroids
+    centroids=getPolyLayerCentroids(h_const.subbasLayerName)
+
     # Add coordinates of polygon centroids to attribute table
-    pass
+    xCoord=[]
+    yCoord=[]
+    for (x,y) in centroids:
+        xCoord.append(x)
+        yCoord.append(y)
+    res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
+                                   h_const.subbasFieldNameX, xCoord);
+    res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
+                                   h_const.subbasFieldNameY, yCoord);
