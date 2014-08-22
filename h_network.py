@@ -1,10 +1,10 @@
-from __future__ import division
-import ftools_utils
-import h_const
-import h_utils
+from __future__ import division 
 from qgis.core import *
 from PyQt4 import QtGui
 from PyQt4.QtCore import QVariant
+import ftools_utils
+import h_const
+import h_utils
 
 
 def layerConsistenciesOK():

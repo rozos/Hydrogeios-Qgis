@@ -1,3 +1,8 @@
+from PyQt4 import QtGui
+from qgis.core import *
+import ftools_utils
+import h_const
+
 def createOutletsLayer(path):
     """ Create a new point layer with the end nodes of the rivers segments."""
 
