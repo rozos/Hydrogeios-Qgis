@@ -4,6 +4,8 @@ from PyQt4 import QtGui
 import os.path
 import h_const
 
+
+
 def floatsEqual(afloat, bfloat, exponent):
     """Returns true if float numbers are close enough (enough is defined by
     the power."""
@@ -265,7 +267,12 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
     fieldIndex=getFieldIndexByName(layerName, fieldName)
     if fieldIndex:
         # Make sure fieldName is fieldType
-        pass
+        field=provider.fields()[fieldIndex]
+        if field.type() != fieldType:
+            message="Field " + str(fieldName) + " already in layer " + \
+                    str(layerName) + " but not of expected type!"
+            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
+            return False
     else:
         message="Field "+str(fieldName)+" is added to the layer "+str(layerName)
         QtGui.QMessageBox.warning(None,'Info',message,QtGui.QMessageBox.Ok)
