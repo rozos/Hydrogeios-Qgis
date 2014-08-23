@@ -1,6 +1,6 @@
-from ftools_utils import *
 from qgis.core import *
 from PyQt4 import QtGui
+import ftools_utils
 import os.path
 import h_const
 
@@ -121,6 +121,27 @@ def getPolyLayerCentroids(layername):
 
 
 
+def getRiverJunctions(riverSegments):
+    """Get ending nodes of river segments."""
+
+    inFeat = QgsFeature()
+    rivXList= []
+    rivYList= []
+    x,y = 0,1
+    while riverSegments.nextFeature(inFeat):
+        nodes=inFeat.geometry().asPolyline()
+        if inFeat.id()==0:  # This is last segment. Get first point
+            frstnode=0
+            rivXList.append( nodes[frstnode][x] )
+            rivYList.append( nodes[frstnode][y] )
+        lastnode=len(nodes)-1
+        rivXList.append( nodes[lastnode][x] )
+        rivYList.append( nodes[lastnode][y] )
+
+    return rivXList, rivYList
+
+
+
 def getLayerProvider(layerName):
     """This function returns the dataprovider of a loaded layer""" 
     layer=getVectorLayerByName(layerName)
@@ -238,7 +259,7 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
         if reply==QtGui.QMessageBox.No: return False
         if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
-            message=("Can't delete shapefile\n%s")%(pathFilename)
+            message="Can't delete shapefile "+pathFilename
             QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
             return False
 
@@ -365,3 +386,14 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
     res=setFieldAttrValues(layerName, fieldName, measures)
 
     return res 
+
+
+
+def addShapeToCanvas(pathFilename):
+    """Wraps the ftools function. It displayes an error message if something
+    goes wrong."""
+
+    if not ftools_utils.addShapeToCanvas(pathFilename):
+        message="Error loading output shapefile "+pathFilename
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        return False

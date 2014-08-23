@@ -63,23 +63,10 @@ def createHydrojunctionLayer(path):
     if not layerNamesTypesOK():
         return False
     
-    # Get segments of River layer
+    # Get ending nodes of river segments
     riverSegments=h_utils.getLayerFeatures(h_const.riverLayerName)
-    if riverSegments==False: return False
-
-    # Loop through segments of River layer to get ending nodes
-    inFeat = QgsFeature()
-    rivXList= []
-    rivYList= []
-    x,y = 0,1
-    while riverSegments.nextFeature(inFeat):
-        nodes=inFeat.geometry().asPolyline()
-        if inFeat.id()==0:  # This is last segment. Get first point too
-            rivXList.append( nodes[0][x] )
-            rivYList.append( nodes[0][y] )
-        lastnode=len(nodes)-1
-        rivXList.append( nodes[lastnode][x] )
-        rivYList.append( nodes[lastnode][y] )
+    if riverSegments==False: return False 
+    (rivXList, rivYList)= h_utils.getRiverJunctions(riverSegments)
     
     # Get the polygons of Irrigation layer 
     irrigPolygons=h_utils.getLayerFeatures(h_const.irrigLayerName)

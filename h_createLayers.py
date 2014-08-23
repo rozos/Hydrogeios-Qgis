@@ -1,35 +1,32 @@
 from PyQt4 import QtGui
 from qgis.core import *
-import ftools_utils
+import os.path
 import h_const
+import h_utils
+
+
 
 def createOutletsLayer(path):
     """ Create a new point layer with the end nodes of the rivers segments."""
 
-    # Get River segments
+    # Get outlets of river segments
     riverSegments= h_utils.getLayerFeatures(h_const.riverLayerName)
     if not riverSegments: return False
+    (endPntXs,endPntYs)= h_utils.getRiverJunctions(riverSegments)
 
-    # Get outlet of river segments
-    inFeat1 = QgsFeature()
-    frstnode=0
-    x,y = 0,1
-    endPntXs= []
-    endPntYs= []
-    while riverSegments.nextFeature(inFeat1):
-        nodes=inFeat1.geometry().asPolyline()
-        endPntXs.append( nodes[frstnode][x] )
-        endPntYs.append( nodes[frstnode][y] )
-    
     coordinates=zip(endPntXs, endPntYs)
-    res= createPointLayer(path, h_const.outletLayerName, coordinates,
+    ok= h_utils.createPointLayer(path, h_const.outletLayerName, coordinates,
                           h_const.outletFieldNames, h_const.outletFieldTypes,
-                          attrValues)
-    return res
+                          (endPntXs, endPntYs) )
+    if not ok: return True
+
+    # Make sure the layer is loaded 
+    pathFilename=os.path.join(path, h_const.outletLayerName)
+    return h_utils.addShapeToCanvas(pathFilename+".shp")
 
 
 
-def initilizeLayer(path, layerName, layerType, fieldNames, fieldTypes):
+def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     """Create a new empty layer with the given fields in attribute table or
     (if already there) make sure the attribute table has all required fields"""
 
@@ -40,12 +37,12 @@ def initilizeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     # If layer does not exist create one
     if not fileExists: 
         # Initialize the list with name/type of attribute table fields
-        fieldList=[]
+        fieldList = QgsFields()
         for fieldname,fieldtype in zip(fieldNames, fieldTypes):
             fieldList.append(QgsField(fieldname,fieldtype) )
         # Create an empty layer
         writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
-                                    layertype, None, "ESRI Shapefile")
+                                    layerType, None, "ESRI Shapefile")
         if writer.hasError() != QgsVectorFileWriter.NoError:
             message="Error creating shapefile "+filename
             QtGui.QMessageBox.critical(None,'Error',message,
@@ -55,9 +52,7 @@ def initilizeLayer(path, layerName, layerType, fieldNames, fieldTypes):
         del writer
 
     # Make sure the layer is loaded
-    if not ftools_utils.addShapeToCanvas(pathFilename):
-        message="Error loading output shapefile:\n%s"  %(pathFilename)
-        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+    if not h_utils.addShapeToCanvas(pathFilename+".shp"):
         return False
 
     # Make sure all required fields are there
@@ -76,7 +71,7 @@ def initIrrigLayer(path):
     """Initialize irrigation layer"""
 
     # Initialize layer
-    ok= initilizeLayer(path, h_const.irrigLayerName, h_const.irrigLayerType,
+    ok= initializeLayer(path, h_const.irrigLayerName, h_const.irrigLayerType,
                        h_const.irrigFieldNames, h_const.irrigFieldTypes)
     if not ok: return False
 
@@ -88,7 +83,7 @@ def initSubbasinLayer(path):
     """Initialize subbasin layer"""
 
     # Initialize layer
-    ok= initilizeLayer(path, h_const.subbasLayerName, h_const.subbasLayerType,
+    ok= initializeLayer(path, h_const.subbasLayerName, h_const.subbasLayerType,
                        h_const.subbasFieldNames, h_const.subbasFieldTypes)
     if not ok: return False
 
@@ -120,7 +115,7 @@ def initSubbasinLayer(path):
 
 def initGrdWatLayer(path):
     """Initialize groundwater layer"""
-    ok= initilizeLayer(path, h_const.grdwatLayerName, h_const.grdwatLayerType,
+    ok= initializeLayer(path, h_const.grdwatLayerName, h_const.grdwatLayerType,
                        h_const.grdwatFieldNames, h_const.grdwatFieldTypes)
     if not ok: return False
     return True
@@ -129,7 +124,7 @@ def initGrdWatLayer(path):
 
 def initSpringLayer(path):
     """Initialize spring layer"""
-    ok= initilizeLayer(path, h_const.springLayerName, h_const.springLayerType,
+    ok= initializeLayer(path, h_const.springLayerName, h_const.springLayerType,
                        h_const.springFieldNames, h_const.springFieldTypes)
     if not ok: return False
     return True
@@ -138,7 +133,7 @@ def initSpringLayer(path):
 
 def initBorehLayer(path):
     """Initialize boreholes layer"""
-    ok= initilizeLayer(path, h_const.borehLayerName, h_const.borehLayerType,
+    ok= initializeLayer(path, h_const.borehLayerName, h_const.borehLayerType,
                        h_const.borehFieldNames, h_const.borehFieldTypes)
     if not ok: return False
     return True
@@ -147,7 +142,7 @@ def initBorehLayer(path):
 
 def initBorehLayer(path):
     """Initialize river layer"""
-    ok= initilizeLayer(path, h_const.riverLayerName, h_const.riverLayerType,
+    ok= initializeLayer(path, h_const.riverLayerName, h_const.riverLayerType,
                        h_const.riverFieldNames, h_const.riverFieldTypes)
     if not ok: return False 
     return True
