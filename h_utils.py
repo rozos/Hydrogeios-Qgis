@@ -1,5 +1,6 @@
 from qgis.core import *
 from PyQt4 import QtGui
+from PyQt4.QtCore import QVariant
 import ftools_utils
 import os.path
 import h_const
@@ -24,7 +25,7 @@ def floatsEqual(afloat, bfloat, exponent):
 
 def layerNameTypeOK(layerName, layerType):
     """This function checks if the type of a layer is what is supposed to be"""
-    layer=getVectorLayerByName(layerName)
+    layer=ftools_utils.getVectorLayerByName(layerName)
     if layer==None:
         message=layerName + "  not loaded!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
@@ -100,15 +101,15 @@ def getPointLayerCoords(layerName):
 
 
 
-def getPolyLayerCentroids(layername):
+def getPolyLayerCentroids(layerName):
     """Get centroids of a polygon layer."""
 
     # Make sure this is a polygon layer
     if not layerNameTypeOK(layerName, QGis.Polygon):
         return False
 
-    # Get polygons of layername
-    polygons= h_utils.getLayerFeatures(layername)
+    # Get polygons of layerName
+    polygons= getLayerFeatures(layerName)
     if not polygons: return False 
 
     coords= []
@@ -144,7 +145,7 @@ def getRiverJunctions(riverSegments):
 
 def getLayerProvider(layerName):
     """This function returns the dataprovider of a loaded layer""" 
-    layer=getVectorLayerByName(layerName)
+    layer=ftools_utils.getVectorLayerByName(layerName)
     if layer==None:
         message=layerName + "  not loaded!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
@@ -297,7 +298,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
     off added field"""
 
     # Get layer and enable editing
-    layer=getVectorLayerByName(layerName)
+    layer=ftools_utils.getVectorLayerByName(layerName)
     if not layer: return False
 
     layer.startEditing()
@@ -344,7 +345,7 @@ def setFieldAttrValues(layerName, fieldName, values):
     if not fieldIndex: return False
 
     # Start editing layer
-    layer=getVectorLayerByName(layerName)
+    layer=ftools_utils.getVectorLayerByName(layerName)
     layer.startEditing()
 
     # Set the values of the fieldName of the attribute table

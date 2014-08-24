@@ -1,6 +1,7 @@
 from PyQt4 import QtGui
 from qgis.core import *
 import os.path
+import ftools_utils
 import h_const
 import h_utils
 
@@ -18,7 +19,7 @@ def createOutletsLayer(path):
     ok= h_utils.createPointLayer(path, h_const.outletLayerName, coordinates,
                           h_const.outletFieldNames, h_const.outletFieldTypes,
                           (endPntXs, endPntYs) )
-    if not ok: return True
+    if not ok: return False
 
     # Make sure the layer is loaded 
     pathFilename=os.path.join(path, h_const.outletLayerName)
@@ -52,13 +53,15 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
         del writer
 
     # Make sure the layer is loaded
-    if not h_utils.addShapeToCanvas(pathFilename+".shp"):
-        return False
+    layer=ftools_utils.getVectorLayerByName(layerName)
+    if not layer:
+        if not h_utils.addShapeToCanvas(pathFilename+".shp"):
+            return False
 
     # Make sure all required fields are there
     res=True
-    for fieldname,fieldtype in (fieldNames, fieldTypes):
-        ok=addFieldToAttrTable(layername, fieldname, fieldtype)
+    for fieldname,fieldtype in zip(fieldNames, fieldTypes):
+        ok=h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)
         if not ok:
             res=False
             break
@@ -71,7 +74,7 @@ def initIrrigLayer(path):
     """Initialize irrigation layer"""
 
     # Initialize layer
-    ok= initializeLayer(path, h_const.irrigLayerName, h_const.irrigLayerType,
+    ok= initializeLayer(path, h_const.irrigLayerName, h_const.irrigGeomType,
                        h_const.irrigFieldNames, h_const.irrigFieldTypes)
     if not ok: return False
 
@@ -83,17 +86,18 @@ def initSubbasinLayer(path):
     """Initialize subbasin layer"""
 
     # Initialize layer
-    ok= initializeLayer(path, h_const.subbasLayerName, h_const.subbasLayerType,
+    ok= initializeLayer(path, h_const.subbasLayerName, h_const.subbasGeomType,
                        h_const.subbasFieldNames, h_const.subbasFieldTypes)
     if not ok: return False
 
     # Add area of polygons to attribute table
-    ok= addMeasureToAttrTable(h_const.subbasLayerName, h_const.subbasLayerType,
-                              h_const.subbasFieldNameArea)
+    ok= h_utils.addMeasureToAttrTable(h_const.subbasLayerName, 
+		                      h_const.subbasLayerType,
+                                      h_const.subbasFieldNameArea)
     if not ok: return False
 
     # Get centroids
-    centroids=getPolyLayerCentroids(h_const.subbasLayerName)
+    centroids=h_utils.getPolyLayerCentroids(h_const.subbasLayerName)
     if not centroids: return False
 
     # Add coordinates of polygon centroids to attribute table
