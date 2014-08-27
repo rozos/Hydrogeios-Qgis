@@ -91,14 +91,14 @@ def initSubbasinLayer(path):
     if not ok: return False
 
     # Add area of polygons to attribute table
-    ok= h_utils.addMeasureToAttrTable(h_const.subbasLayerName, 
+    fieldIndex= h_utils.addMeasureToAttrTable(h_const.subbasLayerName, 
 		                      h_const.subbasLayerType,
                                       h_const.subbasFieldNameArea)
-    if not ok: return False
+    if fieldIndex==None: return False
 
     # Get centroids
     centroids=h_utils.getPolyLayerCentroids(h_const.subbasLayerName)
-    if not centroids: return False
+    if centroids==None: return False
 
     # Add coordinates of polygon centroids to attribute table
     xCoord=[]
@@ -144,7 +144,7 @@ def initBorehLayer(path):
 
 
 
-def initBorehLayer(path):
+def initRiverLayer(path):
     """Initialize river layer"""
     ok= initializeLayer(path, h_const.riverLayerName, h_const.riverLayerType,
                        h_const.riverFieldNames, h_const.riverFieldTypes)
