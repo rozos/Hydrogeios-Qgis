@@ -61,8 +61,8 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     # Make sure all required fields are there
     res=True
     for fieldname,fieldtype in zip(fieldNames, fieldTypes):
-        ok=h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)
-        if not ok:
+        fieldIndex=h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)
+        if fieldIndex==None:
             res=False
             break
 

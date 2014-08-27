@@ -26,7 +26,7 @@ def floatsEqual(afloat, bfloat, exponent):
 def layerNameTypeOK(layerName, layerType):
     """This function checks if the type of a layer is what is supposed to be"""
     layer=ftools_utils.getVectorLayerByName(layerName)
-    if layer==None:
+    if not layer:
         message=layerName + "  not loaded!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
@@ -52,7 +52,7 @@ def layerFeaturesNumberOK(layerName, featuresNum):
 
 def getFieldIndexByName(layerName, fieldName):
     """Returns the index of the field named 'name' of the attribute table
-    of the layer 'vlayer'. If no field with name 'name', returns False and 
+    of the layer 'vlayer'. If no field with name 'name', returns None and 
     displays an error dialog."""
     provider=getLayerProvider(layerName)
     if provider:
@@ -63,13 +63,13 @@ def getFieldIndexByName(layerName, fieldName):
                 return i
             i = i + 1
     else:
-        return False
+        return None
 
     # No field with this name found
     message="Field with name "+str(fieldName)+" not found in layer " +\
              str(layerName)
     QtGui.QMessageBox.warning(None,'Error',message, QtGui.QMessageBox.Ok)
-    return False
+    return None
 
 
 
@@ -83,11 +83,11 @@ def getElementIndexByVal(alist, value):
 def getPointLayerCoords(layerName):
     """This function returns the coordinates of a point layer."""
     # Check if it is a point layer
-    if not layerNameTypeOK(layerName, QGis.Point): return False
+    if not layerNameTypeOK(layerName, QGis.Point): return None
 
     # Get points of HydroJunction layer
     points= getLayerFeatures(layerName)
-    if points==None: return [False, False]
+    if points==None: return [None, None]
 
     # Get X,Y of each Hydrojunction point
     xList= []
@@ -106,11 +106,11 @@ def getPolyLayerCentroids(layerName):
 
     # Make sure this is a polygon layer
     if not layerNameTypeOK(layerName, QGis.Polygon):
-        return False
+        return None
 
     # Get polygons of layerName
     polygons= getLayerFeatures(layerName)
-    if not polygons: return False 
+    if not polygons: return None
 
     coords= []
     inFeat=QgsFeature()
@@ -146,10 +146,10 @@ def getRiverJunctions(riverSegments):
 def getLayerProvider(layerName):
     """This function returns the dataprovider of a loaded layer""" 
     layer=ftools_utils.getVectorLayerByName(layerName)
-    if layer==None:
+    if not layer:
         message=layerName + "  not loaded!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
-        return False 
+        return None
     provider= layer.dataProvider()
 
     return provider
@@ -159,7 +159,7 @@ def getLayerProvider(layerName):
 def getLayerFeatures(layerName):
     """This function returns the features of a shapefile."""
     provider= getLayerProvider(layerName)
-    if not provider: return False
+    if not provider: return None
     features= provider.getFeatures()
     return features
 
@@ -168,7 +168,7 @@ def getLayerFeatures(layerName):
 def getLayerFeaturesCount(layerName):
     """This function returns the number of features of a shapefile."""
     provider= getLayerProvider(layerName)
-    if not provider: return False
+    if not provider: return None
     return provider.featureCount()
 
 
@@ -177,14 +177,14 @@ def getMinFeatureMeasure(layerName, layerType):
     """This function returns the area/length of the smallest polygon/line of 
     a shapefile."""
     # Check that type is what is supposed to be
-    if not layerNameTypeOK(layerName, layerType): return False
+    if not layerNameTypeOK(layerName, layerType): return None
 
     # Return 0 if it is point layer
     if layerType==QGis.Point: return 0
 
     # Get features
     features= getLayerFeatures(layerName)
-    if not features: return False
+    if not features: return None
 
     # Loop to find smalest polygon
     inFeat= QgsFeature()
@@ -212,7 +212,7 @@ def getCellValue(layerName, coords, band):
             message=layerName + "  has not that many bands!"
     if len(message)>0:
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
-        return False
+        return None
 
     identity=rlayer.dataProvider().identify( QgsPoint(coords[0], coords[1]),  
                                            QgsRaster.IdentifyFormatValue )
@@ -223,9 +223,9 @@ def getCellValue(layerName, coords, band):
 def getFieldAttrValues(layerName, fieldName):
     """Gets all values of a field of the attribute table."""
     features=getLayerFeatures(layerName)
-    if not features:return False
+    if not features:return None
     fieldIndex=getFieldIndexByName(layerName, fieldName)
-    if not fieldIndex:return False
+    if fieldIndex==None:return None
 
     values= []
     inFeat= QgsFeature()
@@ -299,7 +299,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 
     # Get layer and enable editing
     layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer: return False
+    if not layer: return None
 
     layer.startEditing()
 
@@ -308,22 +308,22 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 
     # Check if the fieldName already exists and if not add one
     fieldIndex=getFieldIndexByName(layerName, fieldName)
-    if fieldIndex:
+    if fieldIndex!=None:
         # Make sure fieldName is fieldType
         field=provider.fields()[fieldIndex]
         if field.type() != fieldType:
             message="Field " + str(fieldName) + " already in layer " + \
                     str(layerName) + " but not of expected type!"
             QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
-            return False
+            return None
     else:
         message="Field "+str(fieldName)+" is added to the layer "+str(layerName)
         QtGui.QMessageBox.warning(None,'Info',message,QtGui.QMessageBox.Ok)
-        res = provider.addAttributes( [ QgsField(fieldName,fieldType) ] )
-        if not res: 
+        ok = provider.addAttributes( [ QgsField(fieldName,fieldType) ] )
+        if not ok: 
             message="Could not add a field to layer" + str(layerName)
             QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
-            return False
+            return None
         layer.updateFields()
         fieldIndex=getFieldIndexByName(layerName, fieldName)
 
@@ -342,7 +342,7 @@ def setFieldAttrValues(layerName, fieldName, values):
 
     # Get the index of fieldName
     fieldIndex=getFieldIndexByName(layerName, fieldName)
-    if not fieldIndex: return False
+    if fieldIndex==None: return False
 
     # Start editing layer
     layer=ftools_utils.getVectorLayerByName(layerName)
@@ -370,7 +370,7 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
 
     # Make sure fieldName is already there or create one
     fieldIndex=addFieldToAttrTable(layerName, fieldName, QVariant.Double )
-    if not fieldIndex: return False
+    if fieldIndex==None: return False
     
     # Get features
     features= getLayerFeatures(layerName)
@@ -398,3 +398,4 @@ def addShapeToCanvas(pathFilename):
         message="Error loading output shapefile "+pathFilename
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
+    return True
