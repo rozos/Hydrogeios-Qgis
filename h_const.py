@@ -17,7 +17,7 @@ irrigFieldNameArea=irrigFieldNames[0]
 # River layer specifications
 riverLayerName="River"
 riverLayerType=QGis.Line
-#riverGeomType=QGis.WKBLine
+riverGeomType=QGis.WKBLineString
 riverFieldNames=("NAME", "DESCR", "FROM_NODE", "TO_NODE", "LENGTH", "WIDTH", 
                  "BANK_SLOPE", "ROUGH", "INFILT_CF", "Q_MAX", "Q_MIN", 
                  "T_PERC", "ROUTING", "TRAV_TIME", "WGHT_X", )
