@@ -5,6 +5,7 @@ icons_rc.py
 ui*
 *.so
 *.dll
+*~
 dist
 build
 bkif_hess
