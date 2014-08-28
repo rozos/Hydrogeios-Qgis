@@ -73,7 +73,8 @@ subbasFieldNameY=subbasFieldNames[4]
 
 # Spring specifications
 springLayerName= "Spring"
-springLayerType= QGis.WKBPoint
+springLayerType= QGis.Point
+springGeomType= QGis.WKBPoint
 springFieldNames=("NAME", "DESCR", "INI_DISCH", "X", "Y", "ALT", "GROUND_ID",
                   "SUB_ID", "COND")
 springFieldTypes=(QVariant.String, QVariant.String, QVariant.Double, 
@@ -87,7 +88,8 @@ aquedLayerName= "Aqueduct"
 
 # Groundwater cells layer specifications
 grdwatLayerName= "GroundWater"
-grdwatLayerType= QGis.WKBPolygon
+grdwatLayerType= QGis.Polygon
+grdwatGeomType= QGis.WKBPolygon
 grdwatFieldNames=("NAME", "DESCR", "TYPE", "X_CENTROID", "Y_CENTROID", 
                   "INI_LEV", "TOP_LEVEL", "BOT_LEVEL", "POR", "COND", 
                   "COND_GRP", "POR_GRP", )

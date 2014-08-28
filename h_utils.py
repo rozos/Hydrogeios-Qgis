@@ -399,3 +399,8 @@ def addShapeToCanvas(pathFilename):
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
     return True
+
+
+
+def addFieldToDBF(pathFilename, fieldName, fieldType, values):
+    pass

@@ -126,8 +126,8 @@ def createHydrojunctionLayer(path):
 
 def linkRiverductHydrojunction(layerName, reversDirect): 
     """ This function builds the topology of River or Aqueduct layers
-    (RiverDuct) assigning the appropriate Hydrojunction ids to from_node,
-    to_node fields. The arguments are the shapefile name (River or Aqueduct) 
+    (RiverDuct) assigning the appropriate Hydrojunction ids to FROM_NODE,
+    TO_NODE fields. The arguments are the shapefile name (River or Aqueduct) 
     and the direction the topology is built (River is built with revers 
     direction i.e. from exit to upstream nodes).""" 
 
