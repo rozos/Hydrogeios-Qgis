@@ -4,6 +4,7 @@ import os.path
 import ftools_utils
 import h_const
 import h_utils
+import h_network
 
 
 
@@ -13,7 +14,7 @@ def createOutletsLayer(path):
     # Get outlets of river segments
     riverSegments= h_utils.getLayerFeatures(h_const.riverLayerName)
     if not riverSegments: return False
-    (endPntXs,endPntYs)= h_utils.getRiverJunctions(riverSegments)
+    (endPntXs,endPntYs)= h_network.getRiverJunctions(riverSegments)
 
     coordinates=zip(endPntXs, endPntYs)
     ok= h_utils.createPointLayer(path, h_const.outletLayerName, coordinates,
@@ -93,7 +94,7 @@ def initSubbasinLayer(path):
     # Add area of polygons to attribute table
     fieldIndex= h_utils.addMeasureToAttrTable(h_const.subbasLayerName, 
 		                      h_const.subbasLayerType,
-                                      h_const.subbasFieldNameArea)
+                                      h_const.subbasFieldArea)
     if fieldIndex==None: return False
 
     # Get centroids
@@ -107,10 +108,10 @@ def initSubbasinLayer(path):
         xCoord.append(x)
         yCoord.append(y)
     ok= h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.subbasFieldNameX, xCoord);
+                                   h_const.subbasFieldX, xCoord);
     if not ok: return False
     ok=h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.subbasFieldNameY, yCoord);
+                                   h_const.subbasFieldY, yCoord);
     if not ok: return False
 
     return True

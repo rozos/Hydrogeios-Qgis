@@ -122,27 +122,6 @@ def getPolyLayerCentroids(layerName):
 
 
 
-def getRiverJunctions(riverSegments):
-    """Get ending nodes of river segments."""
-
-    inFeat = QgsFeature()
-    rivXList= []
-    rivYList= []
-    x,y = 0,1
-    while riverSegments.nextFeature(inFeat):
-        nodes=inFeat.geometry().asPolyline()
-        if inFeat.id()==0:  # This is last segment. Get first point
-            frstnode=0
-            rivXList.append( nodes[frstnode][x] )
-            rivYList.append( nodes[frstnode][y] )
-        lastnode=len(nodes)-1
-        rivXList.append( nodes[lastnode][x] )
-        rivYList.append( nodes[lastnode][y] )
-
-    return rivXList, rivYList
-
-
-
 def getLayerProvider(layerName):
     """This function returns the dataprovider of a loaded layer""" 
     layer=ftools_utils.getVectorLayerByName(layerName)
@@ -355,6 +334,7 @@ def setFieldAttrValues(layerName, fieldName, values):
         inFeat.setAttribute(fieldIndex, values[i])
         layer.updateFeature(inFeat)
         i=i+1
+	if i>=len(values): break
 
     # Save edits
     layer.commitChanges()
@@ -387,6 +367,14 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
     res=setFieldAttrValues(layerName, fieldName, measures)
 
     return res 
+
+
+
+def linkPolygonLayerToPointLayer(polyLayername, pointLayername, idfield): 
+    """Find the polygons of the polyLayername to which each point of 
+    pointLayername corresponds to. Write to the idfield of pointLayerName 
+    attribute table the id of the corresponding polygon"""
+    pass
 
 
 

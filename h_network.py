@@ -53,6 +53,27 @@ def layerNamesTypesOK():
 
 
 
+def getRiverJunctions(riverSegments):
+    """Get ending nodes of river segments."""
+
+    inFeat = QgsFeature()
+    rivXList= []
+    rivYList= []
+    x,y = 0,1
+    while riverSegments.nextFeature(inFeat):
+        nodes=inFeat.geometry().asPolyline()
+        if inFeat.id()==0:  # This is last segment. Get first point
+            frstnode=0
+            rivXList.append( nodes[frstnode][x] )
+            rivYList.append( nodes[frstnode][y] )
+        lastnode=len(nodes)-1
+        rivXList.append( nodes[lastnode][x] )
+        rivYList.append( nodes[lastnode][y] )
+
+    return rivXList, rivYList
+
+
+
 def createHydrojunctionLayer(path): 
     """This function creates a new point shapefile (or updates the existing),
     named Hydrojunction, with the nodes of River (segments endpoints),
@@ -66,7 +87,7 @@ def createHydrojunctionLayer(path):
     # Get ending nodes of river segments
     riverSegments=h_utils.getLayerFeatures(h_const.riverLayerName)
     if riverSegments==False: return False 
-    (rivXList, rivYList)= h_utils.getRiverJunctions(riverSegments)
+    (rivXList, rivYList)= getRiverJunctions(riverSegments)
     
     # Get the polygons of Irrigation layer 
     irrigPolygons=h_utils.getLayerFeatures(h_const.irrigLayerName)
@@ -89,7 +110,7 @@ def createHydrojunctionLayer(path):
     ( pointsXList, 
       pointsYList  ) = h_utils.getPointLayerCoords(h_const.borehLayerName)
     pointsId= h_utils.getFieldAttrValues(h_const.borehLayerName, 
-                                         h_const.borehFieldNameGrp)
+                                         h_const.borehFieldGrp)
  
     # Make a List of coords of the gravity centres of the Borhole groups points
     borXList= []
@@ -195,7 +216,7 @@ def linkIrrigHydrojunction():
 
     # Write centroids to attribute table
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 
-                                   h_const.irrigFieldNameJncId, values);
+                                   h_const.irrigFieldJncId, values);
     return res
 
 
@@ -260,8 +281,8 @@ def linkSubbasinRiver():
 
     # Save edits
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.subbasFieldNameRivId, rivIds)
+                                   h_const.subbasFieldRivId, rivIds)
     if not res: return False
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.subbasFieldNameRivNode, nodeIds)
+                                   h_const.subbasFieldRivNode, nodeIds)
     return res
