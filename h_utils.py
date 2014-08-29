@@ -334,7 +334,7 @@ def setFieldAttrValues(layerName, fieldName, values):
         inFeat.setAttribute(fieldIndex, values[i])
         layer.updateFeature(inFeat)
         i=i+1
-	if i>=len(values): break
+        if i>=len(values): break
 
     # Save edits
     layer.commitChanges()
@@ -370,11 +370,29 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
 
 
 
-def linkPolygonLayerToPointLayer(polyLayername, pointLayername, idfield): 
+def linkPointLayerPolygonLayer(pointLayerName, polyLayerName): 
     """Find the polygons of the polyLayername to which each point of 
-    pointLayername corresponds to. Write to the idfield of pointLayerName 
-    attribute table the id of the corresponding polygon"""
-    pass
+    pointLayername corresponds to. Return the list with the polygon ids
+    to which each point corresponds to"""
+
+    if not layerNameTypeOK(polyLayerName, QGis.Polygon): return None
+    if not layerNameTypeOK(pointLayerName, QGis.Point): return None
+
+    polygons=getLayerFeatures(polyLayerName)
+    points=getLayerFeatures(pointLayerName)
+
+    polygonIds=[]
+    inFeat1 = QgsFeature()
+    inFeat2 = QgsFeature()
+    while points.nextFeature(inFeat1):
+        polygonId=None
+        while polygons.nextFeature(inFeat2):
+            if inFeat2.geometry().contains(inFeat1):
+                polygonId=inFeat2.id()
+                break
+        polygonIds.append(polygonId)
+
+        return polygonIds 
 
 
 

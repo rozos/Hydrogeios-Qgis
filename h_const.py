@@ -12,7 +12,7 @@ irrigLayerType=QGis.Polygon
 irrigGeomType=QGis.WKBPolygon
 irrigFieldNames=("IRRIG_AREA", "JUNCT_ID", "RET_PIPE", "RET_RATIO")
 irrigFieldTypes=(QVariant.Double, QVariant.Int, QVariant.Double, 
-		 QVariant.Double)
+                 QVariant.Double)
 irrigFieldJncId=irrigFieldNames[1]
 irrigFieldArea=irrigFieldNames[0]
 
@@ -88,6 +88,8 @@ springFieldNames=("NAME", "DESCR", "INI_DISCH", "X", "Y", "ALT", "GROUND_ID",
 springFieldTypes=(QVariant.String, QVariant.String, QVariant.Double, 
                   QVariant.Double, QVariant.Double, QVariant.Double, 
                   QVariant.Int, QVariant.Int, QVariant.Double,  )
+springFieldGroundId=springFieldNames[6]
+springFieldSubbasId=springFieldNames[7]
 
 
 # Aqueduct layer specifications
