@@ -83,11 +83,11 @@ def edgeBetweenGroundwaterCells():
 def linkSpringToGroundwater():
     """Add in the GROUND_ID field of Spring layer the ids of Groundwater cells 
     that correspond to each spring."""
-    grdwaterIdList=linkPointLayerPolygonLayer(h_const.springLayerName, 
+    grdwaterIdList=h_utils.linkPointLayerPolygonLayer(h_const.springLayerName, 
                                       h_const.grdwatLayerName)
     if not grdwaterIdList: return False
 
-    return setFieldAttrValues(h_const.springLayerName, 
+    return h_utils.setFieldAttrValues(h_const.springLayerName, 
                               h_const.springFieldGroundId, grdwaterIdList)
 
 
@@ -95,11 +95,11 @@ def linkSpringToGroundwater():
 def linkSpringToSubbasinr(): 
     """Add in the SUB_ID field of the Spring layer the ids of Subbasin polygons 
     that correspond to each spring."""
-    subbasIdList=linkPointLayerPolygonLayer(h_const.springLayerName,
+    subbasIdList=h_utils.linkPointLayerPolygonLayer(h_const.springLayerName,
                                       h_const.subbasLayerName)
     if not subbasIdList: return False
 
-    return setFieldAttrValues(h_const.springLayerName, 
+    return h_utils.setFieldAttrValues(h_const.springLayerName, 
                               h_const.springFieldSubbasId, subbasIdList)
 
 
@@ -107,11 +107,21 @@ def linkSpringToSubbasinr():
 def linkBoreholeToGroundwater():
     """Add in the GROUND_ID field of the Borehole layer the ids of the 
     Groundwater cells that correspond to each borehole."""
-    pass
+    grdwaterIdList=h_utils.linkPointLayerPolygonLayer(h_const.borehLayerName, 
+                                      h_const.grdwatLayerName)
+    if not grdwaterIdList: return False
+
+    return h_utils.setFieldAttrValues(h_const.borehLayerName, 
+                              h_const.borehFieldGroundId, grdwaterIdList)
 
 
 
 def linkBoreholeToSubbasin():
     """Add in the SUB_ID field of the Borehole layer the ids of the Subbasin
     polygons that correspond to each borehole."""
-    pass
+    subbasIdList=h_utils.linkPointLayerPolygonLayer(h_const.borehLayerName,
+                                      h_const.subbasLayerName)
+    if not subbasIdList: return False
+
+    return h_utils.setFieldAttrValues(h_const.borehLayerName, 
+                              h_const.borehFieldSubbasId, subbasIdList)

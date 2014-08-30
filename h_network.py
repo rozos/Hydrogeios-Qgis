@@ -110,7 +110,7 @@ def createHydrojunctionLayer(path):
     ( pointsXList, 
       pointsYList  ) = h_utils.getPointLayerCoords(h_const.borehLayerName)
     pointsId= h_utils.getFieldAttrValues(h_const.borehLayerName, 
-                                         h_const.borehFieldGrp)
+                                         h_const.borehFieldGroupId)
  
     # Make a List of coords of the gravity centres of the Borhole groups points
     borXList= []

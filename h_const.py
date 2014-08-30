@@ -13,8 +13,8 @@ irrigGeomType=QGis.WKBPolygon
 irrigFieldNames=("IRRIG_AREA", "JUNCT_ID", "RET_PIPE", "RET_RATIO")
 irrigFieldTypes=(QVariant.Double, QVariant.Int, QVariant.Double, 
                  QVariant.Double)
-irrigFieldJncId=irrigFieldNames[1]
-irrigFieldArea=irrigFieldNames[0]
+irrigFieldArea=  irrigFieldNames[0]
+irrigFieldJncId= irrigFieldNames[1]
 
 
 # River layer specifications
@@ -45,7 +45,9 @@ borehFieldTypes=(QVariant.String, QVariant.String, QVariant.Int,
                  QVariant.Double, QVariant.Double,  QVariant.Double,
                  QVariant.Int, QVariant.Int, QVariant.Int, QVariant.Double,
                  QVariant.Double,  QVariant.Double, )
-borehFieldGrp=borehFieldNames[6]
+borehFieldGroundId= borehFieldNames[6]
+borehFieldSubbasId= borehFieldNames[7]
+borehFieldGroupId = borehFieldNames[8]
 
 
 # Hydrojunction layer specifications
@@ -71,12 +73,12 @@ subbasFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
                   QVariant.Double, QVariant.Double, QVariant.Int, QVariant.Int,
                   QVariant.Double, QVariant.Double, QVariant.Double, 
                   QVariant.Double)
-subbasFieldArea=subbasFieldNames[2]
-subbasFieldRivNode=subbasFieldNames[5]
-subbasFieldRivId=subbasFieldNames[6]
-subbasFieldPrimLen=subbasFieldNames[9]
-subbasFieldX=subbasFieldNames[3]
-subbasFieldY=subbasFieldNames[4]
+subbasFieldArea=    subbasFieldNames[2]
+subbasFieldX=       subbasFieldNames[3]
+subbasFieldY=       subbasFieldNames[4]
+subbasFieldRivNode= subbasFieldNames[5]
+subbasFieldRivId=   subbasFieldNames[6]
+subbasFieldPrimLen= subbasFieldNames[9]
 
 
 # Spring specifications
@@ -88,8 +90,8 @@ springFieldNames=("NAME", "DESCR", "INI_DISCH", "X", "Y", "ALT", "GROUND_ID",
 springFieldTypes=(QVariant.String, QVariant.String, QVariant.Double, 
                   QVariant.Double, QVariant.Double, QVariant.Double, 
                   QVariant.Int, QVariant.Int, QVariant.Double,  )
-springFieldGroundId=springFieldNames[6]
-springFieldSubbasId=springFieldNames[7]
+springFieldGroundId= springFieldNames[6]
+springFieldSubbasId= springFieldNames[7]
 
 
 # Aqueduct layer specifications
@@ -109,7 +111,7 @@ grdwatFieldTypes=(QVariant.String, QVariant.String, QVariant.Int,
                   QVariant.Double, QVariant.Double, QVariant.Double, 
                   QVariant.Double, QVariant.Double, QVariant.Double, 
                   QVariant.Double, QVariant.Int, QVariant.Int, )
-grdwatFieldName=grdwatFieldNames[0]
+grdwatFieldName= grdwatFieldNames[0]
 
 
 # Outlet layer specifications
