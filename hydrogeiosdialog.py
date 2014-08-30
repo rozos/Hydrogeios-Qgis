@@ -22,7 +22,6 @@
 
 from PyQt4 import QtCore, QtGui
 from ui_hydrogeios import Ui_Hydrogeios
-# create the dialog for zoom to point
 
 
 class HydrogeiosDialog(QtGui.QDialog, Ui_Hydrogeios):

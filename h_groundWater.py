@@ -125,3 +125,17 @@ def linkBoreholeToSubbasin():
 
     return h_utils.setFieldAttrValues(h_const.borehLayerName, 
                               h_const.borehFieldSubbasId, subbasIdList)
+
+
+
+def createRiverGroundwater():
+    """Use groundwater cells to clip the river segments to create a new layer
+    that links River with Groundwater."""
+    pass
+
+
+
+def createGroundwaterSubbasinHRU():
+    """Use groundwater cells to clip the subbasinHRU polygons to create a new 
+    layer that links Groundwater with Subbasin-HRU ."""
+    pass

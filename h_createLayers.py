@@ -24,7 +24,7 @@ def createOutletsLayer(path):
 
     # Make sure the layer is loaded 
     pathFilename=os.path.join(path, h_const.outletLayerName)
-    return h_utils.addShapeToCanvas(pathFilename+".shp")
+    return h_utils.loadShapefileToCanvas(pathFilename+".shp")
 
 
 
@@ -56,7 +56,7 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     # Make sure the layer is loaded
     layer=ftools_utils.getVectorLayerByName(layerName)
     if not layer:
-        if not h_utils.addShapeToCanvas(pathFilename+".shp"):
+        if not h_utils.loadShapefileToCanvas(pathFilename+".shp"):
             return False
 
     # Make sure all required fields are there

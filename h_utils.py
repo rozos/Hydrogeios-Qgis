@@ -7,6 +7,49 @@ import h_const
 
 
 
+def packInteger(num, order):
+    """Packs an integer number, ranging from 0 to 15, into a binary 
+    structure that can holds up to 7 integers.
+     1111 1111 1111 1111 1111 1111 1111
+     |                             |
+     |                             `-> First (order 1) number packed here
+     `-> Seventh (order 7) number packed here."""
+    if (order < 1) or (order > 7):
+        return None
+
+    if (num > 15) or (num < 0):
+        return None
+
+    return num * math.Round(2 ^ (4 * (order - 1))
+
+
+
+def unpackInteger(num, order):
+    """Unpack the integer that was packed into the binary structure described
+    above."""
+
+    if (order < 1) or (order > 7):
+        return None
+
+    if (num > 268435455) or (num < 0):
+        return None
+
+    return (num And 15 * 2 ^ (4 * (order - 1))) / 2 ^ (4 * (order - 1))
+
+
+
+def loadShapefileToCanvas(pathFilename):
+    """Wraps the ftools function. It displayes an error message if something
+    goes wrong."""
+
+    if not ftools_utils.addShapeToCanvas(pathFilename):
+        message="Error loading output shapefile "+pathFilename
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        return False
+    return True
+
+
+
 def floatsEqual(afloat, bfloat, exponent):
     """Returns true if float numbers are close enough (enough is defined by
     the power."""
@@ -370,6 +413,19 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
 
 
 
+def addFieldToDBF(pathFilename, fieldName, fieldType, values):
+    """Creates a new dbf file (or updates an existing) with the values provided
+    in the values list (this is a list of lists in case of many fields."""
+
+    if len(fieldName)!=len(fieldType):
+        message="addFieldToDBF arguments error!"
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        return False
+
+    pass
+
+
+
 def linkPointLayerPolygonLayer(pointLayerName, polyLayerName): 
     """Find the polygons of the polyLayername to which each point of 
     pointLayername corresponds to. Return the list with the polygon ids
@@ -395,18 +451,3 @@ def linkPointLayerPolygonLayer(pointLayerName, polyLayerName):
         return polygonIds 
 
 
-
-def addShapeToCanvas(pathFilename):
-    """Wraps the ftools function. It displayes an error message if something
-    goes wrong."""
-
-    if not ftools_utils.addShapeToCanvas(pathFilename):
-        message="Error loading output shapefile "+pathFilename
-        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
-        return False
-    return True
-
-
-
-def addFieldToDBF(pathFilename, fieldName, fieldType, values):
-    pass
