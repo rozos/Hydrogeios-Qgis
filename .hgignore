@@ -2,7 +2,7 @@ syntax: glob
 *\bin\*
 *.pyc
 icons_rc.py
-ui*
+ui_\*
 *.so
 *.dll
 *~
