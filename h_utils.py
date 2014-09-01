@@ -9,7 +9,7 @@ import h_const
 
 def packInteger(num, order):
     """Packs an integer number, ranging from 0 to 15, into a binary 
-    structure that can holds up to 7 integers.
+    structure that can hold up to 7 integers.
      1111 1111 1111 1111 1111 1111 1111
      |                             |
      |                             `-> First (order 1) number packed here
@@ -20,12 +20,12 @@ def packInteger(num, order):
     if (num > 15) or (num < 0):
         return None
 
-    return num * math.Round(2 ^ (4 * (order - 1))
+    return num * iround(2 ^ (4 * (order - 1)))
 
 
 
 def unpackInteger(num, order):
-    """Unpack the integer that was packed into the binary structure described
+    """Unpacks the integer that was packed into the binary structure described
     above."""
 
     if (order < 1) or (order > 7):
@@ -34,19 +34,14 @@ def unpackInteger(num, order):
     if (num > 268435455) or (num < 0):
         return None
 
-    return (num And 15 * 2 ^ (4 * (order - 1))) / 2 ^ (4 * (order - 1))
+    return (num & 15 * 2 ^ (4 * (order - 1))) / 2 ^ (4 * (order - 1))
 
 
 
-def loadShapefileToCanvas(pathFilename):
-    """Wraps the ftools function. It displayes an error message if something
-    goes wrong."""
-
-    if not ftools_utils.addShapeToCanvas(pathFilename):
-        message="Error loading output shapefile "+pathFilename
-        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
-        return False
-    return True
+def iround(x):
+    """iround(number) -> integer Round a number to the nearest integer."""
+    y = round(x) - .5
+    return int(y) + (y > 0)
 
 
 
@@ -63,6 +58,18 @@ def floatsEqual(afloat, bfloat, exponent):
     for i in range(valuelen):
         equal=equal and ( abs(afloat[i]-bfloat[i]) <= precision )
     return equal
+
+
+
+def loadShapefileToCanvas(pathFilename):
+    """Wraps the ftools function. It displayes an error message if something
+    goes wrong."""
+
+    if not ftools_utils.addShapeToCanvas(pathFilename):
+        message="Error loading output shapefile "+pathFilename
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        return False
+    return True
 
 
 
@@ -315,6 +322,27 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
 
 
 
+def createDBF(path, filename, fieldNames, fieldTypes, values):
+    """Creates a new dbf file (or updates an existing) with the values provided
+    in the values list (this is a list of lists in case of many fields."""
+
+    # Check validity of arguments' length
+    numvalues=len(fieldNames)
+    if numvalues!=len(fieldTypes) or numvalues==0:
+        message="addFieldToDBF arguments error!"
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        return False
+
+    # Create the list with the coordinates of dummy points
+    coords=zip([0]*numvalues, [0]*numvalues)
+
+    # Create dummy shapefile to create the required dbf file
+    ok=createPointLayer(path, filename, coords, fieldNames, fieldTypes, values)
+
+    return ok
+
+
+
 def addFieldToAttrTable(layerName, fieldName, fieldType):
     """Add a fieldName to attribute table of layerName. Returns the index
     off added field"""
@@ -413,19 +441,6 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
 
 
 
-def addFieldToDBF(pathFilename, fieldName, fieldType, values):
-    """Creates a new dbf file (or updates an existing) with the values provided
-    in the values list (this is a list of lists in case of many fields."""
-
-    if len(fieldName)!=len(fieldType):
-        message="addFieldToDBF arguments error!"
-        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
-        return False
-
-    pass
-
-
-
 def linkPointLayerPolygonLayer(pointLayerName, polyLayerName): 
     """Find the polygons of the polyLayername to which each point of 
     pointLayername corresponds to. Return the list with the polygon ids
@@ -449,5 +464,4 @@ def linkPointLayerPolygonLayer(pointLayerName, polyLayerName):
         polygonIds.append(polygonId)
 
         return polygonIds 
-
 

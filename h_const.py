@@ -136,7 +136,7 @@ HRUGeomType= QGis.WKBPolygon
 HRUFieldNames=("DESCR", "NAME", "AREA", "HRU_CODE", "RNF_CF", "CAP", "KAPA",
                "LAMDA", "MI", "EPSILON", "EVAP_CAP",)
 HRUFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
-               QVariant.Int, QQVariant.Double, QQVariant.Double, 
+               QVariant.Int, QVariant.Double, QVariant.Double, 
                QVariant.Double, QVariant.Double, QVariant.Double, 
                QVariant.Double, QVariant.Double, )
 
@@ -148,7 +148,7 @@ subHRUGeomType= QGis.WKBPolygon
 subHRUFieldNames=("NAME", "DESCR", "HRU_ID", "SUB_ID", "AREA", "INI_STOR",
                   "INI_EVAP", )
 subHRUFieldTypes=(QVariant.String, QVariant.String, QVariant.Int, 
-                  QVariant.Int, QQVariant.Double, QQVariant.Double, 
+                  QVariant.Int, QVariant.Double, QVariant.Double, 
                   QVariant.Double, )
 
 
@@ -157,7 +157,7 @@ groundSubHRULayerName="SubGroundHRU"
 groundSubHRULayerType= QGis.Polygon
 groundSubHRUGeomType= QGis.WKBPolygon
 groundSubHRUFieldNames=("HRU_ID", "SUB_ID", "GROUND_ID", "AREA",)
-groundSubHRUFieldTypes=(QVariant.Int, QVariant.Int, QQVariant.Int, 
+groundSubHRUFieldTypes=(QVariant.Int, QVariant.Int, QVariant.Int, 
                         QVariant.Double, )
 
 
