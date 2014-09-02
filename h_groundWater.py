@@ -131,11 +131,27 @@ def linkBoreholeToSubbasin():
 def createRiverGroundwater():
     """Use groundwater cells to clip the river segments to create a new layer
     that links River with Groundwater."""
-    pass
+
+    # Add to the attr. table of Groundwater a field that keeps the cells id
+    ok=h_utils.addShapeIdToField(h_const.grdwatLayerName, 
+                                 h_const.riverGroundFieldGroundId) 
+    if not ok: return False
+
+    # Add to the attr. table of River a field that keeps the segments id
+    ok=h_utils.addShapeIdToField(h_const.riverLayerName, 
+                                 h_const.riverGroundFieldRiverId)
+    if not ok: return False
+
+    # Clip river with Groundwater
+
+
+    # Add to the RiverGroundwater attr. table the length of the segments
+    
+    
 
 
 
 def createGroundwaterSubbasinHRU():
-    """Use groundwater cells to clip the subbasinHRU polygons to create a new 
-    layer that links Groundwater with Subbasin-HRU ."""
+    """Use groundwater cells to intersect the subbasinHRU polygons to create a 
+    new layer that links Groundwater with Subbasin-HRU ."""
     pass

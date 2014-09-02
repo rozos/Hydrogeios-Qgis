@@ -127,6 +127,9 @@ riverGroundLayerType= QGis.Line
 riverGroundGeomType= QGis.WKBLineString
 riverGroundFieldNames=("RIVERID", "GROUND_ID", "LENGTH",)
 riverGroundFieldTypes=(QVariant.Int, QVariant.Int, QVariant.Double, )
+riverGroundFieldRiverId=riverGroundFieldNames[0]
+riverGroundFieldGroundId=riverGroundFieldNames[1]
+riverGroundFieldLength=riverGroundFieldNames[2]
 
 
 # HRU layer specifications

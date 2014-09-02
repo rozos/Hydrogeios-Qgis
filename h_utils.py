@@ -381,7 +381,17 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
     layer.commitChanges()
     return fieldIndex
 
- 
+
+
+def addShapeIdToField(layerName, fieldName):
+    """Add to the attribute table of a layer a field that keeps the ids of the 
+       shapes"""
+    ok=addFieldToAttrTable(layerName,fieldName, QVariant.Int)
+    if not ok: return False
+    values=range(getLayerFeaturesCount(layerName))
+    return setFieldAttrValues(layerName,fieldName, values)
+    
+    
 
 def setFieldAttrValues(layerName, fieldName, values):
     """Sets all values of a field of the attribute table."""
