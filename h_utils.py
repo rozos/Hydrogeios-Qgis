@@ -9,44 +9,6 @@ import h_const
 
 
 
-def packInteger(num, order):
-    """Packs an integer number, ranging from 0 to 15, into a binary 
-    structure that can hold up to 7 integers.
-     1111 1111 1111 1111 1111 1111 1111
-     |                             |
-     |                             `-> First (order 1) number packed here
-     `-> Seventh (order 7) number packed here."""
-    if (order < 1) or (order > 7):
-        return None
-
-    if (num > 15) or (num < 0):
-        return None
-
-    return num * iround(2 ^ (4 * (order - 1)))
-
-
-
-def unpackInteger(num, order):
-    """Unpacks the integer that was packed into the binary structure described
-    above."""
-
-    if (order < 1) or (order > 7):
-        return None
-
-    if (num > 268435455) or (num < 0):
-        return None
-
-    return (num & 15 * 2 ^ (4 * (order - 1))) / 2 ^ (4 * (order - 1))
-
-
-
-def iround(x):
-    """iround(number) -> integer Round a number to the nearest integer."""
-    y = round(x) - .5
-    return int(y) + (y > 0)
-
-
-
 def floatsEqual(afloat, bfloat, exponent):
     """Returns true if float numbers are close enough (enough is defined by
     the power."""
