@@ -1,5 +1,6 @@
 from PyQt4 import QtGui
 from qgis.core import *
+from qgis.analysis import *
 import math
 import itertools
 import ftools_utils
@@ -18,6 +19,9 @@ def layerNameTypesOK():
     if not h_utils.layerNameTypeOK(h_const.borehLayerName, 
                                    h_const.borehLayerType):
         return False 
+    if not h_utils.layerNameTypeOK(h_const.riverLayerName, 
+                                   h_const.riverLayerType):
+        return False
     return True
 
 
@@ -128,30 +132,63 @@ def linkBoreholeToSubbasin():
 
 
 
-def createRiverGroundwater():
+def createRiverGroundwater(path):
     """Use groundwater cells to clip the river segments to create a new layer
     that links River with Groundwater."""
 
     # Add to the attr. table of Groundwater a field that keeps the cells id
     ok=h_utils.addShapeIdToField(h_const.grdwatLayerName, 
-                                 h_const.riverGroundFieldGroundId) 
+                                 h_const.riverGrdwatFieldGrdwatId) 
     if not ok: return False
 
     # Add to the attr. table of River a field that keeps the segments id
     ok=h_utils.addShapeIdToField(h_const.riverLayerName, 
-                                 h_const.riverGroundFieldRiverId)
+                                 h_const.riverGrdwatFieldRiverId)
     if not ok: return False
 
-    # Clip river with Groundwater
+    # Delete existing shapefile
+    h_utils.delExistingShapefile( path, h_const.riverGrdwatLayerName )
+
+    # Intersect river with Groundwater
+    pathFilename=os.path.join( path, h_const.riverGrdwatLayerName )
+    overlayAnalyzer = QgsOverlayAnalyzer()
+    ok=overlayAnalyzer.intersection( h_const.riverLayerName, 
+                                     h_const.grdwatLayerName, 
+                                     pathFilename+".shp" )
+    if not ok: return False
 
 
-    # Add to the RiverGroundwater attr. table the length of the segments
+    # Update the length of the segments to the RiverGroundwater attr. table 
+    ok= addMeasureToAttrTable( h_const.riverGrdwatLayerName,
+                               h_const.riverGrdwatLayerType,
+                               h_const.riverGrdwatFieldLength )
+
+    return ok
     
     
 
-
-
-def createGroundwaterSubbasinHRU():
+def createGroundwaterSubbasinHRU(path):
     """Use groundwater cells to intersect the subbasinHRU polygons to create a 
-    new layer that links Groundwater with Subbasin-HRU ."""
-    pass
+    new layer (SubGroundHRU) that links Groundwater with Subbasin-HRU ."""
+
+    # Add to the attr. table of Groundwater a field that keeps the cells id
+    ok=h_utils.addShapeIdToField(h_const.grdwatLayerName, 
+                                 h_const.grdwatSubbasHRUFieldGrdwatId) 
+    if not ok: return False
+
+    # Delete existing shapefile SubGroundHRU
+    h_utils.delExistingShapefile( path, h_const.grdwatSubbasHRULayerName )
+
+    # Intersect Groundwater with SubbasinHRU
+    pathFilename=os.path.join( path, h_const.grdwatSubbasHRULayerName )
+    overlayAnalyzer = QgsOverlayAnalyzer()
+    ok=overlayAnalyzer.intersection( h_const.grdwatLayerName,
+                                     h_const.subbasinHRU, 
+                                     pathFilename+".shp" )
+    if not ok: return False
+
+    # Update the area values of the SubGroundHRU polygons in the attr. table
+    ok= addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
+                               h_const.grdwatSubbasHRULayerType,
+                               h_const.grdwatSubbasHRUFieldArea)
+    return ok

@@ -1,6 +1,8 @@
 from qgis.core import *
 from PyQt4 import QtGui
 from PyQt4.QtCore import QVariant
+from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
+import gdal, ogr
 import ftools_utils
 import os.path
 import h_const
@@ -235,7 +237,7 @@ def getCellValue(layerName, coords, band):
     if len(coords)!=2:
         message="A pair of two numbers only is required for coordinates!"
     else:
-        rlayer=getRasterLayerByName(layerName)
+        rlayer=ftools_utils.getRasterLayerByName(layerName)
         if rlayer==None: message=layerName + "  not loaded or not a raster!"
         elif band<1 or band>rlayer.bandCount():
             message=layerName + "  has not that many bands!"
@@ -266,6 +268,22 @@ def getFieldAttrValues(layerName, fieldName):
 
 
 
+def delExistingShapefile(path, filename):
+    """ Delete existing layer"""
+    pathFilename=os.path.join(path, filename)
+    fileExists= os.path.isfile(pathFilename+".shp")
+    if fileExists:
+        message="Shapefile "+filename+" already there. Delete?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
+        if reply==QtGui.QMessageBox.No: return False
+        if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
+            message="Can't delete shapefile "+pathFilename
+            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
+            return False
+
+
+
 def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
                      attrValues):
     """Creates a shapefile with points and populates its attribute table"""
@@ -281,17 +299,7 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
         return False
 
     # Delete existing layer
-    pathFilename=os.path.join(path, filename)
-    fileExists= os.path.isfile(pathFilename+".shp")
-    if fileExists:
-        message="Shapefile "+filename+" alredy there. Delete?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
-        if reply==QtGui.QMessageBox.No: return False
-        if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
-            message="Can't delete shapefile "+pathFilename
-            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
-            return False
+    if not delExistingShapefile(path, filename): return False
 
     # Create empty point layer and add attribute fields
     fieldList = QgsFields()
@@ -322,6 +330,80 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
 
 
 
+def createVectorFromRaster(path, rasterFile, band, outShapeFile ):
+    """Create a vector layer from a raster layer using values of provided 
+       band."""
+    pathFilename=os.path.join( path, rasterfile)
+    sourceRaster = gdal.Open(pathFilename) 
+    if not sourceRaster:
+        message=pathFilename + "  not found!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+    band = sourceRaster.GetRasterBand(band)
+    bandArray = band.ReadAsArray() 
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    pathFilename=os.path.join( path, outShapeFile)
+    outDatasource = driver.CreateDataSource(pathFilename+ ".shp")
+    outLayer = outDatasource.CreateLayer("polygonized", srs=None)
+    gdal.Polygonize( band, None, outLayer, -1, [], callback=None )
+
+    # Free memory and close output stream
+    outDatasource.Destroy()
+    sourceRaster = None
+
+
+
+def reclassifyRaster(path, inRasterName, band, minValue, rangeUpValues, 
+                     outRasterName):
+
+    # Define band
+    boh = QgsRasterCalculatorEntry()
+    bandName=inRaster+'@'+str(band)
+    boh.ref = bandName
+    bandName='\"' + bandName + '\"'
+    boh.raster = inRasterName
+    boh.bandNumber =band 
+
+    # Prepare entries
+    entries = []
+    entries.append( boh )
+
+    # Get raster
+    inRaster=ftools_utils.getRasterLayerByName(inRasterName)
+    if not inRaster: 
+        message=inRasterName+ "  not loaded or not a raster!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+
+    # Prepare calculation command
+    bandNameAddStr= bandName + ' AND ' + bandName
+    i = 1
+    lowerVal=0
+    calcCommand=""
+    for upValue in rangeUpValues:
+        calcCommand = calcCommand + '( ' + str(minValue) + '<='
+        calcCommand = calcCommand + bandNameAddStr + '<' + str(upValue) +')'
+        calcCommand = calcCommand + '*' + str(i)
+        if i!=len(rangeUpValues):
+            calcCommand = calcCommand + ' + '
+            minValue = upValue
+            i = i + 1
+
+    # Process calculation with input extent and resolution
+    pathFilename=os.path.join( path, outRaster) 
+    calc = QgsRasterCalculator(calcCommand, pathFilename, 'GTiff', 
+                               inRaster.extent(), inRaster.width(), 
+                               inRaster.height(), entries )
+    if not calc:
+        message="Could not start raster calculator!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+    ok=calc.processCalculation()
+
+    return ok
+
+
+
 def createDBF(path, filename, fieldNames, fieldTypes, values):
     """Creates a new dbf file (or updates an existing) with the values provided
     in the values list (this is a list of lists in case of many fields."""
@@ -332,6 +414,9 @@ def createDBF(path, filename, fieldNames, fieldTypes, values):
         message="addFieldToDBF arguments error!"
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
+
+    # Delete existing
+    if not delExistingShapefile(path, filename): return False
 
     # Create the list with the coordinates of dummy points
     coords=zip([0]*numvalues, [0]*numvalues)
@@ -408,7 +493,7 @@ def setFieldAttrValues(layerName, fieldName, values):
     layer=ftools_utils.getVectorLayerByName(layerName)
     layer.startEditing()
 
-    # Set the values of the fieldName of the attribute table
+    # Set the values of the fieldName
     i=0
     inFeat=QgsFeature()
     while features.nextFeature(inFeat):

@@ -45,7 +45,7 @@ borehFieldTypes=(QVariant.String, QVariant.String, QVariant.Int,
                  QVariant.Double, QVariant.Double,  QVariant.Double,
                  QVariant.Int, QVariant.Int, QVariant.Int, QVariant.Double,
                  QVariant.Double,  QVariant.Double, )
-borehFieldGroundId= borehFieldNames[6]
+borehFieldGrdwatId= borehFieldNames[6]
 borehFieldSubbasId= borehFieldNames[7]
 borehFieldGroupId = borehFieldNames[8]
 
@@ -90,7 +90,7 @@ springFieldNames=("NAME", "DESCR", "INI_DISCH", "X", "Y", "ALT", "GROUND_ID",
 springFieldTypes=(QVariant.String, QVariant.String, QVariant.Double, 
                   QVariant.Double, QVariant.Double, QVariant.Double, 
                   QVariant.Int, QVariant.Int, QVariant.Double,  )
-springFieldGroundId= springFieldNames[6]
+springFieldGrdwatId= springFieldNames[6]
 springFieldSubbasId= springFieldNames[7]
 
 
@@ -122,14 +122,14 @@ outletFieldTypes=(QVariant.Double, QVariant.Double)
 
 
 # RiverGround layer specifications
-riverGroundLayerName="RiverGround"
-riverGroundLayerType= QGis.Line
-riverGroundGeomType= QGis.WKBLineString
-riverGroundFieldNames=("RIVERID", "GROUND_ID", "LENGTH",)
-riverGroundFieldTypes=(QVariant.Int, QVariant.Int, QVariant.Double, )
-riverGroundFieldRiverId=riverGroundFieldNames[0]
-riverGroundFieldGroundId=riverGroundFieldNames[1]
-riverGroundFieldLength=riverGroundFieldNames[2]
+riverGrdwatLayerName="RiverGround"
+riverGrdwatLayerType= QGis.Line
+riverGrdwatGeomType= QGis.WKBLineString
+riverGrdwatFieldNames=("RIVERID", "GROUND_ID", "LENGTH",)
+riverGrdwatFieldTypes=(QVariant.Int, QVariant.Int, QVariant.Double, )
+riverGrdwatFieldRiverId=riverGrdwatFieldNames[0]
+riverGrdwatFieldGroundId=riverGrdwatFieldNames[1]
+riverGrdwatFieldLength=riverGrdwatFieldNames[2]
 
 
 # HRU layer specifications
@@ -145,24 +145,35 @@ HRUFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
 
 
 # subdHRU layer specifications
-subHRULayerName="SubbasinHRU"
-subHRULayerType= QGis.Polygon
-subHRUGeomType= QGis.WKBPolygon
-subHRUFieldNames=("NAME", "DESCR", "HRU_ID", "SUB_ID", "AREA", "INI_STOR",
-                  "INI_EVAP", )
-subHRUFieldTypes=(QVariant.String, QVariant.String, QVariant.Int, 
+subbasHRULayerName="SubbasinHRU"
+subbasHRULayerType= QGis.Polygon
+subbasHRUGeomType= QGis.WKBPolygon
+subbasHRUFieldNames=("NAME", "DESCR", "HRU_ID", "SUB_ID", "AREA", "INI_STOR",
+                     "INI_EVAP", )
+subbasHRUFieldTypes=(QVariant.String, QVariant.String, QVariant.Int, 
                   QVariant.Int, QVariant.Double, QVariant.Double, 
                   QVariant.Double, )
+subbasHRUFieldHRUId=subbasHRUFieldNames[2]
+subbasHRUFieldSubId=subbasHRUFieldNames[3]
+subbasHRUFieldArea=subbasHRUFieldNames[4]
 
 
 # subGroundHRU layer specifications
-groundSubHRULayerName="SubGroundHRU"
-groundSubHRULayerType= QGis.Polygon
-groundSubHRUGeomType= QGis.WKBPolygon
-groundSubHRUFieldNames=("HRU_ID", "SUB_ID", "GROUND_ID", "AREA",)
-groundSubHRUFieldTypes=(QVariant.Int, QVariant.Int, QVariant.Int, 
+grdwatSubbasHRULayerName="SubGroundHRU"
+grdwatSubbasHRULayerType= QGis.Polygon
+grdwatSubbasHRUGeomType= QGis.WKBPolygon
+grdwatSubbasHRUFieldNames=("HRU_ID", "SUB_ID", "GROUND_ID", "AREA",)
+grdwatSubbasHRUFieldTypes=(QVariant.Int, QVariant.Int, QVariant.Int, 
                         QVariant.Double, )
+grdwatSubbasHRUFieldHRUId=grdwatSubbasHRUFieldNames[0]
+grdwatSubbasHRUFieldSubId=grdwatSubbasHRUFieldNames[1]
+grdwatSubbasHRUFieldGroundId=grdwatSubbasHRUFieldNames[2]
+grdwatSubbasHRUFieldArea=grdwatSubbasHRUFieldNames[3]
 
 
-# DTB
+# DTM raster
 dtmLayerName= "hdr"
+
+
+# HRU reclassified raster
+HRUreclasName= "HRUreclassified"
