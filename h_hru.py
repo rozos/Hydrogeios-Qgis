@@ -17,12 +17,12 @@ def createSubbasinHRU():
         return False
 
     # Add to the attr. table of Subbasin a field that keeps the polys' ids
-    ok=h_utils.addShapeIdToField(h_const.subbasLayerName, 
+    ok=h_utils.addShapeIdsToField(h_const.subbasLayerName, 
                                  h_const.subbasHRUFieldSubId) 
     if not ok: return False
 
     # Add to the attr. table of HRU a field that keeps the polys' ids
-    ok=h_utils.addShapeIdToField(h_const.HRULayerName, 
+    ok=h_utils.addShapeIdsToField(h_const.HRULayerName, 
                                  h_const.subbasHRUFieldHRUId) 
     if not ok: return False
 

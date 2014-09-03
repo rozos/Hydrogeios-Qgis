@@ -430,7 +430,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 
 
 
-def addShapeIdToField(layerName, fieldName):
+def addShapeIdsToField(layerName, fieldName):
     """Add to the attribute table of a layer a field that keeps the ids of the 
        shapes"""
     ok=addFieldToAttrTable(layerName,fieldName, QVariant.Int)
@@ -498,7 +498,7 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
 
 
 
-def linkPointLayerPolygonLayer(pointLayerName, polyLayerName): 
+def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName): 
     """Find the polygons of the polyLayername to which each point of 
     pointLayername corresponds to. Return the list with the polygon ids
     to which each point corresponds to"""
