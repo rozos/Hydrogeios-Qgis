@@ -18,12 +18,12 @@ def createSubbasinHRU():
 
     # Add to the attr. table of Subbasin a field that keeps the polys' ids
     ok=h_utils.addShapeIdsToField(h_const.subbasLayerName, 
-                                 h_const.subbasHRUFieldSubId) 
+                                  h_const.subbasHRUFieldSubId) 
     if not ok: return False
-
+    
     # Add to the attr. table of HRU a field that keeps the polys' ids
     ok=h_utils.addShapeIdsToField(h_const.HRULayerName, 
-                                 h_const.subbasHRUFieldHRUId) 
+                                  h_const.subbasHRUFieldHRUId) 
     if not ok: return False
 
     # Delete existing shapefile SubGroundHRU
@@ -45,23 +45,29 @@ def createSubbasinHRU():
 
 
 
-def createHRU(path, HRUraster, rangeUpVals):
+def createHRU(path, HRUrasterName, bandnum, rangeUpVals):
     """Takes the HRU raster and creates a layer with multipolygon shapes.
     The classification into miltipolygon shapes is based on the provide 
     ranges."""
 
-    # Del the existing (if any) output shapefile
-    ok=h_utils.delExistingShapefile(path, HRULayerName)
-    if not ok: return False
-
     # Reclassify HRUraster (id of CN classes instead of CN values)
-    reclassifyRaster(path, HRUraster, band, rangeUpVals, h_const.HRUreclasName)
+    ok=h_utils.reclassifyRaster(path, HRUrasterName, bandnum, 0, rangeUpVals, 
+                                h_const.HRUreclasLayerName)
+    if not ok: 
+        message=HRUrasterName+ "  reclassification failed!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
 
     # Turn HRUraster into vector
-    ok=h_utils.createVectorFromRaster(path, h_const.HRUreclasName, 1, 
-                                      h_const.HRULayerName)
+    ok=h_utils.createVectorFromRaster(path, h_const.HRUreclasLayerName+'.tif', 
+                                      1, h_const.HRULayerName)
+    if not ok: 
+        message="Creation of " + h_const.HRUreclasLayerName + " failed!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+
     # Load HRU shapefile
     pathFilename=os.path.join(path, h_const.HRULayerName)
     h_utils.loadShapefileToCanvas(pathFilename+".shp")
 
-    return ok
+    return True

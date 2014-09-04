@@ -176,4 +176,4 @@ dtmLayerName= "hdr"
 
 
 # HRU reclassified raster
-HRUreclasName= "HRUreclassified"
+HRUreclasLayerName= "HRUreclassified"

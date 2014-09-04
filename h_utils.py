@@ -345,7 +345,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     outLayer = outDatasource.CreateLayer("polygonized", srs=None)
-    gdal.Polygonize( band, None, outLayer, -1, [], callback=None )
+    gdal.Polygonize( band, None, outLayer, 0, [], callback=None )
 
     # Free memory and close output stream
     outDatasource.Destroy()
@@ -375,7 +375,6 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
     # Prepare entries
     entries = []
     entries.append( boh )
-
 
     # Prepare calculation command
     bandNameAddStr= '<='+ bandName + ' AND ' + bandName + '<'
@@ -437,8 +436,10 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 
     # Get layer and enable editing
     layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer: return None
-
+    if not layer:
+        message="Layer " + str(layerName) + " is not loaded!"
+        QtGui.QMessageBox.critical(None,'Error',message,QtGui.QMessageBox.Ok)
+        return None
     layer.startEditing()
 
     # Get dataprovider
@@ -474,7 +475,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 def addShapeIdsToField(layerName, fieldName):
     """Add to the attribute table of a layer a field that keeps the ids of the 
        shapes"""
-    ok=addFieldToAttrTable(layerName,fieldName, QVariant.Int)
+    ok=addFieldToAttrTable(layerName, fieldName, QVariant.Int)
     if not ok: return False
     values=range(getLayerFeaturesCount(layerName))
     return setFieldAttrValues(layerName,fieldName, values)
