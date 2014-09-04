@@ -37,6 +37,14 @@ def loadShapefileToCanvas(pathFilename):
 
 
 
+def shapefileExists(path, filename):
+    """Checks if a shapefile exists."""
+    pathFilename=os.path.join(path, filename)
+    fileExists= os.path.isfile(pathFilename+".shp")
+    return fileExists
+
+
+
 def layerNameTypeOK(layerName, layerType):
     """This function checks if the type of a layer is what is supposed to be"""
     layer=ftools_utils.getVectorLayerByName(layerName)
@@ -56,6 +64,7 @@ def layerFeaturesNumberOK(layerName, featuresNum):
     """This function checks if the number of features in a shapefile equals to
     the expected number of features."""
     nfeats=getLayerFeaturesCount(layerName)
+    if nfeats==None: return False
     if nfeats!=featuresNum:
         message=layerName+" has not "+ str(featuresNum) + " features!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
@@ -88,9 +97,10 @@ def getFieldIndexByName(layerName, fieldName):
 
 
 def getElementIndexByVal(alist, value):
-    """Finds the indexes of the elements of the list 'alist' that are equal 
-    to the value 'value'."""
-    return [i for i in range(len(alist)) if floatsEqual(alist[i],value,h_const.precise)]    
+    """Finds the indexes of the elements of the list with numbers 'alist' that 
+    are equal to the value 'value'."""
+    return [ i for i in range(len(alist)) 
+            if floatsEqual(alist[i],value,h_const.precise) ]
 
 
 
@@ -166,11 +176,13 @@ def getLayerFeaturesCount(layerName):
 
 
 
-def getMinFeatureMeasure(layerName, layerType):
+def getMinFeatureMeasure(layerName):
     """This function returns the area/length of the smallest polygon/line of 
     a shapefile."""
-    # Check that type is what is supposed to be
-    if not layerNameTypeOK(layerName, layerType): return None
+    # Get the type
+    layer=ftools_utils.getVectorLayerByName(layerName)
+    if not layer: return None
+    layerType=layer.geometryType()
 
     # Return 0 if it is point layer
     if layerType==QGis.Point: return 0
@@ -200,8 +212,11 @@ def getCellValue(layerName, coords, band):
         message="A pair of two numbers only is required for coordinates!"
     else:
         rlayer=ftools_utils.getRasterLayerByName(layerName)
-        if rlayer==None: message=layerName + "  not loaded or not a raster!"
-        elif band<1 or band>rlayer.bandCount():
+        if rlayer==None: 
+            message=layerName + "  not loaded or not a raster!"
+        elif band<1: 
+            message="Band number should greater than 1!"
+        elif band>rlayer.bandCount():
             message=layerName + "  has not that many bands!"
     if len(message)>0:
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
@@ -232,17 +247,21 @@ def getFieldAttrValues(layerName, fieldName):
 
 def delExistingShapefile(path, filename):
     """ Delete existing layer"""
-    pathFilename=os.path.join(path, filename)
-    fileExists= os.path.isfile(pathFilename+".shp")
-    if fileExists:
-        message="Shapefile "+filename+" already there. Delete?"
+    if shapefileExists(path, filename):
+        message="Delete shapefile "+filename+"?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+        pathFilename=os.path.join(path, filename)
         if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
             message="Can't delete shapefile "+pathFilename
             QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
             return False
+    else:
+        message="Shapefile "+filename+" not there!"
+        QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
+        return False
+    return True
 
 
 
@@ -252,21 +271,24 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
 
     # Check arguments
     message=""
-    if len(fieldNames) != len(attrValues):
-        message="Number of field names <> number of attribute columns!"
     if len(fieldNames) != len(fieldTypes):
         message="Number of field names <> number of field types!"
+    if len(fieldNames) > 1 and len(fieldNames)<>len(attrValues):
+        message="Number of field names <> number of attribute columns!"
     if len(message)!=0:
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
     # Delete existing layer
-    if not delExistingShapefile(path, filename): return False
+    if shapefileExists(path, filename):
+        if not delExistingShapefile(path, filename): 
+            return False
 
     # Create empty point layer and add attribute fields
     fieldList = QgsFields()
-    for i,j in zip(fieldNames, fieldTypes):
-        fieldList.append(QgsField(i,j) )
+    for fieldname,fieldtype in zip(fieldNames, fieldTypes):
+        fieldList.append( QgsField(fieldname, fieldtype) )
+    pathFilename=os.path.join(path, filename)
     writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
                                 QGis.WKBPoint, None, "ESRI Shapefile")
     if writer.hasError() != QgsVectorFileWriter.NoError:
@@ -292,20 +314,36 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
 
 
 
-def createVectorFromRaster(path, rasterFile, band, outShapeFile ):
+def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
     """Create a vector layer from a raster layer using values of provided 
        band."""
-    pathFilename=os.path.join( path, rasterfile)
+    # Load existing raster
+    pathFilename=os.path.join( path, rasterFileName)
     sourceRaster = gdal.Open(pathFilename) 
     if not sourceRaster:
         message=pathFilename + "  not found!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
-    band = sourceRaster.GetRasterBand(band)
+
+    # Delete existing (if any) output shapefile
+    if shapefileExists(path, outShapeFileName):
+        if not delExistingShapefile(path, outShapeFileName): 
+            return False
+
+    # Turn raster into vector
+    band = sourceRaster.GetRasterBand(bandnum)
+    if band==None:
+        message="Raster does not have band "+str(bandnum)+ "!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
     bandArray = band.ReadAsArray() 
     driver = ogr.GetDriverByName("ESRI Shapefile")
-    pathFilename=os.path.join( path, outShapeFile)
+    pathFilename=os.path.join( path, outShapeFileName)
     outDatasource = driver.CreateDataSource(pathFilename+ ".shp")
+    if outDatasource==None: 
+        message="Could not create outDatasource!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
     outLayer = outDatasource.CreateLayer("polygonized", srs=None)
     gdal.Polygonize( band, None, outLayer, -1, [], callback=None )
 
@@ -313,22 +351,12 @@ def createVectorFromRaster(path, rasterFile, band, outShapeFile ):
     outDatasource.Destroy()
     sourceRaster = None
 
+    return True
 
 
-def reclassifyRaster(path, inRasterName, band, minValue, rangeUpValues, 
+
+def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues, 
                      outRasterName):
-
-    # Define band
-    boh = QgsRasterCalculatorEntry()
-    bandName=inRaster+'@'+str(band)
-    boh.ref = bandName
-    bandName='\"' + bandName + '\"'
-    boh.raster = inRasterName
-    boh.bandNumber =band 
-
-    # Prepare entries
-    entries = []
-    entries.append( boh )
 
     # Get raster
     inRaster=ftools_utils.getRasterLayerByName(inRasterName)
@@ -337,54 +365,67 @@ def reclassifyRaster(path, inRasterName, band, minValue, rangeUpValues,
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
+    # Define band
+    boh = QgsRasterCalculatorEntry()
+    bandName=inRasterName+'@'+str(bandnum)
+    boh.ref = bandName
+    boh.raster = inRaster
+    boh.bandNumber =bandnum
+
+    # Prepare entries
+    entries = []
+    entries.append( boh )
+
+
     # Prepare calculation command
-    bandNameAddStr= bandName + ' AND ' + bandName
+    bandNameAddStr= '<='+ bandName + ' AND ' + bandName + '<'
     i = 1
     lowerVal=0
     calcCommand=""
     for upValue in rangeUpValues:
-        calcCommand = calcCommand + '( ' + str(minValue) + '<='
-        calcCommand = calcCommand + bandNameAddStr + '<' + str(upValue) +')'
-        calcCommand = calcCommand + '*' + str(i)
+        calcCommand = calcCommand + '( ' + str(minValue) + bandNameAddStr 
+        calcCommand = calcCommand + str(upValue) + ')' + '*' + str(i)
         if i!=len(rangeUpValues):
             calcCommand = calcCommand + ' + '
             minValue = upValue
             i = i + 1
 
     # Process calculation with input extent and resolution
-    pathFilename=os.path.join( path, outRaster) 
+    pathFilename=os.path.join( path, outRasterName) + '.tif'
     calc = QgsRasterCalculator(calcCommand, pathFilename, 'GTiff', 
                                inRaster.extent(), inRaster.width(), 
                                inRaster.height(), entries )
-    if not calc:
-        message="Could not start raster calculator!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
-        return False
-    ok=calc.processCalculation()
+    ok= (calc.processCalculation() == 0)
 
     return ok
 
 
 
-def createDBF(path, filename, fieldNames, fieldTypes, values):
+def createDBF(path, fileName, fieldNames, fieldTypes, values):
     """Creates a new dbf file (or updates an existing) with the values provided
     in the values list (this is a list of lists in case of many fields."""
 
     # Check validity of arguments' length
-    numvalues=len(fieldNames)
-    if numvalues!=len(fieldTypes) or numvalues==0:
+    fieldNamesEqualFieldTypes = ( len(fieldNames)==len(fieldTypes) )
+    fieldNamesEqualValueLists = ( len(values)==len(fieldTypes) )
+    if not fieldNamesEqualFieldTypes or \
+       not fieldNamesEqualValueLists or \
+       not len(values):
         message="addFieldToDBF arguments error!"
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
 
     # Delete existing
-    if not delExistingShapefile(path, filename): return False
+    if shapefileExists(path, fileName):
+        if not delExistingShapefile(path, fileName): 
+            return False
 
     # Create the list with the coordinates of dummy points
+    numvalues=len(values[0])
     coords=zip([0]*numvalues, [0]*numvalues)
 
     # Create dummy shapefile to create the required dbf file
-    ok=createPointLayer(path, filename, coords, fieldNames, fieldTypes, values)
+    ok=createPointLayer(path, fileName, coords, fieldNames, fieldTypes, values)
 
     return ok
 
@@ -470,11 +511,14 @@ def setFieldAttrValues(layerName, fieldName, values):
 
 
 
-def addMeasureToAttrTable(layerName, layerType, fieldName):
+def addMeasureToAttrTable(layerName, fieldName):
     """Add area/length of each feature to the attribute table of a 
     polygon/line shapefile"""
-    # Check that type is what is supposed to be
-    if not layerNameTypeOK(layerName, layerType): return False
+    # Get the layer type
+    layer=ftools_utils.getVectorLayerByName(layerName)
+    if not layer: return False
+    layerType=layer.geometryType()
+    if layerType==QGis.Point: return False
 
     # Make sure fieldName is already there or create one
     fieldIndex=addFieldToAttrTable(layerName, fieldName, QVariant.Double )
@@ -499,9 +543,9 @@ def addMeasureToAttrTable(layerName, layerType, fieldName):
 
 
 def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName): 
-    """Find the polygons of the polyLayername to which each point of 
-    pointLayername corresponds to. Return the list with the polygon ids
-    to which each point corresponds to"""
+    """Finds the polygons of the polyLayername to which each point of 
+    pointLayername corresponds to. Returns the list with the polygon ids
+    to which each point corresponds to."""
 
     if not layerNameTypeOK(polyLayerName, QGis.Polygon): return None
     if not layerNameTypeOK(pointLayerName, QGis.Point): return None
@@ -515,10 +559,9 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     while points.nextFeature(inFeat1):
         polygonId=None
         while polygons.nextFeature(inFeat2):
-            if inFeat2.geometry().contains(inFeat1):
+            if inFeat2.geometry().contains(inFeat1.geometry()):
                 polygonId=inFeat2.id()
                 break
         polygonIds.append(polygonId)
 
-        return polygonIds 
-
+    return polygonIds 

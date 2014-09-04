@@ -11,16 +11,13 @@ def layerConsistenciesOK():
     """This functions checks that the area of all shapes of a polygon layer
     is positive and the the length of all shapes of a line layer is positive"""
     
-    if not h_utils.getMinFeatureMeasure(h_const.subbasLayerName, 
-                                h_const.subbasLayerType):
+    if h_utils.getMinFeatureMeasure(h_const.subbasLayerName)==0
         return False
 
-    if not h_utils.getMinFeatureMeasure(h_const.groundLayerName, 
-                                h_const.groundLayerType):
+    if not h_utils.getMinFeatureMeasure(h_const.groundLayerName)==0
         return False
 
-    if not h_utils.getMinFeatureMeasure(h_const.riverLayerName, 
-                                h_const.riverLayerType):
+    if not h_utils.getMinFeatureMeasure(h_const.riverLayerName)==0
         return False
 
     # Consistency OK

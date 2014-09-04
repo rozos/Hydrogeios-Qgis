@@ -32,12 +32,8 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     """Create a new empty layer with the given fields in attribute table or
     (if already there) make sure the attribute table has all required fields"""
 
-    # Check if file exists
-    pathFilename=os.path.join(path, layerName)
-    fileExists= os.path.isfile(pathFilename+".shp")
-
     # If layer does not exist create one
-    if not fileExists: 
+    if not h_utils.shapefileExists(path, layerName): 
         # Initialize the list with name/type of attribute table fields
         fieldList = QgsFields()
         for fieldname,fieldtype in zip(fieldNames, fieldTypes):
