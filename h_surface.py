@@ -11,13 +11,13 @@ def layerConsistenciesOK():
     """This functions checks that the area of all shapes of a polygon layer
     is positive and the the length of all shapes of a line layer is positive"""
     
-    if h_utils.getMinFeatureMeasure(h_const.subbasLayerName)==0
+    if h_utils.getMinFeatureMeasure(h_const.subbasLayerName)==0:
         return False
 
-    if not h_utils.getMinFeatureMeasure(h_const.groundLayerName)==0
+    if not h_utils.getMinFeatureMeasure(h_const.groundLayerName)==0:
         return False
 
-    if not h_utils.getMinFeatureMeasure(h_const.riverLayerName)==0
+    if not h_utils.getMinFeatureMeasure(h_const.riverLayerName)==0:
         return False
 
     # Consistency OK
@@ -124,9 +124,9 @@ def createHydrojunctionLayer(path):
     xCoords= rivXList+irgXList+borXList
     yCoords= rivYList+irgYList+borYList 
     # Create a list with id of the junction type of each junciton
-    junctType= ( [h_const.hydroJncIdNodeRiv]*len(rivXList) + 
-                 [h_const.hydroJncIdNodeIrg]*len(irgXList) + 
-                 [h_const.hydroJncIdNodeBor]*len(borXList)  )
+    junctType= ( [h_const.hydroJncTypeRiv]*len(rivXList) + 
+                 [h_const.hydroJncTypeIrg]*len(irgXList) + 
+                 [h_const.hydroJncTypeBor]*len(borXList)  )
     # Get the z values of the [xCoords yCoords] points
     height = []
     coordinates=zip(xCoords, yCoords)
@@ -213,7 +213,7 @@ def linkIrrigHydrojunction():
 
     # Write centroids to attribute table
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 
-                                   h_const.irrigFieldJncId, values);
+                                   h_const.hydroJncFieldId, values);
     return res
 
 
@@ -278,8 +278,16 @@ def linkSubbasinRiver():
 
     # Save edits
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.subbasFieldRivId, rivIds)
+                                   h_const.riverFieldId, rivIds)
     if not res: return False
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.subbasFieldRivNode, nodeIds)
     return res
+
+
+
+def addSubbasId():
+    """Add to the attr. table of Subbasin a field that keeps the polys' ids."""
+    ok=h_utils.addShapeIdsToField(h_const.subbasLayerName,
+                                  h_const.subbasFieldId)
+    return ok
