@@ -2,7 +2,7 @@ from qgis.core import *
 from PyQt4 import QtGui
 from PyQt4.QtCore import QVariant
 from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
-import gdal, ogr
+from osgeo import gdal, ogr
 import ftools_utils
 import os.path
 import h_const
@@ -10,8 +10,8 @@ import h_const
 
 
 def floatsEqual(afloat, bfloat, exponent):
-    """Returns true if float numbers are close enough (enough is defined by
-    the power."""
+    """Returns true if float numbers are close enough. Closeness is defined by 
+    the exponent."""
     precision=1./pow(10,exponent)
     if type(afloat) in (tuple, list): 
         valuelen=len(afloat)
@@ -245,6 +245,25 @@ def getFieldAttrValues(layerName, fieldName):
 
 
 
+def getQueryShapeIds(layerName, filterExpr):
+    """Prepare a list of feature ids that meet filterExpr."""
+
+    # Get layer
+    layer=ftools_utils.getVectorLayerByName(layerName)
+    if not layer:
+        message=layerName + "  not loaded!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+
+    # Prepare the list
+    featreRequest=QgsFeatureRequest().setFilterExpression(filterExpr)
+    shapes=layer.getFeatures(featreRequest) 
+    ids = [f.id() for f in shapes]
+
+    return ids
+
+
+
 def delExistingShapefile(path, filename):
     """ Delete existing layer"""
     if shapefileExists(path, filename):
@@ -345,6 +364,8 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     outLayer = outDatasource.CreateLayer("polygonized", srs=None)
+    newField = ogr.FieldDefn('HRU_ID', ogr.OFTInteger)
+    outLayer.CreateField(newField)
     gdal.Polygonize( band, None, outLayer, 0, [], callback=None )
 
     # Free memory and close output stream
@@ -357,6 +378,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
 
 def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues, 
                      outRasterName):
+    """ Reclassify a raster to groups defined by rangeUpValues."""
 
     # Get raster
     inRaster=ftools_utils.getRasterLayerByName(inRasterName)
@@ -364,6 +386,13 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
         message=inRasterName+ "  not loaded or not a raster!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
+
+    # Check path exists
+    if not os.path.isdir(path):
+        message="Provided path does not exist!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+
 
     # Define band
     boh = QgsRasterCalculatorEntry()
@@ -394,6 +423,7 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
     calc = QgsRasterCalculator(calcCommand, pathFilename, 'GTiff', 
                                inRaster.extent(), inRaster.width(), 
                                inRaster.height(), entries )
+    if not calc: return False
     ok= (calc.processCalculation() == 0)
 
     return ok
@@ -509,6 +539,29 @@ def setFieldAttrValues(layerName, fieldName, values):
     # Save edits
     layer.commitChanges()
     return True
+
+
+
+def delSpecificShapes(layerName, ids):
+    """Deletes the features of which the id is inside the list of ids."""
+
+    # Get layer
+    layer=ftools_utils.getVectorLayerByName(layerName)
+    if not layer:
+        message=layerName + "  not loaded!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+
+    layer.startEditing()
+
+    # Delete features that meet criteria
+    for featId in ids:
+        ok = layer.deleteFeature(featId)
+        if not ok: return False
+
+    layer.commitChanges()
+
+    return ok
 
 
 
