@@ -33,15 +33,24 @@ def unloadLayer(layerName):
 
 
 
-def loadShapefileToCanvas(pathFilename):
+def loadShapefileToCanvas(path, fileName):
     """Wraps the ftools function. It displayes an error message if something
     goes wrong."""
 
+    pathFilename=os.path.join(path, fileName)
     if not ftools_utils.addShapeToCanvas(pathFilename):
         message="Error loading output shapefile "+pathFilename
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
     return True
+
+
+
+def isShapefileLoaded(layerName):
+    """Check if a shapefile is loaded into canvas."""
+    layer=ftools_utils.getVectorLayerByName(layerName)
+    if layer!=None: return True
+    else: return False
 
 
 
@@ -419,7 +428,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
     # Turn raster into vector
     band = sourceRaster.GetRasterBand(bandnum)
     if band==None:
-        message="Raster " rasterFileName + " does not have band "+str(bandnum)
+        message="Raster " + rasterFileName + " does not have band "+str(bandnum)
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     bandArray = band.ReadAsArray()

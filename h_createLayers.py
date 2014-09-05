@@ -23,8 +23,10 @@ def createOutletsLayer(path):
     if not ok: return False
 
     # Make sure the layer is loaded 
-    pathFilename=os.path.join(path, h_const.outletLayerName)
-    return h_utils.loadShapefileToCanvas(pathFilename+".shp")
+    if not h_utils.isShapefileLoaded(h_const.outletLayerName):
+        ok=h_utils.loadShapefileToCanvas(path, h_const.outletLayerName+".shp")
+
+    return ok
 
 
 
@@ -39,6 +41,7 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
         for fieldname,fieldtype in zip(fieldNames, fieldTypes):
             fieldList.append(QgsField(fieldname,fieldtype) )
         # Create an empty layer
+        pathFilename=os.path.join(path, layerName)
         writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
                                     layerType, None, "ESRI Shapefile")
         if writer.hasError() != QgsVectorFileWriter.NoError:
@@ -52,7 +55,7 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     # Make sure the layer is loaded
     layer=ftools_utils.getVectorLayerByName(layerName)
     if not layer:
-        if not h_utils.loadShapefileToCanvas(pathFilename+".shp"):
+        if not h_utils.loadShapefileToCanvas(path, layerName+".shp"):
             return False
 
     # Make sure all required fields are there

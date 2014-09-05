@@ -2,7 +2,7 @@ from PyQt4 import QtGui
 from qgis.core import *
 from qgis.analysis import QgsOverlayAnalyzer
 import os.path
-import ftools_utils
+import h_geoprocess
 import h_const
 import h_utils
 
@@ -28,19 +28,13 @@ def createSubbasinHRU(path):
     HRULayer=ftools_utils.getVectorLayerByName(h_const.HRULayerName)
 
     # Intersect Subbasin with HRU
-    #pathFilename=os.path.join( path, h_const.subbasHRULayerName)
-    #overlayAnalyzer = QgsOverlayAnalyzer()
-    #ok=overlayAnalyzer.intersection( HRULayer, subbasLayer,
-    #                                 pathFilename+".shp" )
-    #pathFilename=os.path.join( path, h_const.subbasHRULayerName)
-    intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
-    #if not ok:
-    #    message= "Intersection failed!"
-    #    QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
-    #    return False
+    ok = h_geoprocess.intersect( path, h_const.subbasLayerName, 
+                                 h_const.HRULayerName,
+                                 h_const.subbasHRULayerName)
+    if not ok: return False
 
     # Load SubbasinHRU
-    h_utils.loadShapefileToCanvas(pathFilename+".shp" )
+    h_utils.loadShapefileToCanvas(path, h_const.subbasHRULayerName + ".shp")
 
     # Update the area values of the SubbasinHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.subbasHRULayerName,
@@ -55,6 +49,8 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     ranges."""
 
     # Reclassify CNraster (id of CN classes instead of CN values)
+    if h_utils.isShapefileLoaded(h_const.HRULayerName):
+	h_utils.unloadLayer(h_const.HRULayerName)
     ok=h_utils.reclassifyRaster(path, CNrasterName, bandnum, 0, rangeUpVals,
                                 h_const.HRUrasterLayerName)
     if not ok:
@@ -71,11 +67,10 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
         return False
 
     # Load HRU shapefile
-    pathFilename=os.path.join(path, h_const.HRULayerName)
-    h_utils.loadShapefileToCanvas(pathFilename+".shp")
+    h_utils.loadShapefileToCanvas(path, h_const.HRULayerName + ".shp")
 
     # Delete pogyons generated from non-data pixels
-    filterExpr=h_const.subbasHRUFieldHRUId + "<0"
+    filterExpr=h_const.HRUFieldId + "<0"
     listIds=h_utils.getQueryShapeIds(h_const.HRULayerName, filterExpr)
     if not listIds: return False
     if listIds!=[]:
