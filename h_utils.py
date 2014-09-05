@@ -278,14 +278,14 @@ def setFieldAttrValues(layerName, fieldName, values):
     # Get features of layer
     features= getLayerFeatures(layerName)
     if not features:
-        message= "Empty layer!"
+        message= layerName + " is an empty layer!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
     # Get the index of fieldName
     fieldIndex=getFieldIndexByName(layerName, fieldName)
     if fieldIndex==None:
-        message= "Attribute table does not contain this field!"
+        message= layerName + " attribute table does not contain this field!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
@@ -358,9 +358,9 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
     # Check arguments
     message=""
     if len(fieldNames) != len(fieldTypes):
-        message="Number of field names <> number of field types!"
+        message="createPointLayer" + filename + "FieldNames.no <> FieldTypes.no"
     if len(fieldNames) > 1 and len(fieldNames)<>len(attrValues):
-        message="Number of field names <> number of attribute columns!"
+        message="createPointLayer" + filename + "FieldNames.no <> attrValues.no"
     if len(message)!=0:
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
@@ -419,7 +419,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
     # Turn raster into vector
     band = sourceRaster.GetRasterBand(bandnum)
     if band==None:
-        message="Raster does not have band "+str(bandnum)+ "!"
+        message="Raster " rasterFileName + " does not have band "+str(bandnum)
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     bandArray = band.ReadAsArray()
@@ -427,7 +427,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
     pathFilename=os.path.join( path, outShapeFileName)
     outDatasource = driver.CreateDataSource(pathFilename+ ".shp")
     if outDatasource==None:
-        message="Could not create outDatasource!"
+        message="Could not create " + outShapeFileName
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     outLayer = outDatasource.CreateLayer("polygonized", srs=None)
@@ -456,7 +456,7 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
 
     # Check path exists
     if not os.path.isdir(path):
-        message="Provided path does not exist!"
+        message= path + " does not exist!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
@@ -507,7 +507,7 @@ def createDBF(path, fileName, fieldNames, fieldTypes, values):
     if not fieldNamesEqualFieldTypes or \
        not fieldNamesEqualValueLists or \
        not len(values):
-        message="addFieldToDBF arguments error!"
+        message="createDBF:" + fileName + " arguments error!"
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
 
@@ -593,7 +593,7 @@ def addMeasureToAttrTable(layerName, fieldName):
     # Check layer type
     layerType=layer.geometryType()
     if layerType==QGis.Point:
-        message= "Cannot add measure to a point layer!"
+        message= layerName + "is a point layer. Cannot add a measure!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
@@ -602,14 +602,14 @@ def addMeasureToAttrTable(layerName, fieldName):
     if fieldIndex==None: 
         fieldIndex=addFieldToAttrTable(layerName, fieldName, QVariant.Double)
         if fieldIndex==None: 
-            message= "Cannot add measure to layer!"
+            message= "Cannot add measure to layer" + layerName
             QtGui.QMessageBox.critical(None,'Err',message, QtGui.QMessageBox.Ok)
             return False
 
     # Get features
     features= getLayerFeatures(layerName)
     if not features:
-        message= "Empty layer!"
+        message= layerName + " empty layer!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
@@ -623,7 +623,7 @@ def addMeasureToAttrTable(layerName, fieldName):
             measures.append(inFeat.geometry().length() )
     ok=setFieldAttrValues(layerName, fieldName, measures) 
     if not ok:
-        message= "Unable to setFieldAttrValue!"
+        message= "error applying setFieldAttrValue on " + layerName
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
