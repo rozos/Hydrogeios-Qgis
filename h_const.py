@@ -49,7 +49,7 @@ hydroJncLayerType= QGis.Point
 hydroJncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                     QVariant.Int, QVariant.Int, QVariant.Double,
                     QVariant.Double, QVariant.Double)
-hydroJncFieldId=hydroJncNames[0]
+hydroJncFieldId=hydroJncFieldNames[0]
 hydroJncTypeRiv=0
 hydroJncTypeAqu=1
 hydroJncTypeIrg=2
@@ -110,8 +110,6 @@ springFieldNames=("NAME", "DESCR", "INI_DISCH", "X", "Y", "ALT", grdwatFieldId,
 springFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
                   QVariant.Double, QVariant.Double, QVariant.Double,
                   QVariant.Int, QVariant.Int, QVariant.Double,  )
-springFieldGrdwatId= springFieldNames[6]
-springFieldSubbasId= springFieldNames[7]
 
 
 # Aqueduct layer specifications

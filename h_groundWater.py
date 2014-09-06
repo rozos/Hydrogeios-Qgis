@@ -1,4 +1,5 @@
 from PyQt4 import QtGui
+from PyQt4.QtCore import QVariant
 from qgis.core import *
 from qgis.analysis import *
 import math
@@ -30,8 +31,9 @@ def nameGroundwaterCells():
     """Writes to the field NAME of the attribute table of groundwater the name
     of each cell (Cell 0, Cell 1, ...)."""
 
-    if addFieldToAttrTable(h_const.grdwatLayerName, h_const.grdwatFieldName,
-                           QVariant.String)==None: return False 
+    if h_utils.addFieldToAttrTable(h_const.grdwatLayerName, 
+  	                        h_const.grdwatFieldName, QVariant.String)==None:
+        return False 
     ncells=h_utils.getLayerFeaturesCount(h_const.grdwatLayerName)
     values=["Cell "+str(i) for i in range(ncells)]
 
@@ -45,7 +47,7 @@ def distanceBetweenGroundwaterCells():
     Returns a list with three lists: the ids of from/to cells and their 
     distance."""
 
-    centroids=getPolyLayerCentroids(h_const.grdwatLayerName)
+    centroids=h_utils.getPolyLayerCentroids(h_const.grdwatLayerName)
     if not centroids: return False
 
     x,y = 0,1
@@ -67,18 +69,20 @@ def edgeBetweenGroundwaterCells():
     Returns a list with three lists: the ids of from/to cells and lenght of
     their common edge."""
     
-    polygons=getLayerFeatures(h_const.grdwatLayerName)
+    polygons=h_utils.getLayerFeatures(h_const.grdwatLayerName)
     if not polygons: return False
 
     iNodes=[]
     jNodes=[]
     commonEdge=[]
     for polygonPair in  itertools.combinations(polygons, 2):
-        if polygonPair[0].intersects(polygonPair[1]):
+        geometryApolygon=polygonPair[0].geometry()
+        geometryBpolygon=polygonPair[1].geometry()
+        if geometryApolygon.intersects(geometryBpolygon):
             iNodes.append(polygonPair[0].id())
             jNodes.append(polygonPair[1].id())
-            intersection=polygonPair[0].intersection(polygonPair[1])
-            commonEdge.append(intersection.geom.length())
+            intersection=geometryApolygon.intersection(geometryBpolygon)
+            commonEdge.append(intersection.length())
 
     return (iNodes, jNodes, commonEdge)
 
@@ -92,11 +96,11 @@ def linkSpringToGroundwater():
     if not grdwaterIdList: return False
 
     return h_utils.setFieldAttrValues(h_const.springLayerName, 
-                              h_const.springFieldGroundId, grdwaterIdList)
+                              h_const.grdwatFieldId, grdwaterIdList)
 
 
 
-def linkSpringToSubbasinr(): 
+def linkSpringToSubbasin(): 
     """Add in the SUB_ID field of the Spring layer the ids of Subbasin polygons 
     that correspond to each spring."""
     subbasIdList=h_utils.linkPointLayerToPolygonLayer(h_const.springLayerName,
@@ -104,7 +108,7 @@ def linkSpringToSubbasinr():
     if not subbasIdList: return False
 
     return h_utils.setFieldAttrValues(h_const.springLayerName, 
-                              h_const.springFieldSubbasId, subbasIdList)
+                              h_const.subbasFieldId, subbasIdList)
 
 
 
@@ -116,14 +120,14 @@ def linkBoreholeToGroundwater():
     if not grdwaterIdList: return False
 
     return h_utils.setFieldAttrValues(h_const.borehLayerName, 
-                              h_const.borehFieldGroundId, grdwaterIdList)
+                              h_const.grdwatFieldId, grdwaterIdList)
 
 
 
 def linkBoreholeToSubbasin():
     """Add in the SUB_ID field of the Borehole layer the ids of the Subbasin
     polygons that correspond to each borehole."""
-    subbasIdList=h_utils.linkPointLayerPoTolygonLayer(h_const.borehLayerName,
+    subbasIdList=h_utils.linkPointLayerToPolygonLayer(h_const.borehLayerName,
                                       h_const.subbasLayerName)
     if not subbasIdList: return False
 

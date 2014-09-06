@@ -684,6 +684,7 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     inFeat1 = QgsFeature()
     inFeat2 = QgsFeature()
     while points.nextFeature(inFeat1):
+	polygons.rewind()
         polygonId=None
         while polygons.nextFeature(inFeat2):
             if inFeat2.geometry().contains(inFeat1.geometry()):

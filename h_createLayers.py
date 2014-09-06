@@ -4,7 +4,7 @@ import os.path
 import ftools_utils
 import h_const
 import h_utils
-import h_network
+import h_surface
 
 
 
@@ -14,7 +14,7 @@ def createOutletsLayer(path):
     # Get outlets of river segments
     riverSegments= h_utils.getLayerFeatures(h_const.riverLayerName)
     if not riverSegments: return False
-    (endPntXs,endPntYs)= h_network.getRiverJunctions(riverSegments)
+    (endPntXs,endPntYs)= h_surface.getRiverJunctions(riverSegments)
 
     coordinates=zip(endPntXs, endPntYs)
     ok= h_utils.createPointLayer(path, h_const.outletLayerName, coordinates,
