@@ -92,7 +92,6 @@ def initSubbasinLayer(path):
 
     # Add area of polygons to attribute table
     fieldIndex= h_utils.addMeasureToAttrTable(h_const.subbasLayerName, 
-		                      h_const.subbasLayerType,
                                       h_const.subbasFieldArea)
     if fieldIndex==None: return False
 

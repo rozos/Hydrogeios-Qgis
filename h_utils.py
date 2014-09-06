@@ -90,6 +90,35 @@ def layerFeaturesNumberOK(layerName, featuresNum):
 
 
 
+def getSegmentEndsCoords(layerName, firstORlast):
+    """Get coordinates of the ending nodes of a line layer segments."""
+
+    if not layerNameTypeOK(layerName, QGis.Line): return False
+
+    segments=getLayerFeatures(layerName)
+    if segments==False: return False 
+
+    inFeat = QgsFeature()
+    XList= []
+    YList= []
+    x,y = 0,1
+    while segments.nextFeature(inFeat):
+        nodes=inFeat.geometry().asPolyline()
+        if firstORlast=="first":
+            frstnode=0
+            XList.append( nodes[frstnode][x] )
+            YList.append( nodes[frstnode][y] )
+        elif firstORlast=="last":
+            lastnode=len(nodes)-1
+            XList.append( nodes[lastnode][x] )
+            YList.append( nodes[lastnode][y] )
+        else: 
+            return False
+
+    return XList, YList
+
+
+
 def getFieldIndexByName(layerName, fieldName):
     """Returns the index of the field named 'name' of the attribute table
     of the layer 'vlayer'. If no field with name 'name', returns None and
@@ -367,9 +396,9 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
     # Check arguments
     message=""
     if len(fieldNames) != len(fieldTypes):
-        message="createPointLayer" + filename + "FieldNames.no <> FieldTypes.no"
+        message="createPointLayer: "+ filename +"FieldNames.no <> FieldTypes.no"
     if len(fieldNames) > 1 and len(fieldNames)<>len(attrValues):
-        message="createPointLayer" + filename + "FieldNames.no <> attrValues.no"
+        message="createPointLayer: "+ filename +"FieldNames.no <> attrValues.no"
     if len(message)!=0:
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False

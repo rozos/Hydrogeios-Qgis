@@ -43,8 +43,9 @@ grdwatFieldName= grdwatFieldNames[1]
 
 # Hydrojunction layer specifications
 hydroJncLayerName="HydroJunction"
-hydroJncNames=("JUNCT_ID", "NAME", "DESCR", "JUNCT_TYPE", "TS_ID",
-               "X", "Y", "Z")
+hydroJncFieldNames=("JUNCT_ID", "NAME", "DESCR", "JUNCT_TYPE", "TS_ID",
+                    "X", "Y", "Z")
+hydroJncLayerType= QGis.Point
 hydroJncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                     QVariant.Int, QVariant.Int, QVariant.Double,
                     QVariant.Double, QVariant.Double)
@@ -87,7 +88,8 @@ subbasFieldPrimLen= subbasFieldNames[10]
 
 # Borehole layer specifications
 borehLayerName="Borehole"
-borehLayerType=QGis.WKBPoint
+borehLayerType=QGis.Point
+borehGeomType=QGis.WKBPoint
 borehFieldNames=("NAME", "DESCR", "TYPE", "X", "Y", "Z", grdwatFieldId,
                   subbasFieldId, "GROUP_ID", "PUMP_CAP", "PUMP_RAT", "DEPTH", )
 borehFieldTypes=(QVariant.String, QVariant.String, QVariant.Int,
@@ -171,7 +173,7 @@ grdwatSubbasHRUFieldArea=grdwatSubbasHRUFieldNames[3]
 
 
 # DTM raster
-dtmLayerName= "hdr"
+DTMlayerName= "hdr"
 
 
 # HRU reclassified raster
