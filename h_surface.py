@@ -224,7 +224,9 @@ def linkSubbasinRiver():
     if not h_utils.layerNameTypeOK(h_const.riverLayerName, 
                                                     h_const.riverLayerType) or \
        not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
-                                                     h_const.hydroJncLayerType):
+                                                 h_const.hydroJncLayerType) or \
+       not h_utils.layerNameTypeOK(h_const.subbasLayerName, 
+                                                     h_const.subbasLayerType):
 
         return False
 
@@ -243,24 +245,20 @@ def linkSubbasinRiver():
     rivEndNodeXlist, rivEndNodeYlist = \
                    h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
 
-    # Get polygons of Subbasin
-    subbPolygons= h_utils.getLayerFeatures(h_const.subbasLayerName)
-
     # Find to which subbasin each segment start belongs to
     subassCount= h_utils.getLayerFeaturesCount(h_const.subbasLayerName)
     rivIds = [None] * subassCount
     nodeIds = [None] * subassCount
 
+    inFeat = QgsFeature()
     for rivid, strNodeX, strNodeY, endNodeX, endNodeY, in zip( \
                range(0,len(rivSrtNodeXlist)), rivSrtNodeXlist, rivSrtNodeYlist,\
                                               rivEndNodeXlist, rivEndNodeYlist):
-        # Reset found-flag
+        # Obtain a new iterator, reset found-flag, reset i index
         foundStart= False
-        # Find in which subbasin this point belongs to
-        subbPolygons.rewind()
-        if not subbPolygons: return False
+        subbPolygons= h_utils.getLayerFeatures(h_const.subbasLayerName)
         i=0
-        inFeat = QgsFeature()
+        # Find in which subbasin this point belongs to
         while subbPolygons.nextFeature(inFeat):
             if inFeat.geometry().contains(QgsPoint(strNodeX,strNodeY)):
                 if not foundStart:

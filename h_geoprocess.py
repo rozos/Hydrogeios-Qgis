@@ -16,7 +16,7 @@ def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
     layerBloaded=h_utils.isShapefileLoaded(inputLayerBname)
     if not layerBloaded:
         pathFilenameB=os.path.join( path, inputLayerBname) 
-        if not h_utils.loadShapefileToCanvas(pathFilenameB+".shp" ):
+        if not h_utils.loadShapefileToCanvas(path, pathFilenameB+".shp" ):
             return False
 
     # Del output shapefile

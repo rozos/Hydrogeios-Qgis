@@ -1,12 +1,12 @@
 from PyQt4 import QtGui
 from PyQt4.QtCore import QVariant
 from qgis.core import *
-from qgis.analysis import *
 import math
 import itertools
 import ftools_utils
 import h_const
 import h_utils
+import h_geoprocess
 
 
 
@@ -32,7 +32,7 @@ def nameGroundwaterCells():
     of each cell (Cell 0, Cell 1, ...)."""
 
     if h_utils.addFieldToAttrTable(h_const.grdwatLayerName, 
-  	                        h_const.grdwatFieldName, QVariant.String)==None:
+                               h_const.grdwatFieldName, QVariant.String)==None:
         return False 
     ncells=h_utils.getLayerFeaturesCount(h_const.grdwatLayerName)
     values=["Cell "+str(i) for i in range(ncells)]
@@ -142,30 +142,32 @@ def createRiverGroundwater(path):
 
     # Add to the attr. table of Groundwater a field that keeps the cells id
     ok=h_utils.addShapeIdsToField(h_const.grdwatLayerName, 
-                                 h_const.riverGrdwatFieldGrdwatId) 
+                                  h_const.grdwatFieldId) 
     if not ok: return False
 
     # Add to the attr. table of River a field that keeps the segments id
     ok=h_utils.addShapeIdsToField(h_const.riverLayerName, 
-                                 h_const.riverGrdwatFieldRiverId)
+                                  h_const.riverFieldId)
     if not ok: return False
 
     # Delete existing shapefile
-    h_utils.delExistingShapefile( path, h_const.riverGrdwatLayerName )
+    h_utils.unloadLayer(h_const.riverGrdwatLayerName)
+    if h_utils.shapefileExists(path, h_const.riverGrdwatLayerName ):
+        ok=h_utils.delExistingShapefile( path, h_const.riverGrdwatLayerName )
+        if not ok: return False
 
     # Intersect river with Groundwater
-    pathFilename=os.path.join( path, h_const.riverGrdwatLayerName )
-    overlayAnalyzer = QgsOverlayAnalyzer()
-    ok=overlayAnalyzer.intersection( h_const.riverLayerName, 
-                                     h_const.grdwatLayerName, 
-                                     pathFilename+".shp" )
+    ok=h_geoprocess.intersect( path, h_const.riverLayerName, 
+                               h_const.grdwatLayerName, 
+                               h_const.riverGrdwatLayerName )
     if not ok: return False
 
+    # Load RiverGroundwater
+    h_utils.loadShapefileToCanvas(path, h_const.riverGrdwatLayerName+ ".shp")
 
     # Update the length of the segments to the RiverGroundwater attr. table 
-    ok= addMeasureToAttrTable( h_const.riverGrdwatLayerName,
-                               h_const.riverGrdwatLayerType,
-                               h_const.riverGrdwatFieldLength )
+    ok= h_utils.addMeasureToAttrTable( h_const.riverGrdwatLayerName,
+                                       h_const.riverGrdwatFieldLength )
 
     return ok
     
@@ -177,22 +179,25 @@ def createGroundwaterSubbasinHRU(path):
 
     # Add to the attr. table of Groundwater a field that keeps the cells id
     ok=h_utils.addShapeIdsToField(h_const.grdwatLayerName, 
-                                 h_const.grdwatSubbasHRUFieldGrdwatId) 
+                                 h_const.grdwatFieldId) 
     if not ok: return False
 
     # Delete existing shapefile SubGroundHRU
-    h_utils.delExistingShapefile( path, h_const.grdwatSubbasHRULayerName )
+    h_utils.unloadLayer(h_const.grdwatSubbasHRULayerName)
+    if h_utils.shapefileExists(path, h_const.grdwatSubbasHRULayerName):
+       ok=h_utils.delExistingShapefile( path, h_const.grdwatSubbasHRULayerName )
+       if not ok: return False
 
     # Intersect Groundwater with SubbasinHRU
-    pathFilename=os.path.join( path, h_const.grdwatSubbasHRULayerName )
-    overlayAnalyzer = QgsOverlayAnalyzer()
-    ok=overlayAnalyzer.intersection( h_const.grdwatLayerName,
-                                     h_const.subbasinHRU, 
-                                     pathFilename+".shp" )
+    ok=h_geoprocess.intersect( path, h_const.grdwatLayerName, 
+                               h_const.subbasHRULayerName, 
+                               h_const.grdwatSubbasHRULayerName)
     if not ok: return False
 
+    # Load RiverGroundwater
+    h_utils.loadShapefileToCanvas(path, h_const.grdwatSubbasHRULayerName+".shp")
+
     # Update the area values of the SubGroundHRU polygons in the attr. table
-    ok= addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
-                               h_const.grdwatSubbasHRULayerType,
-                               h_const.grdwatSubbasHRUFieldArea)
+    ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
+                                       h_const.grdwatSubbasHRUFieldArea)
     return ok

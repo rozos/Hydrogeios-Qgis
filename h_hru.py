@@ -1,6 +1,6 @@
 from PyQt4 import QtGui
 from qgis.core import *
-from qgis.analysis import QgsOverlayAnalyzer
+#from qgis.analysis import QgsOverlayAnalyzer
 import os.path
 import h_geoprocess
 import h_const

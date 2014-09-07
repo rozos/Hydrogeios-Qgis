@@ -677,14 +677,13 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     if not layerNameTypeOK(polyLayerName, QGis.Polygon): return None
     if not layerNameTypeOK(pointLayerName, QGis.Point): return None
 
-    polygons=getLayerFeatures(polyLayerName)
     points=getLayerFeatures(pointLayerName)
 
     polygonIds=[]
     inFeat1 = QgsFeature()
     inFeat2 = QgsFeature()
     while points.nextFeature(inFeat1):
-	polygons.rewind()
+        polygons=getLayerFeatures(polyLayerName)
         polygonId=None
         while polygons.nextFeature(inFeat2):
             if inFeat2.geometry().contains(inFeat1.geometry()):
