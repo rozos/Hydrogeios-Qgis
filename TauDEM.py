@@ -1,10 +1,14 @@
 import subprocess
 import os.path
 
+path=""
+dem=""
 
-def argument(path, dem, arg, suffix=arg, ext="tif")
+def argument(arg, suffix=None, ext="tif"):
+    if suffix==None: 
+        suffix=arg
     pathdem =os.path.join(path, dem ) 
-    return " -" + suffix + pathdem + arg + "."+ext
+    return " -" + arg + " " + pathdem + suffix + "."+ext
 
 
 def outletsarg(outlets):
@@ -15,73 +19,56 @@ def outletsarg(outlets):
         return ""
 
 
-def pitremove(tauDem, path, dem):
-    return tauDem+"pitremove -z "+ pathdem +".tif" + argument(path, dem, "fel")
+def pitremove():
+    return "pitremove" + argument("z", "") + argument("fel")
 
 
-def d8flowdir(tauDem, path, dem):
-    return tauDem + "d8flowdir" + argument(path, dem,"fel") \
-                  + argument(path, dem,"p")  \
-                  + argument(path, dem, "sd8")
+def d8flowdir():
+    return  "d8flowdir" + argument("fel") + argument("p")  + argument("sd8")
 
 
-def dinfflowdir(tauDem, path, dem):
-    return tauDem + "dinfflowdir" + argument(path, dem,"fel") \
-                  + argument(path, dem,"ang") + \
-                  + argument(path, dem, "slp")
+def dinfflowdir():
+    return "dinfflowdir" + argument("fel") + argument("ang") + argument("slp")
 
 
-def aread8(tauDem, path, dem):
-    return tauDem + "aread8" + argument(path, dem,"p") \
-                  + argument(path, dem,"ad8")
+def aread8():
+    return  "aread8" + argument("p") + argument("ad8")
 
 
-def aread8_outlets(tauDem, path, dem, outlets):
-    return tauDem + "aread8" + outletsarg(outlets) + argument(path, dem,"p") \
-                  + argument(path, dem,"wg","ss") \
-                  + argument(path, dem,"ad8", "ssa")
+def aread8_outlets(outlets):
+    return "aread8" + outletsarg(outlets) + argument("p")  \
+                    + argument("wg","ss") + argument("ad8", "ssa")
 
-def areadinf(tauDem, path, dem):
-    return tauDem + "areadinf" + argument(path, dem,"ang") \
-                  + argument(path, dem,"sca")
+def areadinf():
+    return "areadinf" + argument("ang") + argument("sca")
 
 
-def gridnet(tauDem, path, dem):
-    return tauDem + "gridnet" + argument(path, dem,"p") \
-                  + argument(path, dem,"plen") + \
-                  + argument(path, dem,"tlen") + \
-                  + argument(path, dem,"gord")
+def gridnet():
+    return  "gridnet" + argument("p") + argument("plen") \
+                      + argument("tlen") + + argument("gord")
 
 
-def peukerdouglas(tauDem, path, dem):
-    return tauDem + "peukerdoublas" + argument(path, dem,"fel") \
-                  + argument(path, dem,"ss")
+def peukerdouglas():
+    return  "peukerdoublas" + argument("fel") + argument("ss")
 
 
-def dropanalysis(tauDem, path, dem, outlets):
-    return tauDem + "dropanalysis" + outletsarg(outlets) \
-                  + argument(path, dem,"p") \
-                  + argument(path, dem,"fel") \
-                  + argument(path, dem,"ssa")
-                  + argument(path, dem,"drp","drp","txt")
+def dropanalysis( outlets):
+    return  "dropanalysis" + outletsarg(outlets) + argument("p") \
+                           + argument("fel") + argument("ssa") \
+                           + argument("drp","drp","txt")
 
 
-def threshold(tauDem, path, dem, thresh):
-    return tauDem + "thresh" + argument(path, dem,"ssa") \
-                  + argument(path, dem,"src") \
-                  + " -thresh " + str(thresh)
+def threshold(thresh):
+    return + "thresh" + argument("ssa") + argument("src") \
+                      + " -thresh " + str(thresh)
 
 
-def streamnet(tauDem, path, dem, thresh):
-    return tauDem + "streamnet" + argument(path, dem,"fel") \
-                  + argument(path, dem,"p") \
-                  + argument(path, dem,"ad8") \
-                  + argument(path, dem,"src") \
-                  + argument(path, dem,"ord") \
-                  + argument(path, dem,"tree", "tree", "dat") \
-                  + argument(path, dem,"coord", "coord", "dat") \
-                  + argument(path, dem,"net", "net", "shp") \
-                  + argument(path, dem,"w")
+def streamnet(thresh):
+    return + "streamnet" + argument("fel") + argument("p") + argument("ad8") \
+                         + argument("src") + argument("ord") \
+                         + argument("tree", "tree", "dat") \
+                         + argument("coord", "coord", "dat") \
+                         + argument("net", "net", "shp") + argument("w")
 
 
 def tauDemDelineation(tauDem, path, dem, thresh, outlets):
