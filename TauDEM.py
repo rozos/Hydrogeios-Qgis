@@ -70,7 +70,7 @@ def autoDelineate(thresh, outlets=None):
     res = threshold(thresh)
     if res != 0:
         return "threshold failed with " + str(res)
-    res = streamnet()
+    res = streamnet(outlets)
     if res != 0:
         return "streamnet failed with " + str(res)
 
@@ -90,7 +90,7 @@ def argument(arg, suffix=None, ext="tif", basename=None):
 def outletsarg(outlets):
     if outlets!=None:
         pathout =os.path.join(_path, outlets) 
-        return  " -o " + pathout
+        return  " -o " + pathout + ".shp"
     else:
         return ""
 
@@ -169,11 +169,12 @@ def threshold(thresh):
     return res
 
 
-def streamnet():
+def streamnet(outlets):
     cmd = "/streamnet" + argument("fel") + argument("p") + argument("ad8") \
                         + argument("src") + argument("ord") \
                         + argument("tree", "tree", "dat") \
-                        + argument("coord", "coord", "dat") \
+                        + argument("coord", "coord", "dat")  \
+                        + outletsarg(outlets) \
                         + argument("net", "", "shp","River") + argument("w")
     res = os.system(_taudem + cmd)
     if res!=0: print(_taudem + cmd)
