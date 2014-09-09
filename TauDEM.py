@@ -1,14 +1,89 @@
+# -*- coding: utf-8 -*-
+"""
+/***************************************************************************
+ TauDEM    
+                                 A QGIS function
+ Use this function to automate TauDEM commands run from within QGIS
+                              -------------------
+        begin                : 2014-09-09
+        copyright            : (C) 2014 by ITIA
+        email                : rozos@itia.ntua.gr
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+"""
 import subprocess
-import os.path
+import os
 
 _path=""
 _dem=""
 _taudem=""
 
-def argument(arg, suffix=None, ext="tif"):
+
+def initialize(taudemPath, projectPath, DEMname):
+    """Initialize the global variables of TauDEM module."""
+    global _path, _dem, _taudem
+    _path   = projectPath
+    _dem    = DEMname
+    _taudem = taudemPath
+
+
+def autoDelineate(thresh, outlets=None):
+    """Run all TauDEM commands to delineate a watershed."""
+    if _path=="" or _dem=="" or _taudem=="":
+        return "Please run initialize() first!"
+
+    res = pitremove()
+    if res != 0:
+        return "pitremove failed with " + str(res)
+    res = d8flowdir()
+    if res != 0:
+        return "d8flowdir failed with " + str(res)
+    res = dinfflowdir()
+    if res != 0:
+        return "dinfflowdir failed with " + str(res)
+    res = aread8()
+    if res != 0:
+        return "aread8 failed with " + str(res)
+    res = areadinf()
+    if res != 0:
+        return "areadinf failed with " + str(res)
+    res = gridnet()
+    if res != 0:
+        return "gridnet failed with " + str(res)
+    res = peukerdouglas()
+    if res != 0:
+        return "peukerdouglas failed with " + str(res)
+    res = aread8_outlets(outlets)
+    if res != 0:
+        return "aread8_outlets failed with " + str(res)
+    #res = dropanalysis(outlets)
+    #if res != 0:
+    #    return "dropanalysis failed with " + str(res)
+    res = threshold(thresh)
+    if res != 0:
+        return "threshold failed with " + str(res)
+    res = streamnet()
+    if res != 0:
+        return "streamnet failed with " + str(res)
+
+    return ""
+
+
+def argument(arg, suffix=None, ext="tif", basename=None):
     if suffix==None: 
         suffix=arg
-    pathdem =os.path.join(_path, _dem ) 
+    if basename==None:
+        pathdem =os.path.join(_path, _dem ) 
+    else:
+        pathdem =os.path.join(_path, basename ) 
     return " -" + arg + " " + pathdem + suffix + "."+ext
 
 
@@ -21,60 +96,85 @@ def outletsarg(outlets):
 
 
 def pitremove():
-    return _taudem + "/pitremove" + argument("z", "") + argument("fel")
+    cmd = "/pitremove" + argument("z", "") + argument("fel")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def d8flowdir():
-    return  _taudem + "/d8flowdir" + argument("fel") + argument("p")  + argument("sd8")
+    cmd=  "/d8flowdir" + argument("fel") + argument("p") + argument("sd8")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def dinfflowdir():
-    return _taudem + "/dinfflowdir" + argument("fel") + argument("ang") + argument("slp")
+    cmd= "/dinfflowdir" + argument("fel") + argument("ang") + argument("slp")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def aread8():
-    return  _taudem + "/aread8" + argument("p") + argument("ad8")
+    cmd = "/aread8" + argument("p") + argument("ad8")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def aread8_outlets(outlets):
-    return _taudem + "/aread8" + outletsarg(outlets) + argument("p")  \
-                    + argument("wg","ss") + argument("ad8", "ssa")
+    cmd =  "/aread8" + outletsarg(outlets) + argument("p")  \
+                     + argument("wg","ss") + argument("ad8", "ssa")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
+
 
 def areadinf():
-    return _taudem + "/areadinf" + argument("ang") + argument("sca")
+    cmd = "/areadinf" + argument("ang") + argument("sca")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def gridnet():
-    return _taudem + "/gridnet" + argument("p") + argument("plen") \
-                      + argument("tlen") + + argument("gord")
+    cmd = "/gridnet" + argument("p") + argument("plen") \
+                     + argument("tlen") + argument("gord")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def peukerdouglas():
-    return _taudem + "/peukerdoublas" + argument("fel") + argument("ss")
+    cmd = "/peukerdouglas" + argument("fel") + argument("ss")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
-def dropanalysis( outlets):
-    return _taudem + "/dropanalysis" + outletsarg(outlets) + argument("p") \
-                           + argument("fel") + argument("ssa") \
-                           + argument("drp","drp","txt")
+def dropanalysis(outlets):
+    cmd = "/dropanalysis" + outletsarg(outlets) + argument("p") \
+                          + argument("fel") + argument("ssa") + argument("ad8")\
+                          + argument("drp","drp","txt")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def threshold(thresh):
-    return _taudem + "/thresh" + argument("ssa") + argument("src") \
-                      + " -thresh " + str(thresh)
+    cmd = "/threshold"+argument("ssa")+argument("src")+" -thresh " +str(thresh)
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
 
 
 def streamnet():
-    return _taudem + "/streamnet" + argument("fel") + argument("p") + argument("ad8") \
-                         + argument("src") + argument("ord") \
-                         + argument("tree", "tree", "dat") \
-                         + argument("coord", "coord", "dat") \
-                         + argument("net", "net", "shp") + argument("w")
-
-
-def iniTauDEM(taudem, path, dem):
-    """Initialize the global variables of TauDEM module."""
-    global _path, _dem, _taudem
-    _path=path
-    _dem=dem
-    _taudem=taudem
+    cmd = "/streamnet" + argument("fel") + argument("p") + argument("ad8") \
+                        + argument("src") + argument("ord") \
+                        + argument("tree", "tree", "dat") \
+                        + argument("coord", "coord", "dat") \
+                        + argument("net", "", "shp","River") + argument("w")
+    res = os.system(_taudem + cmd)
+    if res!=0: print(_taudem + cmd)
+    return res
