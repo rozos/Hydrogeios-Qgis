@@ -101,7 +101,7 @@ def reportError(cmd):
         res = os.system(os.path.join(_taudem,cmd)+" 1> " + errlogFile + " 2>&1")
         f=open(errlogFile, 'a+')
         f.write('\n\n THE PREVIOUS OUTPUT WAS PRODUCED BY THE FOLLOWING \n')
-        f.write(_taudem + cmd +'\n')
+        f.write(os.path.join(_taudem,cmd) +'\n')
     except Exception as e:
         res = str(e)
     return res
