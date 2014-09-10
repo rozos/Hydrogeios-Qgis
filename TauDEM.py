@@ -98,7 +98,7 @@ def outletsarg(outlets):
 def reportError(cmd):
     errlogFile = os.path.join(_path, "error.log") 
     try:
-        res = os.system(_taudem + cmd + " 1> " + errlogFile + " 2>&1")
+        res = os.system(os.path.join(_taudem,cmd)+" 1> " + errlogFile + " 2>&1")
         f=open(errlogFile, 'a+')
         f.write('\n\n THE PREVIOUS OUTPUT WAS PRODUCED BY THE FOLLOWING \n')
         f.write(_taudem + cmd +'\n')
