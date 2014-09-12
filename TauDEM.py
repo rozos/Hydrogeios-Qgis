@@ -29,10 +29,20 @@ _taudem=""
 
 def initialize(taudemPath, projectPath, DEMname):
     """Initialize the global variables of TauDEM module."""
+    if not os.path.exists(os.path.join(taudemPath,"streamnet")) and \
+       not os.path.exists(os.path.join(taudemPath,"streamnet.exe")):
+        return "The defined taudem directory does not look OK!"
+    if not os.path.isdir(projectPath):
+        return "The defined project directory does not exist!"
+    if not os.path.exists(os.path.join(projectPath,DEMname+".tif")):
+        return "The defined DEM does not exist!"
+
     global _path, _dem, _taudem
     _path   = projectPath
     _dem    = DEMname
     _taudem = taudemPath
+
+    return "OK"
 
 
 
@@ -62,18 +72,26 @@ def autoDelineate(thresh, outlet=None):
     res = peukerdouglas()
     if res != 0:
         return "peukerdouglas failed with " + str(res)
-    res = aread8_outlet(outlet)
-    if res != 0:
-        return "aread8_outlet failed with " + str(res)
-    if outlet!=None: res = dropanalysis(outlet)
-    if res != 0:
-        return "dropanalysis failed with " + str(res)
     res = threshold(thresh)
     if res != 0:
         return "threshold failed with " + str(res)
-    res = streamnet(outlet)
-    if res != 0:
-        return "streamnet failed with " + str(res)
+    if outlet!="":
+        res = moveoutletstostreams(outlet)
+        if res != 0:
+            return "moveoutletstostreams failed with " + str(res)
+        res = streamnet("Outlet")
+        if res != 0:
+            return "streamnet failed with " + str(res)
+        res = aread8_outlet("Outlet")
+        if res != 0:
+            return "aread8_outlet failed with " + str(res)
+        res = dropanalysis("Outlet")
+        if res != 0:
+            return "dropanalysis failed with " + str(res)
+    else:
+        res = streamnet("")
+        if res != 0:
+            return "streamnet failed with " + str(res)
 
     return "OK!"
 
@@ -101,6 +119,7 @@ def _outletarg(outlet):
 
 def _execute(cmd):
     """Executes a taudem command and handle errors accordingly."""
+
     res = os.system(os.path.join(_taudem,cmd))
     if res!=0:
         errlogFile = os.path.join(_path, "error.log") 
@@ -166,7 +185,7 @@ def peukerdouglas():
 
 
 def dropanalysis(outlet):
-    cmd = "dropanalysis" + _outletarg(outlet) + _argument("p") \
+    cmd = "dropanalysis" + _outletarg("Outlet") + _argument("p") \
                          + _argument("fel")+ _argument("ssa")+ _argument("ad8")\
                          + _argument("drp","drp","txt")
     return _execute(cmd)
@@ -182,6 +201,16 @@ def threshold(thresh):
 def gagewatershed(gaugingStations):
     cmd = "gagewatershed" + _argument("p") + _outletarg(gaugingStations) \
                           + _argument("gw")
+    return _execute(cmd)
+
+
+
+def moveoutletstostreams(outlet):
+    if outlet=="Outlet":
+        return "Input outlet layer should not be name 'Outlet'!"
+    cmd = "moveoutletstostreams" + _argument("p") + _argument("src") \
+                                 + _outletarg(outlet) \
+                                 + _argument("om", "", "shp", "Outlet")
     return _execute(cmd)
 
 
