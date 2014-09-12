@@ -72,24 +72,24 @@ def autoDelineate(thresh, outlet=None):
     res = peukerdouglas()
     if res != 0:
         return "peukerdouglas failed with " + str(res)
+    res = aread8_outlet(outlet)
+    if res != 0:
+        return "aread8_outlet failed with " + str(res)
     res = threshold(thresh)
     if res != 0:
         return "threshold failed with " + str(res)
-    if outlet!="":
+    if outlet!=None:
         res = moveoutletstostreams(outlet)
         if res != 0:
             return "moveoutletstostreams failed with " + str(res)
         res = streamnet("Outlet")
         if res != 0:
             return "streamnet failed with " + str(res)
-        res = aread8_outlet("Outlet")
-        if res != 0:
-            return "aread8_outlet failed with " + str(res)
         res = dropanalysis("Outlet")
         if res != 0:
             return "dropanalysis failed with " + str(res)
     else:
-        res = streamnet("")
+        res = streamnet()
         if res != 0:
             return "streamnet failed with " + str(res)
 
@@ -215,7 +215,7 @@ def moveoutletstostreams(outlet):
 
 
 
-def streamnet(outlet):
+def streamnet(outlet=None):
     cmd = "streamnet" + _argument("fel") + _argument("p") + _argument("ad8") \
                       + _argument("src") + _argument("ord") \
                       + _argument("tree", "tree", "dat") \
