@@ -63,8 +63,7 @@ irrigGeomType=QGis.WKBPolygon
 irrigFieldNames=("IRRIG_AREA", hydroJncFieldId, "RET_PIPE", "RET_RATIO")
 irrigFieldTypes=(QVariant.Double, QVariant.Int, QVariant.Double,
                  QVariant.Double)
-irrigFieldId  =  irrigFieldNames[0]
-irrigFieldArea=  irrigFieldNames[1]
+irrigFieldArea=  irrigFieldNames[0]
 
 
 # Subbasing layer specifications
@@ -170,8 +169,8 @@ grdwatSubbasHRUFieldTypes=(QVariant.Int, QVariant.Int, QVariant.Int,
 grdwatSubbasHRUFieldArea=grdwatSubbasHRUFieldNames[3]
 
 
-# DTM raster
-DTMlayerName= "hdr"
+# DEM raster
+DEMlayerName= "hdr"
 
 
 # HRU reclassified raster

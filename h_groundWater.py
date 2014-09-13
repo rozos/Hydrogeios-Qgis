@@ -9,6 +9,58 @@ import h_utils
 import h_geoprocess
 
 
+def doGroundwater(path):
+    """This function calls all functions related to groundwater cells 
+    processing."""
+    if not nameGroundwaterCells():
+        message="nameGroundwaterCells Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not distanceBetweenGroundwaterCells():
+        message="distanceBetweenGroundwaterCells Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not edgeBetweenGroundwaterCells():
+        message="edgeBetweenGroundwaterCells Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkSpringToGroundwater():
+        message="linkSpringToGroundwater Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkSpringToSubbasin():
+        message="linkSpringToSubbasin Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkBoreholeToGroundwater():
+        message="linkBoreholeToGroundwater Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkBoreholeToSubbasin():
+        message="linkBoreholeToSubbasin Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not createRiverGroundwater(path):
+        message="createRiverGroundwater Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not createGroundwaterSubbasinHRU(path):
+        message="createGroundwaterSubbasinHRU Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+
+    return True
+
+
 
 def layerNameTypesOK():
     if not h_utils.layerNameTypeOK(h_const.grdwatLayerName, 
@@ -141,12 +193,12 @@ def createRiverGroundwater(path):
     that links River with Groundwater."""
 
     # Add to the attr. table of Groundwater a field that keeps the cells id
-    ok=h_utils.addShapeIdsToField(h_const.grdwatLayerName, 
+    ok=h_utils.addShapeIdsToAttrTable(h_const.grdwatLayerName, 
                                   h_const.grdwatFieldId) 
     if not ok: return False
 
     # Add to the attr. table of River a field that keeps the segments id
-    ok=h_utils.addShapeIdsToField(h_const.riverLayerName, 
+    ok=h_utils.addShapeIdsToAttrTable(h_const.riverLayerName, 
                                   h_const.riverFieldId)
     if not ok: return False
 
@@ -178,7 +230,7 @@ def createGroundwaterSubbasinHRU(path):
     new layer (SubGroundHRU) that links Groundwater with Subbasin-HRU ."""
 
     # Add to the attr. table of Groundwater a field that keeps the cells id
-    ok=h_utils.addShapeIdsToField(h_const.grdwatLayerName, 
+    ok=h_utils.addShapeIdsToAttrTable(h_const.grdwatLayerName, 
                                  h_const.grdwatFieldId) 
     if not ok: return False
 

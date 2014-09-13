@@ -7,6 +7,40 @@ import h_const
 import h_utils
 
 
+def doTopology():
+    if not h_utils.addShapeIdsToAttrTable(h_const.hydroJncLayerName,
+                                          h_const.hydroJncFieldId):
+        return False
+    if not linkRiverductHydrojunction(h_const.riverLayerName, True): 
+        message="linkRiverductHydrojunction Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkRiverductHydrojunction(h_const.aquedLayerName, True): 
+        message="linkRiverductHydrojunction Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkIrrigHydrojunction(): 
+        message="linkIrrigHydrojunction Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkSubbasinRiver():
+        message="linkSubbasinRiver Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not addSubbasinId():
+        message="addSubbasinId Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+
+    return True
+
+
+
 def layerConsistenciesOK():
     """This functions checks that the area of all shapes of a polygon layer
     is positive and the the length of all shapes of a line layer is positive"""
@@ -45,6 +79,13 @@ def layerNamesTypesOK():
                                    h_const.borehLayerType):
         return False
 
+    # Check if DEM is OK
+    raster=ftools_utils.getRasterLayerByName(h_const.DEMlayerName)
+    if not raster:
+        message=h_const.DEMlayerName + "  not loaded!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
+
     # All names and types are what expected to be
     return True
 
@@ -75,10 +116,13 @@ def createHydrojunctionLayer(path):
     rivYList= [tmpList2[0]] + rivYList
     
     # Get centroids of Irrigation layer 
+    irgXList= []
+    irgYList= []
     res=h_utils.getPolyLayerCentroids(h_const.irrigLayerName)
     if res==None: return False
-    irgXList= list(zip(*res)[0])
-    irgYList= list(zip(*res)[1])
+    if res!=[]:
+        irgXList= list(zip(*res)[0])
+        irgYList= list(zip(*res)[1])
     
     # Get the points of Borhole layer
     borehPoints=h_utils.getLayerFeatures(h_const.borehLayerName)
@@ -92,13 +136,14 @@ def createHydrojunctionLayer(path):
     # Make a List of coords of the gravity centres of the Borhole groups points
     borXList= []
     borYList= []
-    borGrpId=set(pointsId)
-    for grpid in borGrpId:
-        indexes=h_utils.getElementIndexByVal(pointsId, grpid)
-        groupXvals= [pointsXList[i] for i in indexes]
-        borXList.append( sum(groupXvals)/len(groupXvals) )
-        groupYvals= [pointsYList[i] for i in indexes]
-        borYList.append( sum(groupYvals)/len(groupYvals) ) 
+    if pointsId!=[NULL]:
+        borGrpId=set(pointsId)
+        for grpid in borGrpId:
+            indexes=h_utils.getElementIndexByVal(pointsId, grpid)
+            groupXvals= [pointsXList[i] for i in indexes]
+            borXList.append( sum(groupXvals)/len(groupXvals) )
+            groupYvals= [pointsYList[i] for i in indexes]
+            borYList.append( sum(groupYvals)/len(groupYvals) ) 
 
     # Create a new layer or update the existing
     xCoords= rivXList+irgXList+borXList
@@ -111,7 +156,7 @@ def createHydrojunctionLayer(path):
     heights = []
     coordinates=zip(xCoords, yCoords)
     for xy in coordinates:
-        heights.append(h_utils.getCellValue(h_const.DTMlayerName, xy, 1) )
+        heights.append(h_utils.getCellValue(h_const.DEMlayerName, xy, 1) )
     # Create the Hydrojunction layer
     ok = h_utils.createPointLayer(path, h_const.hydroJncLayerName,
                            coordinates, h_const.hydroJncFieldNames,
@@ -293,6 +338,6 @@ def linkSubbasinRiver():
 
 def addSubbasinId():
     """Add to the attr. table of Subbasin a field that keeps the polys' ids."""
-    ok=h_utils.addShapeIdsToField(h_const.subbasLayerName,
+    ok=h_utils.addShapeIdsToAttrTable(h_const.subbasLayerName,
                                   h_const.subbasFieldId)
     return ok

@@ -8,25 +8,41 @@ import h_surface
 
 
 
-def createOutletsLayer(path):
-    """ Create a new point layer with the end nodes of the rivers segments."""
+def createAllLayers(path):
+    """Calls all functions that create/initialize the layers of a Hydrogeios 
+    Project."""
+    if not initIrrigLayer(path):
+        message="initIrrigLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not initSubbasinLayer(path):
+        message="initSubbasinLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not initGrdWatLayer(path):
+        message="initGrdWatLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not initSpringLayer(path):
+        message="initSpringLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not initBorehLayer(path):
+        message="initBorehLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not initRiverLayer(path):
+        message="initRiverLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
 
-    # Get outlets of river segments
-    riverSegments= h_utils.getLayerFeatures(h_const.riverLayerName)
-    if not riverSegments: return False
-    (endPntXs,endPntYs)= h_surface.getRiverJunctions(riverSegments)
-
-    coordinates=zip(endPntXs, endPntYs)
-    ok= h_utils.createPointLayer(path, h_const.outletLayerName, coordinates,
-                          h_const.outletFieldNames, h_const.outletFieldTypes,
-                          (endPntXs, endPntYs) )
-    if not ok: return False
-
-    # Make sure the layer is loaded 
-    if not h_utils.isShapefileLoaded(h_const.outletLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, h_const.outletLayerName+".shp")
-
-    return ok
+    return True
 
 
 
@@ -59,14 +75,38 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
             return False
 
     # Make sure all required fields are there
-    res=True
     for fieldname,fieldtype in zip(fieldNames, fieldTypes):
         fieldIndex=h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)
         if fieldIndex==None:
-            res=False
-            break
+            return False
 
-    return res
+    # Make sure the layer is loaded 
+    ok=True
+    if not h_utils.isShapefileLoaded(layerName):
+        ok=h_utils.loadShapefileToCanvas(path, layerName+".shp")
+
+    return ok
+
+
+
+def createOutletsLayer(path):
+    """ Create a new point layer with the end nodes of the rivers segments."""
+
+    # Get outlets of river segments
+    (endPntXs,endPntYs)= h_utils.getSegmentEndsCoords(h_const.riverLayerName,
+                                                      "first")
+
+    coordinates=zip(endPntXs, endPntYs)
+    ok= h_utils.createPointLayer(path, h_const.outletLayerName, coordinates,
+                          h_const.outletFieldNames, h_const.outletFieldTypes,
+                          (endPntXs, endPntYs) )
+    if not ok: return False
+
+    # Make sure the layer is loaded 
+    if not h_utils.isShapefileLoaded(h_const.outletLayerName):
+        ok=h_utils.loadShapefileToCanvas(path, h_const.outletLayerName+".shp")
+
+    return ok
 
 
 
@@ -112,22 +152,36 @@ def initSubbasinLayer(path):
                                    h_const.subbasFieldY, yCoord);
     if not ok: return False
 
-    return True
+    # Add id of polygons to attribute table
+    ok=h_utils.addShapeIdsToAttrTable(h_const.subbasLayerName,
+                                      h_const.subbasFieldId)
+    if not ok: return False
+
+    # Make sure the layer is loaded 
+    if not h_utils.isShapefileLoaded(h_const.subbasLayerName):
+        ok=h_utils.loadShapefileToCanvas(path, h_const.subbasLayerName+".shp")
+
+    return ok
 
 
 
 def initGrdWatLayer(path):
     """Initialize groundwater layer"""
-    ok= initializeLayer(path, h_const.grdwatLayerName, h_const.grdwatLayerType,
+    ok= initializeLayer(path, h_const.grdwatLayerName, h_const.grdwatGeomType,
                        h_const.grdwatFieldNames, h_const.grdwatFieldTypes)
     if not ok: return False
-    return True
+
+    # Add id of cells to attribute table
+    ok=h_utils.addShapeIdsToAttrTable(h_const.grdwatLayerName,
+                                      h_const.grdwatFieldId)
+
+    return ok
 
 
 
 def initSpringLayer(path):
     """Initialize spring layer"""
-    ok= initializeLayer(path, h_const.springLayerName, h_const.springLayerType,
+    ok= initializeLayer(path, h_const.springLayerName, h_const.springGeomType,
                        h_const.springFieldNames, h_const.springFieldTypes)
     if not ok: return False
     return True
@@ -136,7 +190,7 @@ def initSpringLayer(path):
 
 def initBorehLayer(path):
     """Initialize boreholes layer"""
-    ok= initializeLayer(path, h_const.borehLayerName, h_const.borehLayerType,
+    ok= initializeLayer(path, h_const.borehLayerName, h_const.borehGeomType,
                        h_const.borehFieldNames, h_const.borehFieldTypes)
     if not ok: return False
     return True
@@ -145,7 +199,11 @@ def initBorehLayer(path):
 
 def initRiverLayer(path):
     """Initialize river layer"""
-    ok= initializeLayer(path, h_const.riverLayerName, h_const.riverLayerType,
+    ok= initializeLayer(path, h_const.riverLayerName, h_const.riverGeomType,
                        h_const.riverFieldNames, h_const.riverFieldTypes)
     if not ok: return False 
-    return True
+
+    # Add id of segments to attribute table
+    ok=h_utils.addShapeIdsToAttrTable(h_const.riverLayerName,
+                                      h_const.riverFieldId)
+    return ok

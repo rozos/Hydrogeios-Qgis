@@ -607,12 +607,11 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 
 
 
-def addShapeIdsToField(layerName, fieldName):
+def addShapeIdsToAttrTable(layerName, fieldName):
     """Add to the attribute table of a layer a field that keeps the ids of the
        shapes"""
-
-    ok=addFieldToAttrTable(layerName, fieldName, QVariant.Int)
-    if not ok: return False
+    if addFieldToAttrTable(layerName, fieldName, QVariant.Int)==None:
+        return False
     values=range(getLayerFeaturesCount(layerName))
     return setFieldAttrValues(layerName,fieldName, values)
 

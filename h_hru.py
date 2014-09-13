@@ -2,9 +2,26 @@ from PyQt4 import QtGui
 from qgis.core import *
 #from qgis.analysis import QgsOverlayAnalyzer
 import os.path
+import ftools_utils
 import h_geoprocess
 import h_const
 import h_utils
+
+
+def doHRUs(path, CNrasterName, bandnum, rangeUpVals):
+    """This function that calls all functions related to HRUs."""
+    if not createHRU(path, CNrasterName, bandnum, rangeUpVals):
+        message="createHRU Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not createSubbasinHRU(path):
+        message="createSubbasinHRU Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+
+    return True
 
 
 
@@ -72,7 +89,11 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     # Delete pogyons generated from non-data pixels
     filterExpr=h_const.HRUFieldId + "<0"
     listIds=h_utils.getQueryShapeIds(h_const.HRULayerName, filterExpr)
-    if not listIds: return False
+    print(listIds)
+    if listIds==False:
+        message="Delete non-data of " + h_const.HRUrasterLayerName + " failed!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
     if listIds!=[]:
         ok=h_utils.delSpecificShapes(h_const.HRULayerName, listIds)
         if not ok: return False
