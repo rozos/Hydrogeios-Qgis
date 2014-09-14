@@ -12,46 +12,77 @@ import h_geoprocess
 def doGroundwater(path):
     """This function calls all functions related to groundwater cells 
     processing."""
+    # Name groundwater cells
     if not nameGroundwaterCells():
         message="nameGroundwaterCells Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not distanceBetweenGroundwaterCells():
+    # Create the pdf table with the distances between groundwater cells
+    res=distanceBetweenGroundwaterCells():
+    if res!=False:
+        iNodes=res[0]
+        jNodes=res[1]
+        distances=res[2]
+        dummyCoords = ([0]*len(iNodes), [0]*len(iNodes) )
+        ok=h_utils.createPointLayer(path, h_const.distLayerName, dummyCoords, 
+                                h_const.distFieldNames, c_const.distFieldTypes,
+                                [iNodes, jNodes, distances, ])
+    else:
+        ok=False
+    if not ok:
         message="distanceBetweenGroundwaterCells Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not edgeBetweenGroundwaterCells():
+    # Create the pdf table with the edge between groundwater cells
+    res = edgeBetweenGroundwaterCells():
+    if res!=False:
+        iNodes=res[0]
+        jNodes=res[1]
+        edge=res[2]
+        dummyCoords = ([0]*len(iNodes), [0]*len(iNodes) )
+        ok=h_utils.createPointLayer(path, h_const.edgeLayerName, dummyCoords, 
+                                h_const.edgeFieldNames,c_const.edgeFieldTypes,
+                                [iNodes, jNodes, distances, [] ])
+    else:
+        ok=False
+    if not ok:
         message="edgeBetweenGroundwaterCells Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the springs with groundwater cells
     if not linkSpringToGroundwater():
         message="linkSpringToGroundwater Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the springs with subbasin polygons
     if not linkSpringToSubbasin():
         message="linkSpringToSubbasin Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the boreholes with groundwater cells
     if not linkBoreholeToGroundwater():
         message="linkBoreholeToGroundwater Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the boreholes with subbasin polygons
     if not linkBoreholeToSubbasin():
         message="linkBoreholeToSubbasin Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the river with groundwater cells
     if not createRiverGroundwater(path):
         message="createRiverGroundwater Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the SubbasinHRU with the groundwater cells
     if not createGroundwaterSubbasinHRU(path):
         message="createGroundwaterSubbasinHRU Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,

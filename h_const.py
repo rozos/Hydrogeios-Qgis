@@ -179,3 +179,15 @@ DEMlayerName= "hdr"
 
 # HRU reclassified raster
 HRUrasterLayerName= "HRUraster"
+
+
+# Distance between groundwater cells
+distLayerName= "Distance"
+distFieldNames= ("CELL_1", "CELL_2", "DISTANCE" )
+distFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double )
+
+# Edge between groundwater cells
+edgeLayerName= "Distance"
+edgeFieldNames= ("CELL_1", "CELL_2", "EDGE", "IMPERM")
+edgeFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double,
+                 QVariant.Double )
