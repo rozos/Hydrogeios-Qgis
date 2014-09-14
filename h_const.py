@@ -115,7 +115,11 @@ springFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
 aquedLayerName= "Aqueduct"
 aquedLayerType= QGis.Line
 aquedGeomType= QGis.WKBLineString
-
+aquedFieldNames=("NAME", "DESCR", "LEAK_CF", "FROM_NODE", "TO_NODE", 
+                 "LENGTH", "DISCH_CAP", "UNIT_COST", )
+aquedFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
+                 QVariant.Int, QVariant.Int, QVariant.Double, QVariant.Double,
+                 QVariant.Double)
 
 # Outlet layer specifications
 outletLayerName="Outlet"

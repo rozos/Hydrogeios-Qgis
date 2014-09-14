@@ -41,6 +41,11 @@ def createAllLayers(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    if not initAqueductLayer(path):
+        message="initAqueductLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
 
     return True
 
@@ -206,4 +211,14 @@ def initRiverLayer(path):
     # Add id of segments to attribute table
     ok=h_utils.addShapeIdsToAttrTable(h_const.riverLayerName,
                                       h_const.riverFieldId)
+    return ok
+
+
+
+def initAqueductLayer(path):
+    """Initialize aqueduct layer"""
+    ok= initializeLayer(path, h_const.aquedLayerName, h_const.aquedGeomType,
+                       h_const.aquedFieldNames, h_const.aquedFieldTypes)
+    if not ok: return False 
+
     return ok
