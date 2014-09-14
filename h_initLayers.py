@@ -9,7 +9,7 @@ import h_surface
 
 
 
-def createAllLayers(path):
+def doAll(path):
     """Calls all functions that create/initialize the layers of a Hydrogeios 
     Project."""
     if not initIrrigLayer(path):
