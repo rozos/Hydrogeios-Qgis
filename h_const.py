@@ -187,7 +187,7 @@ distFieldNames= ("CELL_1", "CELL_2", "DISTANCE" )
 distFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double )
 
 # Edge between groundwater cells
-edgeLayerName= "Distance"
+edgeLayerName= "Edge"
 edgeFieldNames= ("CELL_1", "CELL_2", "EDGE", "IMPERM")
 edgeFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double,
                  QVariant.Double )

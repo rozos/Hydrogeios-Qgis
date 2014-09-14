@@ -19,14 +19,14 @@ def doAll(path):
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
     # Create the pdf table with the distances between groundwater cells
-    res=distanceBetweenGroundwaterCells():
+    res=distanceBetweenGroundwaterCells()
     if res!=False:
         iNodes=res[0]
         jNodes=res[1]
         distances=res[2]
-        dummyCoords = ([0]*len(iNodes), [0]*len(iNodes) )
+        dummyCoords = zip([0]*len(iNodes), [0]*len(iNodes) )
         ok=h_utils.createPointLayer(path, h_const.distLayerName, dummyCoords, 
-                                h_const.distFieldNames, c_const.distFieldTypes,
+                                h_const.distFieldNames, h_const.distFieldTypes,
                                 [iNodes, jNodes, distances, ])
     else:
         ok=False
@@ -36,15 +36,15 @@ def doAll(path):
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
     # Create the pdf table with the edge between groundwater cells
-    res = edgeBetweenGroundwaterCells():
+    res = edgeBetweenGroundwaterCells()
     if res!=False:
         iNodes=res[0]
         jNodes=res[1]
-        edge=res[2]
-        dummyCoords = ([0]*len(iNodes), [0]*len(iNodes) )
+        edges=res[2]
+        dummyCoords = zip([0]*len(iNodes), [0]*len(iNodes) )
         ok=h_utils.createPointLayer(path, h_const.edgeLayerName, dummyCoords, 
-                                h_const.edgeFieldNames,c_const.edgeFieldTypes,
-                                [iNodes, jNodes, distances, [] ])
+                                h_const.edgeFieldNames,h_const.edgeFieldTypes,
+                                [iNodes, jNodes, edges, [] ])
     else:
         ok=False
     if not ok:
