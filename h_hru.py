@@ -8,7 +8,7 @@ import h_const
 import h_utils
 
 
-def doHRUs(path, CNrasterName, bandnum, rangeUpVals):
+def doAll(path, CNrasterName, bandnum, rangeUpVals):
     """This function that calls all functions related to HRUs."""
     if not createHRU(path, CNrasterName, bandnum, rangeUpVals):
         message="createHRU Failed. Continue?"
