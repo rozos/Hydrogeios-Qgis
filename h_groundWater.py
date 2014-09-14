@@ -6,7 +6,7 @@ import itertools
 import ftools_utils
 import h_const
 import h_utils
-import h_geoprocess
+import geoprocess
 
 
 def doAll(path):
@@ -240,7 +240,7 @@ def createRiverGroundwater(path):
         if not ok: return False
 
     # Intersect river with Groundwater
-    ok=h_geoprocess.intersect( path, h_const.riverLayerName, 
+    ok=geoprocess.intersect( path, h_const.riverLayerName, 
                                h_const.grdwatLayerName, 
                                h_const.riverGrdwatLayerName )
     if not ok: return False
@@ -272,7 +272,7 @@ def createGroundwaterSubbasinHRU(path):
        if not ok: return False
 
     # Intersect Groundwater with SubbasinHRU
-    ok=h_geoprocess.intersect( path, h_const.grdwatLayerName, 
+    ok=geoprocess.intersect( path, h_const.grdwatLayerName, 
                                h_const.subbasHRULayerName, 
                                h_const.grdwatSubbasHRULayerName)
     if not ok: return False

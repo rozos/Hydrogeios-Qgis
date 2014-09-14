@@ -3,7 +3,7 @@ from qgis.core import *
 #from qgis.analysis import QgsOverlayAnalyzer
 import os.path
 import ftools_utils
-import h_geoprocess
+import geoprocess
 import h_const
 import h_utils
 
@@ -45,7 +45,7 @@ def createSubbasinHRU(path):
     HRULayer=ftools_utils.getVectorLayerByName(h_const.HRULayerName)
 
     # Intersect Subbasin with HRU
-    ok = h_geoprocess.intersect( path, h_const.subbasLayerName, 
+    ok = geoprocess.intersect( path, h_const.subbasLayerName, 
                                  h_const.HRULayerName,
                                  h_const.subbasHRULayerName)
     if not ok: return False
