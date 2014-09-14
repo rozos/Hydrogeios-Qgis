@@ -23,7 +23,7 @@ def doAll(path):
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
     if not h_utils.addShapeIdsToAttrTable(h_const.subbasLayerName,
-                                          h_const.subbasFieldId)
+                                          h_const.subbasFieldId):
         message="addSubbasinId Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
@@ -248,7 +248,6 @@ def linkSubbasinRiver():
                                                  h_const.hydroJncLayerType) or \
        not h_utils.layerNameTypeOK(h_const.subbasLayerName, 
                                                      h_const.subbasLayerType):
-
         return False
 
     # Get coords of hydrojunction layer points
