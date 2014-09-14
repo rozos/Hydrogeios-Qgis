@@ -9,7 +9,7 @@ import h_utils
 import h_geoprocess
 
 
-def doGroundwater(path):
+def doAll(path):
     """This function calls all functions related to groundwater cells 
     processing."""
     # Name groundwater cells
