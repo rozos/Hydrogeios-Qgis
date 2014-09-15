@@ -297,3 +297,10 @@ def linkSpringHydrojunction():
     res=h_utils.setFieldAttrValues(h_const.springLayerName, 
                                                 h_const.hydroJncFieldId, values)
     return res
+
+
+
+
+def _getHydrojunctIds(coords):
+    """Returns a list of ids of the Hydrojuntion node that have the coordinates
+    provided coordinates."""
