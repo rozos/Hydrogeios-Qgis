@@ -28,6 +28,11 @@ def build():
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    if not linkSpringHydrojunction():
+        message="linkSpringHydrojunction Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
 
     return True
 
@@ -97,11 +102,11 @@ def createHydrojunctionLayer(path):
     if h_utils.isShapefileLoaded(h_const.hydroJncLayerName):
 	h_utils.unloadLayer(h_const.hydroJncLayerName)
     
-    # Get ending nodes of river segments
+    # Get upstream nodes of river segments
     (rivXList, rivYList)= h_utils.getSegmentEndsCoords(h_const.riverLayerName, 
                                                        "last")
 
-    # Add to the ending nodes list the coords of starting node of the 1st segm.
+    # Add to the previouw list the coords of downstream node of the 1st segm.
     (tmpList1, tmpList2)= h_utils.getSegmentEndsCoords(h_const.riverLayerName, 
                                                        "first")
     rivXList= [tmpList1[0]] + rivXList
@@ -136,14 +141,21 @@ def createHydrojunctionLayer(path):
             borXList.append( sum(groupXvals)/len(groupXvals) )
             groupYvals= [pointsYList[i] for i in indexes]
             borYList.append( sum(groupYvals)/len(groupYvals) ) 
+    
+    # Get the points of Spring layer
+    res= getPointLayerCoords(h_const.springLayerName)
+    if res == None: 
+        return 
+    sprXList, sprYList= res[0], res[1]
 
     # Create a new layer or update the existing
-    xCoords= rivXList+irgXList+borXList
-    yCoords= rivYList+irgYList+borYList 
+    xCoords= rivXList+irgXList+borXList+sprXList
+    yCoords= rivYList+irgYList+borYList+sprYList
     # Create a list with id of the junction type of each junciton
     junctType= ( [h_const.hydroJncTypeRiv]*len(rivXList) + 
                  [h_const.hydroJncTypeIrg]*len(irgXList) + 
-                 [h_const.hydroJncTypeBor]*len(borXList)  )
+                 [h_const.hydroJncTypeBor]*len(borXList) +
+                 [h_const.hydroJncTypeSpr]*len(sprXList) )
     # Get the z values of the [xCoords yCoords] points
     heights = []
     coordinates=zip(xCoords, yCoords)
@@ -246,9 +258,42 @@ def linkIrrigHydrojunction():
         junctid=res[0]
         values.append(junctid)
 
-    # Write centroids to attribute table
+    # Write hydrojnct ids to attribute table of Irrigation
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 
                                                 h_const.hydroJncFieldId, values)
     return res
 
 
+
+def linkSpringHydrojunction():
+    """Finds the corresponding hydrojunctions points to spring nodes and writes
+    the ids of the former to the attribute table of the latter."""
+    # Make sure Hydrojunction layer is OK
+    if not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
+                                   h_const.hydroJncLayerType):
+        return False
+
+    # Make sure Spring layer is OK
+    if not h_utils.layerNameTypeOK(h_const.springLayerName, 
+                                   h_const.springLayerType):
+        return False
+
+    # Get Hydrojunction layer coordinates
+    [hydrojuncXlist, hydrojuncYlist]= \
+                          h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
+
+    # Find to wich HydroJnct x,y pair corresponds each spring
+    res = h_utils.getPointLayerCoords(h_const.springLayerName)
+    if not res: return False
+    xSpring, ySpring = res[0], res[1]
+    values= []
+    for xySpring in zip(xSpring, ySpring):
+        res= h_utils.getElementIndexByVal(
+                                    zip(hydrojuncXlist,hydrojuncYlist),xySpring)
+        junctid=res[0]
+        values.append(junctid)
+
+    # Write hydrojnct ids to attribute table of Spring
+    res=h_utils.setFieldAttrValues(h_const.springLayerName, 
+                                                h_const.hydroJncFieldId, values)
+    return res

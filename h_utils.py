@@ -151,7 +151,8 @@ def getElementIndexByVal(alist, value):
 
 
 def getPointLayerCoords(layerName):
-    """This function returns the coordinates of a point layer."""
+    """This function returns the coordinates of a point layer.
+    returns (xList, yList). """
     # Check if it is a point layer
     if not layerNameTypeOK(layerName, QGis.Point): return None
 

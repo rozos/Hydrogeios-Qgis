@@ -54,6 +54,7 @@ hydroJncTypeRiv=0
 hydroJncTypeAqu=1
 hydroJncTypeIrg=2
 hydroJncTypeBor=3
+hydroJncTypeSpr=4
 
 
 # Irrigation layer specifications
@@ -104,11 +105,12 @@ borehFieldGroupId = borehFieldNames[8]
 springLayerName= "Spring"
 springLayerType= QGis.Point
 springGeomType= QGis.WKBPoint
-springFieldNames=("NAME", "DESCR", "INI_DISCH", "X", "Y", "ALT", grdwatFieldId,
-                  subbasFieldId, "COND")
-springFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
-                  QVariant.Double, QVariant.Double, QVariant.Double,
-                  QVariant.Int, QVariant.Int, QVariant.Double,  )
+springFieldNames=("NAME", "DESCR", hydroJncFieldId, "INI_DISCH", "X", "Y", 
+                  "ALT", grdwatFieldId, subbasFieldId, "COND")
+springFieldTypes=(QVariant.String, QVariant.String, QVariant.Int, 
+                  QVariant.Double, QVariant.Double, QVariant.Double, 
+                  QVariant.Double, QVariant.Int, QVariant.Int, 
+                  QVariant.Double,  )
 
 
 # Aqueduct layer specifications
