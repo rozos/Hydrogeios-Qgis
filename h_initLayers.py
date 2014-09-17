@@ -83,7 +83,7 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
         writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
                                     layerType, None, "ESRI Shapefile")
         if writer.hasError() != QgsVectorFileWriter.NoError:
-            message="Error creating shapefile "+filename
+            message="Error creating shapefile "+ layerName
             QtGui.QMessageBox.critical(None,'Error',message,
                                        QtGui.QMessageBox.Ok)
             return False
@@ -254,7 +254,8 @@ def linkRiverNodeSubbasin():
                                       h_const.subbasFieldId, subbasIds)
 
 
-
+# I NEED TO REWRITE THIS FUNCTION. BREAK IT INTO TWO, ONE FOR RIVER_ID AND
+#  ONE FOR NODE_ID
 def linkRiverSubbasin():
     """This function finds for each subbasin the corresponding river_id,
     node_id of the primary river segment """
