@@ -88,6 +88,12 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the RiverNode with the groundwater cells
+    if not linkRiverNodeGroundwater():
+        message="linkRiverNodeGroundwater Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
 
     return True
 
@@ -284,3 +290,12 @@ def createGroundwaterSubbasinHRU(path):
     ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
                                        h_const.grdwatSubbasHRUFieldArea)
     return ok
+
+
+
+def linkRiverNodeGroundwater():
+    grdwatIds=linkPointLayerToPolygonLayer(h_const.riverNodeLayerName,
+                                           h_const.grdwatLayerName)
+    if not grdwatIds==None: return False
+    return h_utils.setFieldAttrValues(h_const.riverNodeLayerName, 
+                                      h_const.grdwatFieldId, grdwatIds)
