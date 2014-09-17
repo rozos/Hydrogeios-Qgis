@@ -193,3 +193,10 @@ edgeLayerName= "Edge"
 edgeFieldNames= ("CELL_1", "CELL_2", "EDGE", "IMPERM")
 edgeFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double,
                  QVariant.Double )
+
+# River nodes
+riverNodeLayerName= "RiverNode"
+riverNodeLayerType= QGis.Point
+riverNodeGeomType= QGis.WKBPoint
+riverNodeFieldNames= ("RIVNODE_ID", subbasFieldId, grdwatFieldId)
+riverNodeFieldTypes= (QVariant.Int, QVariant.Int, QVariant.Int)

@@ -4,7 +4,7 @@ import os.path
 import ftools_utils
 import h_const
 import h_utils
-import h_surface
+import h_topology
 
 
 
@@ -48,13 +48,18 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not linkSubbasinRiver():
-        message="linkSubbasinRiver Failed. Continue?"
+    if not linkRiverSubbasin():
+        message="linkRiverSubbasin Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
     if not initAqueductLayer(path):
         message="initAqueductLayer Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not initRiverNodeLayer(path):
+        message="initRiverNodeLayer Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
@@ -85,24 +90,17 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
         # Delete the writer to flush features to disk (optional)
         del writer
 
-    # Make sure the layer is loaded
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer:
+    # Make sure the layer is loaded 
+    if not h_utils.isShapefileLoaded(layerName):
         if not h_utils.loadShapefileToCanvas(path, layerName+".shp"):
             return False
 
     # Make sure all required fields are there
     for fieldname,fieldtype in zip(fieldNames, fieldTypes):
-        fieldIndex=h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)
-        if fieldIndex==None:
+        if h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)==None:
             return False
 
-    # Make sure the layer is loaded 
-    ok=True
-    if not h_utils.isShapefileLoaded(layerName):
-        ok=h_utils.loadShapefileToCanvas(path, layerName+".shp")
-
-    return ok
+    return True
 
 
 
@@ -237,7 +235,27 @@ def initAqueductLayer(path):
 
 
 
-def linkSubbasinRiver():
+def initRiverNodeLayer(path):
+    """Initialize RiverNode layer"""
+    ok= initializeLayer(path, h_const.riverNodeLayerName, 
+                       h_const.riverNodeGeomType,
+                       h_const.riverNodeFieldNames,
+                       h_const.riverNodeFieldTypes)
+    if not ok: return False 
+    return ok
+
+
+
+def linkRiverNodeSubbasin():
+    subbasIds=linkPointLayerToPolygonLayer(h_const.riverNodeLayerName,
+                                           h_const.subbasLayerName)
+    if not subbasIds==None: return False
+    return h_utils.setFieldAttrValues(h_const.riverNodeLayerName, 
+                                      h_const.subbasFieldId, subbasIds)
+
+
+
+def linkRiverSubbasin():
     """This function finds for each subbasin the corresponding river_id,
     node_id of the primary river segment """
 

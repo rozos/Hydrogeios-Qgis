@@ -236,31 +236,19 @@ def linkIrrigHydrojunction():
     """This function finds for each Irrigation polygon the corresponding 
     hydrojunciton node"""
 
-    # Make sure Hydrojunction layer is OK
-    if not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
-                                   h_const.hydroJncLayerType):
-        return False
-
     # Make sure Irrigation layer is OK
     if not h_utils.layerNameTypeOK(h_const.irrigLayerName, 
                                    h_const.irrigLayerType):
         return False
 
-    # Get Hydrojunction layer coordinates
-    [hydrojuncXlist, hydrojuncYlist]= \
-                          h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
-
     # Find to which x,y pair the centroid of each polygon corresponds
     centroids=h_utils.getPolyLayerCentroids(h_const.irrigLayerName)
-    values= []
-    for xy in centroids:
-        res= h_utils.getElementIndexByVal(zip(hydrojuncXlist,hydrojuncYlist),xy)
-        junctid=res[0]
-        values.append(junctid)
+    if centroids is None: return False
+    idsList=_getHydrojunctIds(centroids)
 
     # Write hydrojnct ids to attribute table of Irrigation
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 
-                                                h_const.hydroJncFieldId, values)
+                                               h_const.hydroJncFieldId, idsList)
     return res
 
 
@@ -268,39 +256,45 @@ def linkIrrigHydrojunction():
 def linkSpringHydrojunction():
     """Finds the corresponding hydrojunctions points to spring nodes and writes
     the ids of the former to the attribute table of the latter."""
-    # Make sure Hydrojunction layer is OK
-    if not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
-                                   h_const.hydroJncLayerType):
-        return False
 
     # Make sure Spring layer is OK
     if not h_utils.layerNameTypeOK(h_const.springLayerName, 
                                    h_const.springLayerType):
         return False
 
-    # Get Hydrojunction layer coordinates
-    [hydrojuncXlist, hydrojuncYlist]= \
-                          h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
-
     # Find to wich HydroJnct x,y pair corresponds each spring
     res = h_utils.getPointLayerCoords(h_const.springLayerName)
     if not res: return False
     xSpring, ySpring = res[0], res[1]
-    values= []
-    for xySpring in zip(xSpring, ySpring):
-        res= h_utils.getElementIndexByVal(
-                                    zip(hydrojuncXlist,hydrojuncYlist),xySpring)
-        junctid=res[0]
-        values.append(junctid)
+    idsList=_getHydrojunctIds(zip(xSpring, ySpring) )
 
     # Write hydrojnct ids to attribute table of Spring
     res=h_utils.setFieldAttrValues(h_const.springLayerName, 
-                                                h_const.hydroJncFieldId, values)
+                                               h_const.hydroJncFieldId, idsList)
     return res
 
 
 
 
 def _getHydrojunctIds(coords):
-    """Returns a list of ids of the Hydrojuntion node that have the coordinates
+    """Returns a list of ids of the Hydrojuntion nodes that have the 
     provided coordinates."""
+
+    # Make sure Hydrojunction layer is OK
+    if not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
+                                   h_const.hydroJncLayerType):
+        return False
+
+    # Get Hydrojunction layer coordinates
+    [hydrojuncXlist, hydrojuncYlist]= \
+                          h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
+    hydrojunctionCoords= zip(hydrojuncXlist,hydrojuncYlist)
+
+    # Find to wich hydrojunct. corresponds each coordinate of the provided list
+    idsList= []
+    for xy in coords:
+        res= h_utils.getElementIndexByVal(hydrojunctionCoords, xy)
+        junctid=res[0]
+        idsList.append(junctid)
+    
+    return idsList
