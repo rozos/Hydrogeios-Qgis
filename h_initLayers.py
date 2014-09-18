@@ -48,8 +48,8 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not linkRiverSubbasin():
-        message="linkRiverSubbasin Failed. Continue?"
+    if not linkSubbasinRiver():
+        message="linkSubbasinRiver Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
@@ -58,8 +58,8 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not initRiverNodeLayer(path):
-        message="initRiverNodeLayer Failed. Continue?"
+    if not initRivernodeLayer(path):
+        message="initRivernodeLayer Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
@@ -235,8 +235,8 @@ def initAqueductLayer(path):
 
 
 
-def initRiverNodeLayer(path):
-    """Initialize RiverNode layer"""
+def initRivernodeLayer(path):
+    """Initialize Rivernode layer"""
     ok= initializeLayer(path, h_const.riverNodeLayerName, 
                        h_const.riverNodeGeomType,
                        h_const.riverNodeFieldNames,
@@ -246,7 +246,7 @@ def initRiverNodeLayer(path):
 
 
 
-def linkRiverNodeSubbasin():
+def linkRivernodeSubbasin():
     subbasIds=linkPointLayerToPolygonLayer(h_const.riverNodeLayerName,
                                            h_const.subbasLayerName)
     if not subbasIds==None: return False
@@ -254,51 +254,38 @@ def linkRiverNodeSubbasin():
                                       h_const.subbasFieldId, subbasIds)
 
 
-# I NEED TO REWRITE THIS FUNCTION. BREAK IT INTO TWO, ONE FOR RIVER_ID AND
-#  ONE FOR NODE_ID
-def linkRiverSubbasin():
-    """This function finds for each subbasin the corresponding river_id,
-    node_id of the primary river segment """
 
-    # Make sure River/Hydrojunction layers are OK
+def linkSubbasinRiver():
+    """This function finds for each subbasin the corresponding river_id
+    of the primary river segment """
+
+    # Make sure River and Subbasin layers are OK
     if not h_utils.layerNameTypeOK(h_const.riverLayerName, 
                                                     h_const.riverLayerType) or \
-       not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
-                                                 h_const.hydroJncLayerType) or \
        not h_utils.layerNameTypeOK(h_const.subbasLayerName, 
                                                      h_const.subbasLayerType):
         return False
 
-    # Get coords of hydrojunction layer points
-    [hydrojuncXlist, hydrojuncYlist]= \
-                          h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
-
     # Check that number of river segments euqals the number of subbasins
-    riversNum= h_utils.getLayerFeaturesCount(h_const.riverLayerName)
-    if not h_utils.layerFeaturesNumberOK(h_const.subbasLayerName, riversNum): 
+    subbasCount= h_utils.getLayerFeaturesCount(h_const.subbasLayerName)
+    if not h_utils.layerFeaturesNumberOK(h_const.riverLayerName, subbasCount): 
         return False 
 
     # Get coordinates of river segments' first nodes
     rivSrtNodeXlist, rivSrtNodeYlist = \
                     h_utils.getSegmentEndsCoords(h_const.riverLayerName, "last")
-    rivEndNodeXlist, rivEndNodeYlist = \
-                   h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
 
-    # Find to which subbasin each segment start belongs to
-    subassCount= h_utils.getLayerFeaturesCount(h_const.subbasLayerName)
-    rivIds = [None] * subassCount
-    nodeIds = [None] * subassCount
-
+    # Loop through every river start node
+    rivIds = [None] * subbasCount
     inFeat = QgsFeature()
-    for rivid, strNodeX, strNodeY, endNodeX, endNodeY, in zip( \
-               range(0,len(rivSrtNodeXlist)), rivSrtNodeXlist, rivSrtNodeYlist,\
-                                              rivEndNodeXlist, rivEndNodeYlist):
-        # Obtain a new iterator, reset found-flag, reset i index
+    for rivid, strNodeX, strNodeY in zip( range(0,len(rivSrtNodeXlist)), \
+                                          rivStrNodeXlist, rivStrNodeYlist):
+        # Loop through every subbasin polygon
         foundStart= False
         subbPolygons= h_utils.getLayerFeatures(h_const.subbasLayerName)
         i=0
-        # Find in which subbasin this point belongs to
         while subbPolygons.nextFeature(inFeat):
+            # Find if this point belongs to this subbasin 
             if inFeat.geometry().contains(QgsPoint(strNodeX,strNodeY)):
                 if not foundStart:
                     foundStart= True
@@ -307,11 +294,8 @@ def linkRiverSubbasin():
                     QtGui.QMessageBox.critical(None,'Error',message, 
                                                 QtGui.QMessageBox.Yes)
                     return False 
-                # Prepare the list with node_id and river_id of this polygon
+                # Record the river_id
                 rivIds[i]= rivid
-                k=h_utils.getElementIndexByVal( \
-                     zip(hydrojuncXlist, hydrojuncYlist), (endNodeX, endNodeY) )
-                nodeIds[i]= k[0]
             i= i+1
 
         if not foundStart:
@@ -323,7 +307,4 @@ def linkRiverSubbasin():
     # Save edits
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.riverFieldId, rivIds)
-    if not res: return False
-    res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.subbasFieldRivNode, nodeIds)
     return res
