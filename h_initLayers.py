@@ -48,22 +48,26 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not linkSubbasinRiver():
-        message="linkSubbasinRiver Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
     if not initAqueductLayer(path):
         message="initAqueductLayer Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not initRivernodeLayer(path):
-        message="initRivernodeLayer Failed. Continue?"
+    if not createRiverexitnodeLayer(path):
+        message="initRiverexitnodeLayer Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-
+    if not linkSubbasinRiver():
+        message="linkSubbasinRiver Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    if not linkSubbasinToRiverexitnode():
+        message="linkSubbasinToRiverexitnode Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
     return True
 
 
@@ -235,23 +239,22 @@ def initAqueductLayer(path):
 
 
 
-def initRivernodeLayer(path):
-    """Initialize Rivernode layer"""
-    ok= initializeLayer(path, h_const.riverNodeLayerName, 
-                       h_const.riverNodeGeomType,
-                       h_const.riverNodeFieldNames,
-                       h_const.riverNodeFieldTypes)
-    if not ok: return False 
+def createRiverexitnodeLayer(path):
+    """Initialize/create Riverexitnode layer"""
+    # Get outlets of river segments
+    (endPntXs,endPntYs)= h_utils.getSegmentEndsCoords(h_const.riverLayerName,
+                                                      "first")
+
+    coordinates=zip(endPntXs, endPntYs)
+    ok= h_utils.createPointLayer(path, h_const.riverexitnodeLayerName,
+                                 coordinates, h_const.riverexitnodeFieldNames, 
+                                 h_const.riverexitnodeFieldTypes, ([], []) )
+    if not ok: return False
+
+    ok= addShapeIdsToAttrTable(h_const.riverexitnodeLayerName, 
+                               h_const.riverexitnodeFieldId)
+
     return ok
-
-
-
-def linkRivernodeSubbasin():
-    subbasIds=linkPointLayerToPolygonLayer(h_const.riverNodeLayerName,
-                                           h_const.subbasLayerName)
-    if not subbasIds==None: return False
-    return h_utils.setFieldAttrValues(h_const.riverNodeLayerName, 
-                                      h_const.subbasFieldId, subbasIds)
 
 
 
@@ -308,3 +311,19 @@ def linkSubbasinRiver():
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.riverFieldId, rivIds)
     return res
+
+
+
+def linkSubbasinToRiverexitnode():
+    """Links each subbasin to its corresponding exit river node."""
+
+    # Get river nodes' ids
+    riverexitnodeIds=getFieldAttrValues( h_const.riverexitnodeLayerName, 
+                                         h_const.riverexitnodeFieldId )
+    if riverexitnodeIds==None: return False
+
+    #   Put these ids into Subbasin (river exit nodes' order = 
+    # river segments' order = subbasin polygons order)
+    ok= setFieldAttrValues(h_const.subbasLayerName, 
+                           h_const.riverexitnodeFieldId, riverexitnodeIds)
+    return ok

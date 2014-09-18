@@ -10,8 +10,8 @@ import h_utils
 def build():
     """This wrapper function calls all the functions required to build the
     hydrosystem toplogy."""
-    if not h_utils.addShapeIdsToAttrTable(h_const.hydroJncLayerName,
-                                          h_const.hydroJncFieldId):
+    if not h_utils.addShapeIdsToAttrTable(h_const.hydrojncLayerName,
+                                          h_const.hydrojncFieldId):
         return False
     if not linkRiverductHydrojunction(h_const.riverLayerName, True): 
         message="linkRiverductHydrojunction Failed. Continue?"
@@ -33,7 +33,11 @@ def build():
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-
+    if not linkRiverexitnodeHydrojunction():
+        message="linkRiverexitnodeHydrojunction Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
     return True
 
 
@@ -99,8 +103,8 @@ def createHydrojunctionLayer(path):
         return False
 
     # Unload shapefile
-    if h_utils.isShapefileLoaded(h_const.hydroJncLayerName):
-        h_utils.unloadLayer(h_const.hydroJncLayerName)
+    if h_utils.isShapefileLoaded(h_const.hydrojncLayerName):
+        h_utils.unloadLayer(h_const.hydrojncLayerName)
     
     # Get upstream nodes of river segments
     (rivXList, rivYList)= h_utils.getSegmentEndsCoords(h_const.riverLayerName, 
@@ -152,24 +156,24 @@ def createHydrojunctionLayer(path):
     xCoords= rivXList+irgXList+borXList+sprXList
     yCoords= rivYList+irgYList+borYList+sprYList
     # Create a list with id of the junction type of each junciton
-    junctType= ( [h_const.hydroJncTypeRiv]*len(rivXList) + 
-                 [h_const.hydroJncTypeIrg]*len(irgXList) + 
-                 [h_const.hydroJncTypeBor]*len(borXList) +
-                 [h_const.hydroJncTypeSpr]*len(sprXList) )
+    junctType= ( [h_const.hydrojncTypeRiv]*len(rivXList) + 
+                 [h_const.hydrojncTypeIrg]*len(irgXList) + 
+                 [h_const.hydrojncTypeBor]*len(borXList) +
+                 [h_const.hydrojncTypeSpr]*len(sprXList) )
     # Get the z values of the [xCoords yCoords] points
     heights = []
     coordinates=zip(xCoords, yCoords)
     for xy in coordinates:
         heights.append(h_utils.getCellValue(h_const.DEMlayerName, xy, 1) )
     # Create the Hydrojunction layer
-    ok = h_utils.createPointLayer(path, h_const.hydroJncLayerName,
-                           coordinates, h_const.hydroJncFieldNames,
-                           h_const.hydroJncFieldTypes, [range(0, len(xCoords)),
+    ok = h_utils.createPointLayer(path, h_const.hydrojncLayerName,
+                           coordinates, h_const.hydrojncFieldNames,
+                           h_const.hydrojncFieldTypes, [range(0, len(xCoords)),
                            [], [], junctType, [], xCoords, yCoords, heights ] )
     if not ok: return False
 
     # Load hydrojunction layer
-    ok=h_utils.loadShapefileToCanvas(path, h_const.hydroJncLayerName + ".shp")
+    ok=h_utils.loadShapefileToCanvas(path, h_const.hydrojncLayerName + ".shp")
 
     return ok
 
@@ -187,13 +191,13 @@ def linkRiverductHydrojunction(layerName, reversDirect):
         return False
 
     # Make sure Hydrojunction layer is OK
-    if not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
-                                   h_const.hydroJncLayerType):
+    if not h_utils.layerNameTypeOK(h_const.hydrojncLayerName, 
+                                   h_const.hydrojncLayerType):
         return False
 
     # Get Hydrojunction layer coordinates
     [hydrojuncXlist, hydrojuncYlist]= \
-                          h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
+                          h_utils.getPointLayerCoords(h_const.hydrojncLayerName)
 
     # Get coordinates of river segments' first and last nodes
     if reversDirect:
@@ -248,7 +252,7 @@ def linkIrrigHydrojunction():
 
     # Write hydrojnct ids to attribute table of Irrigation
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 
-                                               h_const.hydroJncFieldId, idsList)
+                                               h_const.hydrojncFieldId, idsList)
     return res
 
 
@@ -270,7 +274,29 @@ def linkSpringHydrojunction():
 
     # Write hydrojnct ids to attribute table of Spring
     res=h_utils.setFieldAttrValues(h_const.springLayerName, 
-                                               h_const.hydroJncFieldId, idsList)
+                                               h_const.hydrojncFieldId, idsList)
+    return res
+
+
+
+def linkRiverexitnodeHydrojunction():
+    """Finds to which hydrojunction corresponds each river exit node. Updates
+       the junct_id field of RiverExitNode attribute table."""
+
+    # Make sure Riverexitnode layer is OK
+    if not h_utils.layerNameTypeOK(h_const.riverexitnodeLayerName, 
+                                   h_const.riverexitnodeLayerType):
+        return False
+
+    # Find to wich HydroJnct x,y pair corresponds each river exit node
+    res = h_utils.getPointLayerCoords(h_const.riverexitnodeLayerName)
+    if not res: return False
+    xNode, yNode= res[0], res[1]
+    idsList=_getHydrojunctIds(zip(xNode, yNode) )
+
+    # Write hydrojnct ids to attribute table of RiverExitNode
+    res=h_utils.setFieldAttrValues(h_const.riverexitnodeLayerName, 
+                                              h_const.hydrojncFieldId, idsList)
     return res
 
 
@@ -280,13 +306,13 @@ def _getHydrojunctIds(coords):
     provided coordinates."""
 
     # Make sure Hydrojunction layer is OK
-    if not h_utils.layerNameTypeOK(h_const.hydroJncLayerName, 
-                                   h_const.hydroJncLayerType):
+    if not h_utils.layerNameTypeOK(h_const.hydrojncLayerName, 
+                                   h_const.hydrojncLayerType):
         return False
 
     # Get Hydrojunction layer coordinates
     [hydrojuncXlist, hydrojuncYlist]= \
-                          h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
+                          h_utils.getPointLayerCoords(h_const.hydrojncLayerName)
     hydrojunctionCoords= zip(hydrojuncXlist,hydrojuncYlist)
 
     # Find to wich hydrojunct. corresponds each coordinate of the provided list

@@ -42,29 +42,38 @@ grdwatFieldName= grdwatFieldNames[1]
 
 
 # Hydrojunction layer specifications
-hydroJncLayerName="HydroJunction"
-hydroJncFieldNames=("JUNCT_ID", "NAME", "DESCR", "JUNCT_TYPE", "TS_ID",
+hydrojncLayerName="HydroJunction"
+hydrojncFieldNames=("JUNCT_ID", "NAME", "DESCR", "JUNCT_TYPE", "TS_ID",
                     "X", "Y", "Z")
-hydroJncLayerType= QGis.Point
-hydroJncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
+hydrojncLayerType= QGis.Point
+hydrojncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                     QVariant.Int, QVariant.Int, QVariant.Double,
                     QVariant.Double, QVariant.Double)
-hydroJncFieldId=hydroJncFieldNames[0]
-hydroJncTypeRiv=0
-hydroJncTypeAqu=1
-hydroJncTypeIrg=2
-hydroJncTypeBor=3
-hydroJncTypeSpr=4
+hydrojncFieldId=hydrojncFieldNames[0]
+hydrojncTypeRiv=0
+hydrojncTypeAqu=1
+hydrojncTypeIrg=2
+hydrojncTypeBor=3
+hydrojncTypeSpr=4
 
 
 # Irrigation layer specifications
 irrigLayerName="Irrigation"
 irrigLayerType=QGis.Polygon
 irrigGeomType=QGis.WKBPolygon
-irrigFieldNames=("IRRIG_AREA", hydroJncFieldId, "RET_PIPE", "RET_RATIO")
+irrigFieldNames=("IRRIG_AREA", hydrojncFieldId, "RET_PIPE", "RET_RATIO")
 irrigFieldTypes=(QVariant.Double, QVariant.Int, QVariant.Double,
                  QVariant.Double)
 irrigFieldArea=  irrigFieldNames[0]
+
+
+# River nodes
+riverexitnodeLayerName= "RiverExitNode"
+riverexitnodeLayerType= QGis.Point
+riverexitnodeGeomType= QGis.WKBPoint
+riverexitnodeFieldNames= ("NODE_ID", grdwatFieldId, hydrojncFieldId)
+riverexitnodeFieldTypes= (QVariant.Int, QVariant.Int, QVariant.Int)
+riverexitnodeFieldId= riverexitnodeFieldNames[0]
 
 
 # Subbasing layer specifications
@@ -72,7 +81,7 @@ subbasLayerName="Subbasin"
 subbasLayerType=QGis.Polygon
 subbasGeomType=QGis.WKBPolygon
 subbasFieldNames=("SUB_ID", "NAME", "DESCR", "AREA", "X_CENTROID", "Y_CENTROID",
-                  "RIVER_NODE", riverFieldId, "MEAN_SLOPE", "MEAN_ELEV",
+                  riverexitnodeFieldId, riverFieldId, "MEAN_SLOPE", "MEAN_ELEV",
                   "PR_LENGTH", "LAG")
 subbasFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                   QVariant.Double, QVariant.Double, QVariant.Double,
@@ -105,7 +114,7 @@ borehFieldGroupId = borehFieldNames[8]
 springLayerName= "Spring"
 springLayerType= QGis.Point
 springGeomType= QGis.WKBPoint
-springFieldNames=("NAME", "DESCR", hydroJncFieldId, "INI_DISCH", "X", "Y", 
+springFieldNames=("NAME", "DESCR", hydrojncFieldId, "INI_DISCH", "X", "Y", 
                   "ALT", grdwatFieldId, subbasFieldId, "COND")
 springFieldTypes=(QVariant.String, QVariant.String, QVariant.Int, 
                   QVariant.Double, QVariant.Double, QVariant.Double, 
@@ -123,8 +132,9 @@ aquedFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
                  QVariant.Int, QVariant.Int, QVariant.Double, QVariant.Double,
                  QVariant.Double)
 
+
 # Outlet layer specifications
-outletLayerName="Outlet"
+outletLayerName="MyOutlet"
 outletLayerType=QGis.WKBPoint
 outletFieldNames=( "X", "Y")
 outletFieldTypes=(QVariant.Double, QVariant.Double)
@@ -188,15 +198,9 @@ distLayerName= "Distance"
 distFieldNames= ("CELL_1", "CELL_2", "DISTANCE" )
 distFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double )
 
+
 # Edge between groundwater cells
 edgeLayerName= "Edge"
 edgeFieldNames= ("CELL_1", "CELL_2", "EDGE", "IMPERM")
 edgeFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double,
                  QVariant.Double )
-
-# River nodes
-riverNodeLayerName= "RiverNode"
-riverNodeLayerType= QGis.Point
-riverNodeGeomType= QGis.WKBPoint
-riverNodeFieldNames= ("RIVNODE_ID", subbasFieldId, grdwatFieldId)
-riverNodeFieldTypes= (QVariant.Int, QVariant.Int, QVariant.Int)
