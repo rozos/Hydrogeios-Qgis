@@ -275,41 +275,6 @@ def linkSpringHydrojunction():
 
 
 
-def linkSubbasinExitNodeToHydrojunction():
-    """Finds the hydrojunction id that corresponds to subbasin exit. Update
-    the NODE_ID field of Subbasin attribute table."""
-
-    # Make sure River, Subbasin and Hydrojunction layers are OK
-    if not h_utils.layerNameTypeOK(h_const.riverLayerName, 
-                                                    h_const.riverLayerType) or \
-       not h_utils.layerNameTypeOK(h_const.HRULayerName, 
-                                                    h_const.HRULayerType) or \
-       not h_utils.layerNameTypeOK(h_const.subbasLayerName, 
-                                                     h_const.subbasLayerType):
-        return False
-
-    # Get coordinates of river segments' first nodes
-    rivSrtNodeXlist, rivSrtNodeYlist = \
-                    h_utils.getSegmentEndsCoords(h_const.riverLayerName, "last")
-
-    # Get coordinates of Hydrojunctions
-    hydrojuncXlist, hydrojuncYlist = \
-                         h_utils.getPointLayerCoords(h_const.hydroJncLayerName)
-    hydrojuncCoords= zip(hydrojuncXlist, hydrojuncYlist)
-
-    # Get the order of the Hydrojunc point that corresponds to each river node.
-    # The order of Hydrojunction points equals the point's id.
-    hydrojuncId=[]
-    for riverNode in zip(rivSrtNodeXlist, rivSrtNodeYlist):
-        hydrojuncId.append( h_utils.getElementIndexByVal( hydrojuncCoords, \
-                                                                    riverNode) )
-
-    # Save edits
-    res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.riverFieldId, hydrojuncId)
-
-
-
 def _getHydrojunctIds(coords):
     """Returns a list of ids of the Hydrojuntion nodes that have the 
     provided coordinates."""
