@@ -41,8 +41,6 @@ def createSubbasinHRU(path):
        not h_utils.layerNameTypeOK(h_const.HRULayerName,
                                    h_const.HRULayerType):
         return False
-    subbasLayer=ftools_utils.getVectorLayerByName(h_const.subbasLayerName)
-    HRULayer=ftools_utils.getVectorLayerByName(h_const.HRULayerName)
 
     # Intersect Subbasin with HRU
     ok = geoprocess.intersect( path, h_const.subbasLayerName, 
@@ -56,13 +54,16 @@ def createSubbasinHRU(path):
     # Update the area values of the SubbasinHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.subbasHRULayerName,
                                        h_const.subbasHRUFieldArea)
+    # Unload layer
+    h_utils.unloadLayer(h_const.subbasHRULayerName)
+
     return ok
 
 
 
 def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     """Takes the HRU raster and creates a layer with multipolygon shapes.
-    The classification into miltipolygon shapes is based on the provide
+    The classification into miltipolygon shapes is based on the provided
     ranges."""
 
     # Reclassify CNraster (id of CN classes instead of CN values)
@@ -89,7 +90,6 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     # Delete pogyons generated from non-data pixels
     filterExpr=h_const.HRUFieldId + "<0"
     listIds=h_utils.getQueryShapeIds(h_const.HRULayerName, filterExpr)
-    print(listIds)
     if listIds==False:
         message="Delete non-data of " + h_const.HRUrasterLayerName + " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)

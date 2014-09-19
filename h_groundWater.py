@@ -268,7 +268,8 @@ def createRiverGroundwater(path):
     # Update the length of the segments to the RiverGroundwater attr. table 
     ok= h_utils.addMeasureToAttrTable( h_const.riverGrdwatLayerName,
                                        h_const.riverGrdwatFieldLength )
-
+    # Unload the layer
+    h_utils.unloadLayer(h_const.riverGrdwatLayerName)
     return ok
     
     
@@ -300,4 +301,7 @@ def createGroundwaterSubbasinHRU(path):
     # Update the area values of the SubGroundHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
                                        h_const.grdwatSubbasHRUFieldArea)
+    # Unload the layer
+    h_utils.unloadLayer(h_const.grdwatSubbasHRULayerName)
+
     return ok
