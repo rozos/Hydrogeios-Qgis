@@ -76,6 +76,12 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
+    # Link the RiverNode with the groundwater cells
+    if not linkRiverNodeGroundwater():
+        message="linkRiverNodeGroundwater Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
     # Link the river with groundwater cells
     if not createRiverGroundwater(path):
         message="createRiverGroundwater Failed. Continue?"
@@ -85,12 +91,6 @@ def doAll(path):
     # Link the SubbasinHRU with the groundwater cells
     if not createGroundwaterSubbasinHRU(path):
         message="createGroundwaterSubbasinHRU Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
-    # Link the RiverNode with the groundwater cells
-    if not linkRiverNodeGroundwater():
-        message="linkRiverNodeGroundwater Failed. Continue?"
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
@@ -117,7 +117,7 @@ def layerNameTypesOK():
 
 
 def nameGroundwaterCells():
-    """Writes to the field NAME of the attribute table of groundwater the name
+    """Writes to the field NAME of the attribute table of Groundwater the name
     of each cell (Cell 0, Cell 1, ...)."""
 
     if h_utils.addFieldToAttrTable(h_const.grdwatLayerName, 
@@ -178,11 +178,11 @@ def edgeBetweenGroundwaterCells():
 
 
 def linkSpringToGroundwater():
-    """Add in the GROUND_ID field of Spring layer the ids of Groundwater cells 
-    that correspond to each spring."""
+    """Add in the GROUND_ID field of attribute table of Spring the ids of 
+    Groundwater cells that correspond to each spring."""
     grdwaterIdList=h_utils.linkPointLayerToPolygonLayer(h_const.springLayerName,
                                       h_const.grdwatLayerName)
-    if not grdwaterIdList: return False
+    if grdwaterIdList==None: return False
 
     return h_utils.setFieldAttrValues(h_const.springLayerName, 
                               h_const.grdwatFieldId, grdwaterIdList)
@@ -190,11 +190,11 @@ def linkSpringToGroundwater():
 
 
 def linkSpringToSubbasin(): 
-    """Add in the SUB_ID field of the Spring layer the ids of Subbasin polygons 
-    that correspond to each spring."""
+    """Add in the SUB_ID field of the attribute table of Spring the ids of 
+    Subbasin polygons that correspond to each spring."""
     subbasIdList=h_utils.linkPointLayerToPolygonLayer(h_const.springLayerName,
                                       h_const.subbasLayerName)
-    if not subbasIdList: return False
+    if subbasIdList==None: return False
 
     return h_utils.setFieldAttrValues(h_const.springLayerName, 
                               h_const.subbasFieldId, subbasIdList)
@@ -202,11 +202,11 @@ def linkSpringToSubbasin():
 
 
 def linkBoreholeToGroundwater():
-    """Add in the GROUND_ID field of the Borehole layer the ids of the 
-    Groundwater cells that correspond to each borehole."""
+    """Add in the GROUND_ID field of the attribute table of Borehole the ids 
+    of the Groundwater cells that correspond to each borehole."""
     grdwaterIdList=h_utils.linkPointLayerToPolygonLayer(h_const.borehLayerName, 
                                       h_const.grdwatLayerName)
-    if not grdwaterIdList: return False
+    if grdwaterIdList==None: return False
 
     return h_utils.setFieldAttrValues(h_const.borehLayerName, 
                               h_const.grdwatFieldId, grdwaterIdList)
@@ -214,20 +214,31 @@ def linkBoreholeToGroundwater():
 
 
 def linkBoreholeToSubbasin():
-    """Add in the SUB_ID field of the Borehole layer the ids of the Subbasin
-    polygons that correspond to each borehole."""
+    """Add in the SUB_ID field of the attribute talbe of Borehole the ids of 
+    the Subbasin polygons that correspond to each borehole."""
     subbasIdList=h_utils.linkPointLayerToPolygonLayer(h_const.borehLayerName,
                                       h_const.subbasLayerName)
-    if not subbasIdList: return False
+    if subbasIdList==None: return False
 
     return h_utils.setFieldAttrValues(h_const.borehLayerName, 
-                              h_const.borehFieldSubbasId, subbasIdList)
+                              h_const.subbasFieldId, subbasIdList)
+
+
+
+def linkRiverNodeGroundwater():
+    """Add in the GROUND_ID field of the attribute table of RiverNode the ids 
+    of the Groundwater cells that correspond to each river node."""
+    grdwatIds=h_utils.linkPointLayerToPolygonLayer(h_const.riverNodeLayerName,
+                                                   h_const.grdwatLayerName)
+    if grdwatIds==None: return False
+    return h_utils.setFieldAttrValues(h_const.riverNodeLayerName, 
+                                      h_const.grdwatFieldId, grdwatIds)
 
 
 
 def createRiverGroundwater(path):
-    """Use groundwater cells to clip the river segments to create a new layer
-    that links River with Groundwater."""
+    """Use groundwater cells to clip the river segments to create a new layer.
+    """
 
     # Add to the attr. table of Groundwater a field that keeps the cells id
     ok=h_utils.addShapeIdsToAttrTable(h_const.grdwatLayerName, 
@@ -264,9 +275,9 @@ def createRiverGroundwater(path):
 
 def createGroundwaterSubbasinHRU(path):
     """Use groundwater cells to intersect the subbasinHRU polygons to create a 
-    new layer (SubGroundHRU) that links Groundwater with Subbasin-HRU ."""
+    SubGroundHRU  layer."""
 
-    # Add to the attr. table of Groundwater a field that keeps the cells id
+    # Add to the attr. table of Groundwater a field that keeps the cells' id
     ok=h_utils.addShapeIdsToAttrTable(h_const.grdwatLayerName, 
                                  h_const.grdwatFieldId) 
     if not ok: return False
@@ -290,12 +301,3 @@ def createGroundwaterSubbasinHRU(path):
     ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
                                        h_const.grdwatSubbasHRUFieldArea)
     return ok
-
-
-
-def linkRiverNodeGroundwater():
-    grdwatIds=linkPointLayerToPolygonLayer(h_const.riverNodeLayerName,
-                                           h_const.grdwatLayerName)
-    if not grdwatIds==None: return False
-    return h_utils.setFieldAttrValues(h_const.riverNodeLayerName, 
-                                      h_const.grdwatFieldId, grdwatIds)

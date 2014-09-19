@@ -105,8 +105,6 @@ borehFieldTypes=(QVariant.String, QVariant.String, QVariant.Int,
                  QVariant.Double, QVariant.Double,  QVariant.Double,
                  QVariant.Int, QVariant.Int, QVariant.Int, QVariant.Double,
                  QVariant.Double,  QVariant.Double, )
-borehFieldGrdwatId= borehFieldNames[6]
-borehFieldSubbasId= borehFieldNames[7]
 borehFieldGroupId = borehFieldNames[8]
 
 
