@@ -338,14 +338,14 @@ def linkSubbasinToRiverexitnode(path):
         if not ok: return False
 
     # Get river nodes' ids
-    riverexitnodeIds=getFieldAttrValues( h_const.riverexitnodeLayerName, 
-                                         h_const.riverexitnodeFieldId )
+    riverexitnodeIds=h_utils.getFieldAttrValues(h_const.riverexitnodeLayerName, 
+                                                h_const.riverexitnodeFieldId )
     if riverexitnodeIds==None: return False
 
     # Put these ids into Subbasin (river exit nodes' order = river segments' 
     # order = subbasin polygons order)
-    ok= setFieldAttrValues(h_const.subbasLayerName, 
-                           h_const.riverexitnodeFieldId, riverexitnodeIds)
+    ok= h_utils.setFieldAttrValues(h_const.subbasLayerName, 
+                                 h_const.riverexitnodeFieldId, riverexitnodeIds)
     if ok: 
         h_utils.unloadLayer(h_const.riverexitnodeLayerName)
         return ok
