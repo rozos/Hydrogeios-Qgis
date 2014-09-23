@@ -592,8 +592,8 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
             QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
             return None
     else:
-        message="Field "+str(fieldName)+" is added to the layer "+str(layerName)
-        QtGui.QMessageBox.warning(None,'Info',message,QtGui.QMessageBox.Ok)
+        #message="Field "+str(fieldName)+" is added to "+str(layerName)
+        #QtGui.QMessageBox.warning(None,'Info',message,QtGui.QMessageBox.Ok)
         ok = provider.addAttributes( [ QgsField(fieldName,fieldType) ] )
         if not ok:
             message="Could not add a field to layer" + str(layerName)
