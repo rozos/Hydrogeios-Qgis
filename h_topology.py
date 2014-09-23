@@ -215,7 +215,7 @@ def _linkRiverductHydrojunction(layerName, reversDirect):
 
     # Get coordinates of river or aqueduct segments' first and last nodes
     if reversDirect:
-        rivEndnodeXlist, rivEndnodeYlist = 
+        rivEndnodeXlist, rivEndnodeYlist = \
                    h_utils.getSegmentEndsCoords(layerName, "first")
         rivStrnodeXlist, rivStrnodeYlist = \
                     h_utils.getSegmentEndsCoords(layerName, "last")
