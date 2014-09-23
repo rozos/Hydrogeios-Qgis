@@ -241,20 +241,34 @@ def initAqueductLayer(path):
 
 def createRiverexitnodeLayer(path):
     """Initialize/create Riverexitnode layer"""
-    # Get outlets of river segments
-    (endPntXs,endPntYs)= h_utils.getSegmentEndsCoords(h_const.riverLayerName,
-                                                      "first")
 
+    # Get outlets of river segments
+    res= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
+    if res!=False: 
+        endPntXs,endPntYs= res[0], res[1]
+    else:
+        return False
+
+    # Create a point layer with the river segment outlets
     coordinates=zip(endPntXs, endPntYs)
     ok= h_utils.createPointLayer(path, h_const.riverexitnodeLayerName,
                                  coordinates, h_const.riverexitnodeFieldNames, 
                                  h_const.riverexitnodeFieldTypes, ([], [], [],))
     if not ok: return False
 
+    # Load river exit add Ids and unload
+    riverexitnodeLayerName=h_const.riverexitnodeLayerName
+    if not h_utils.isShapefileLoaded(h_const.riverexitnodeLayerName):
+        ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName+".shp")
+        if not ok: return False
+
     ok= h_utils.addShapeIdsToAttrTable(h_const.riverexitnodeLayerName, 
                                        h_const.riverexitnodeFieldId)
-
-    return ok
+    if ok: 
+        h_utils.unloadLayer(h_const.riverexitnodeLayerName)
+        return ok
+    else:
+        return false
 
 
 
@@ -282,7 +296,7 @@ def linkSubbasinRiver():
     rivIds = [None] * subbasCount
     inFeat = QgsFeature()
     for rivid, strNodeX, strNodeY in zip( range(0,len(rivSrtNodeXlist)), \
-                                          rivStrNodeXlist, rivStrNodeYlist):
+                                          rivSrtNodeXlist, rivSrtNodeYlist):
         # Loop through every subbasin polygon
         foundStart= False
         subbPolygons= h_utils.getLayerFeatures(h_const.subbasLayerName)
@@ -332,6 +346,8 @@ def linkSubbasinToRiverexitnode(path):
     # order = subbasin polygons order)
     ok= setFieldAttrValues(h_const.subbasLayerName, 
                            h_const.riverexitnodeFieldId, riverexitnodeIds)
-    h_utils.unloadLayer(h_const.riverexitnodeLayerName)
-
-    return ok
+    if ok: 
+        h_utils.unloadLayer(h_const.riverexitnodeLayerName)
+        return ok
+    else:
+        return false
