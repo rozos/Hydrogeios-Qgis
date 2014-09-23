@@ -119,7 +119,7 @@ def getSegmentEndsCoords(layerName, firstORlast):
 
 
 
-def getFieldIndexByName(layerName, fieldName):
+def getFieldIndexByName(layerName, fieldName, warn=True):
     """Returns the index of the field named 'name' of the attribute table
     of the layer 'vlayer'. If no field with name 'name', returns None and
     displays an error dialog."""
@@ -135,9 +135,10 @@ def getFieldIndexByName(layerName, fieldName):
         return None
 
     # No field with this name found
-    message="Field with name "+str(fieldName)+" not found in layer " +\
-             str(layerName)
-    QtGui.QMessageBox.warning(None,'Error',message, QtGui.QMessageBox.Ok)
+    if warn:
+        message="Field with name "+str(fieldName)+" not found in layer " +\
+                 str(layerName)
+        QtGui.QMessageBox.warning(None,'Error',message, QtGui.QMessageBox.Ok)
     return None
 
 
@@ -582,7 +583,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
     provider=getLayerProvider(layerName)
 
     # Check if the fieldName already exists and if not add one
-    fieldIndex=getFieldIndexByName(layerName, fieldName)
+    fieldIndex=getFieldIndexByName(layerName, fieldName, warn=False)
     if fieldIndex!=None:
         # Make sure fieldName is fieldType
         field=provider.fields()[fieldIndex]
