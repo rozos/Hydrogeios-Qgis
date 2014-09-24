@@ -36,7 +36,8 @@ h_utils.delSpecificShapes("Subbas", nodataShapeId)
 # Do a disolve geoprocessing on Subbas layer to joing small polygons with mother polys
 
 # Delete from the attribute table of layer River the field Length
-#h_utils.loadShapefileToCanvas(projectpath, h_const.riverLayerName)
+h_utils.loadShapefileToCanvas(projectpath, h_const.riverLayerName+".shp")
+h_utils.delField(h_const.riverLayerName, "Length")
 
 # Initialize template layers
 import h_initLayers

@@ -39,7 +39,7 @@ def loadShapefileToCanvas(path, fileName):
 
     pathFilename=os.path.join(path, fileName)
     if not ftools_utils.addShapeToCanvas(pathFilename):
-        message="Error loading output shapefile "+pathFilename
+        message="Error loading shapefile "+pathFilename
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
         return False
     return True
@@ -388,6 +388,26 @@ def delSpecificShapes(layerName, ids):
     layer.commitChanges()
 
     return ok
+
+
+
+def delField(layerName, fieldName):
+    """Deletes the the fieldName from attribute table of layerName."""
+    
+    fieldindex=getFieldIndexByName(layerName, fieldName)
+    if fieldindex==None: return False
+
+    provider=getLayerProvider(layerName)
+    if provider==None: return False
+    layer=ftools_utils.getVectorLayerByName(layerName)
+
+    layer.startEditing()
+    ok = provider.deleteAttributes([fieldindex])
+    if not ok: return False
+    layer.commitChanges()
+
+    return True
+
 
 
 
