@@ -5,6 +5,8 @@ from PyQt4.QtCore import QVariant
 # Precision of floats' comparisons
 precise=3
 
+# Value marking no data cells
+nodataCode=-2147483647
 
 # River layer specifications
 riverLayerName="River"

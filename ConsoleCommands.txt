@@ -22,9 +22,21 @@ TauDEM.autoDelineate(thresh=50)
 TauDEM.autoDelineate(thresh=50, outlet="MyOutlet")
 
 # Convert raster layer with suffix w using polygonize to vector layer Subbas
+import h_const
+import h_utils
+h_utils.createVectorFromRaster(projectpath, demname+'w.tif', 1, "Subbas", "DN")
+
+# Load layer and delete nodata
+h_utils.loadShapefileToCanvas(projectpath, "Subbas.shp")
+dnvals=h_utils.getFieldAttrValues("Subbas", "DN")
+nodataShapeId=h_utils.getElementIndexByVal(dnvals, h_const.nodataCode)
+h_utils.delSpecificShapes("Subbas", nodataShapeId)
+
+
 # Do a disolve geoprocessing on Subbas layer to joing small polygons with mother polys
 
 # Delete from the attribute table of layer River the field Length
+#h_utils.loadShapefileToCanvas(projectpath, h_const.riverLayerName)
 
 # Initialize template layers
 import h_initLayers

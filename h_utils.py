@@ -440,7 +440,8 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
 
 
 
-def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
+def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
+                           outShapeId):
     """Create a vector layer from a raster layer using values of provided
        band."""
     # Load existing raster
@@ -471,7 +472,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName ):
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     outLayer = outDatasource.CreateLayer("polygonized", srs=None)
-    newField = ogr.FieldDefn('HRU_ID', ogr.OFTInteger)
+    newField = ogr.FieldDefn(outShapeId, ogr.OFTInteger)
     outLayer.CreateField(newField)
     gdal.Polygonize( band, None, outLayer, 0, [], callback=None )
 

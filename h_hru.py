@@ -77,8 +77,8 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
         return False
 
     # Turn HRUraster into vector
-    ok=h_utils.createVectorFromRaster(path, h_const.HRUrasterLayerName+'.tif',
-                                      1, h_const.HRULayerName)
+    ok=h_utils.createVectorFromRaster(path,h_const.HRUrasterLayerName+'.tif',1,
+                                      h_const.HRULayerName, h_const.HRUFieldId)
     if not ok:
         message="Creation of " + h_const.HRUrasterLayerName + " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
