@@ -4,27 +4,33 @@ projectpath="c:/dev/Mesogeia"
 taudempath="c:/dev/TauDem"
 demname="Mesogeia"
 
+
 # Import hydrogeios
 import sys
 sys.path.append(pluginpath)
+
 
 # Initial delineation
 import TauDEM
 TauDEM.initialize(taudempath, projectpath, demname)
 TauDEM.autoDelineate(thresh=50)
 
+
 # Define project properties and set "Enable 'on the fly' CRS transformation.
 # Load created River shapefile and use it (enable snapping) to create the point 
 # layer MyOutlet. Load the raster with suffix w (e.g. Mesogeiaw.tif)
 # Unload River, unload raster with suffix w.
 
+
 # Delineate with user outputs
 TauDEM.autoDelineate(thresh=50, outlet="MyOutlet")
+
 
 # Convert raster layer with suffix w using polygonize to vector layer Subbas
 import h_const
 import h_utils
 h_utils.createVectorFromRaster(projectpath, demname+'w.tif', 1, "Subbas", "DN")
+
 
 # Load layer and delete nodata
 h_utils.loadShapefileToCanvas(projectpath, "Subbas.shp")
@@ -33,11 +39,13 @@ nodataShapeId=h_utils.getElementIndexByVal(dnvals, h_const.nodataCode)
 h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 
-# Do a disolve geoprocessing on Subbas layer to joing small polygons with mother polys
+# Disolve Subbas layer to joing small polygons with mother polys
+
 
 # Delete from the attribute table of layer River the field Length
 h_utils.loadShapefileToCanvas(projectpath, h_const.riverLayerName+".shp")
 h_utils.delField(h_const.riverLayerName, "Length")
+
 
 # Initialize template layers
 import h_initLayers
