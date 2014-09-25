@@ -12,11 +12,14 @@ demname="Mesogeia"
 # Import hydrogeios
 import sys
 sys.path.append(pluginpath)
-import h_const
-import h_utils
 import geoprocess
 import TauDEM
+import h_const
+import h_utils
+import h_hru
 import h_initLayers
+import h_groundWater
+import h_topology
 
 
 # Initial delineation
@@ -39,7 +42,7 @@ h_utils.createVectorFromRaster(projectpath, demname+'w.tif', 1, "Subbas", "DN")
 
 
 # Load layer and delete nodata
-h_utils.loadShapefileToCanvas(projectpath, "Subbas.shp")
+h_utils.loadShapefileToCanvas(projectpath, "Subbas")
 dnvals=h_utils.getFieldAttrValues("Subbas", "DN")
 nodataShapeId=h_utils.getElementIndexByVal(dnvals, h_const.nodataCode)
 h_utils.delSpecificShapes("Subbas", nodataShapeId)
@@ -56,3 +59,31 @@ h_utils.delField(h_const.riverLayerName, "Length")
 
 # Initialize template layers
 h_initLayers.doAll(projectpath)
+
+
+# Create HRU
+h_hru.doAll(projectpath, "Mesogeia", bandnum=1, rangeUpVals=(100, 250, 1500))
+
+
+# Digitizie shapes in GroundWater layer
+# Digitize boreholes
+# Digitize springs
+
+
+# Process groundwater cells
+h_utils.loadShapefileToCanvas(projectpath, h_const.riverexitnodeLayerName)
+h_groundWater.doAll(projectpath)
+
+
+# Create hydrojunctions
+h_const.DEMlayerName=demname
+h_topology.createHydrojunctionLayer(projectpath)
+
+
+# Add aqueduct nodes in hydrojunction
+# Digitize Aqueduct
+
+
+# Build topology
+h_utils.addMeasureToAttrTable(h_const.aquedLayerName, h_const.aquedFieldLength)
+h_topology.build()

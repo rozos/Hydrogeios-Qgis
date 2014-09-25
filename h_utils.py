@@ -36,11 +36,13 @@ def unloadLayer(layerName):
 
 
 
-def loadShapefileToCanvas(path, fileName):
+def loadShapefileToCanvas(path, layername):
     """Wraps the ftools function. It displayes an error message if something
     goes wrong."""
 
-    pathFilename=os.path.join(path, fileName+".shp")
+    if isShapefileLoaded(layername):
+	return True
+    pathFilename=os.path.join(path, layername+".shp")
     if not ftools_utils.addShapeToCanvas(pathFilename):
         message="Error loading shapefile "+pathFilename
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)

@@ -228,10 +228,13 @@ def linkBoreholeToSubbasin():
 def linkRiverNodeGroundwater():
     """Add in the GROUND_ID field of the attribute table of RiverNode the ids 
     of the Groundwater cells that correspond to each river node."""
-    grdwatIds=h_utils.linkPointLayerToPolygonLayer(h_const.riverNodeLayerName,
+
+    riverNodeLayerName=h_const.riverexitnodeLayerName
+
+    grdwatIds=h_utils.linkPointLayerToPolygonLayer(riverNodeLayerName,
                                                    h_const.grdwatLayerName)
     if grdwatIds==None: return False
-    return h_utils.setFieldAttrValues(h_const.riverNodeLayerName, 
+    return h_utils.setFieldAttrValues(riverNodeLayerName, 
                                       h_const.grdwatFieldId, grdwatIds)
 
 

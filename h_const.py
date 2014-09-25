@@ -131,6 +131,7 @@ aquedFieldNames=("NAME", "DESCR", "LEAK_CF", "FROM_NODE", "TO_NODE",
 aquedFieldTypes=(QVariant.String, QVariant.String, QVariant.Double,
                  QVariant.Int, QVariant.Int, QVariant.Double, QVariant.Double,
                  QVariant.Double)
+aquedFieldLength=aquedFieldNames[5]
 
 
 # Outlet layer specifications

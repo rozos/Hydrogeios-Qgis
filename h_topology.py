@@ -55,7 +55,7 @@ def layerConsistenciesOK():
     if h_utils.getMinFeatureMeasure(h_const.subbasLayerName)<=0:
         return False
 
-    if h_utils.getMinFeatureMeasure(h_const.groundLayerName)<=0:
+    if h_utils.getMinFeatureMeasure(h_const.grdwatLayerName)<=0:
         return False
 
     if h_utils.getMinFeatureMeasure(h_const.riverLayerName)<=0:
@@ -150,7 +150,7 @@ def createHydrojunctionLayer(path):
             borYList.append( sum(groupYvals)/len(groupYvals) ) 
     
     # Get the points of Spring layer
-    res= getPointLayerCoords(h_const.springLayerName)
+    res= h_utils.getPointLayerCoords(h_const.springLayerName)
     if res == None: return False
     sprXList, sprYList= res[0], res[1]
 
