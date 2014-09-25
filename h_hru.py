@@ -49,7 +49,7 @@ def createSubbasinHRU(path):
     if not ok: return False
 
     # Load SubbasinHRU
-    h_utils.loadShapefileToCanvas(path, h_const.subbasHRULayerName + ".shp")
+    h_utils.loadShapefileToCanvas(path, h_const.subbasHRULayerName)
 
     # Update the area values of the SubbasinHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.subbasHRULayerName,
@@ -85,7 +85,7 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
         return False
 
     # Load HRU shapefile
-    h_utils.loadShapefileToCanvas(path, h_const.HRULayerName + ".shp")
+    h_utils.loadShapefileToCanvas(path, h_const.HRULayerName)
 
     # Delete pogyons generated from non-data pixels
     filterExpr=h_const.HRUFieldId + "<0"

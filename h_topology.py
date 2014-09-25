@@ -175,7 +175,7 @@ def createHydrojunctionLayer(path):
     if not ok: return False
 
     # Load hydrojunction layer
-    ok=h_utils.loadShapefileToCanvas(path, h_const.hydrojncLayerName + ".shp")
+    ok=h_utils.loadShapefileToCanvas(path, h_const.hydrojncLayerName)
 
     return ok
 

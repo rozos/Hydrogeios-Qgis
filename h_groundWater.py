@@ -263,7 +263,7 @@ def createRiverGroundwater(path):
     if not ok: return False
 
     # Load RiverGroundwater
-    h_utils.loadShapefileToCanvas(path, h_const.riverGrdwatLayerName+ ".shp")
+    h_utils.loadShapefileToCanvas(path, h_const.riverGrdwatLayerName)
 
     # Update the length of the segments to the RiverGroundwater attr. table 
     ok= h_utils.addMeasureToAttrTable( h_const.riverGrdwatLayerName,
@@ -296,7 +296,7 @@ def createGroundwaterSubbasinHRU(path):
     if not ok: return False
 
     # Load RiverGroundwater
-    h_utils.loadShapefileToCanvas(path, h_const.grdwatSubbasHRULayerName+".shp")
+    h_utils.loadShapefileToCanvas(path, h_const.grdwatSubbasHRULayerName)
 
     # Update the area values of the SubGroundHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,

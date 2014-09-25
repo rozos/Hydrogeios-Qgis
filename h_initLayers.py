@@ -96,7 +96,7 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
 
     # Make sure the layer is loaded 
     if not h_utils.isShapefileLoaded(layerName):
-        if not h_utils.loadShapefileToCanvas(path, layerName+".shp"):
+        if not h_utils.loadShapefileToCanvas(path, layerName):
             return False
 
     # Make sure all required fields are there
@@ -123,7 +123,7 @@ def createOutletsLayer(path):
 
     # Make sure the layer is loaded 
     if not h_utils.isShapefileLoaded(h_const.outletLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, h_const.outletLayerName+".shp")
+        ok=h_utils.loadShapefileToCanvas(path, h_const.outletLayerName)
 
     return ok
 
@@ -178,7 +178,7 @@ def initSubbasinLayer(path):
 
     # Make sure the layer is loaded 
     if not h_utils.isShapefileLoaded(h_const.subbasLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, h_const.subbasLayerName+".shp")
+        ok=h_utils.loadShapefileToCanvas(path, h_const.subbasLayerName)
 
     return ok
 
@@ -259,7 +259,7 @@ def createRiverexitnodeLayer(path):
     # Load river exit add Ids and unload
     riverexitnodeLayerName=h_const.riverexitnodeLayerName
     if not h_utils.isShapefileLoaded(h_const.riverexitnodeLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName+".shp")
+        ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName)
         if not ok: return False
 
     ok= h_utils.addShapeIdsToAttrTable(h_const.riverexitnodeLayerName, 
@@ -334,7 +334,7 @@ def linkSubbasinToRiverexitnode(path):
     # Load river exit nodes layer
     riverexitnodeLayerName=h_const.riverexitnodeLayerName
     if not h_utils.isShapefileLoaded(riverexitnodeLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName+".shp")
+        ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName)
         if not ok: return False
 
     # Get river nodes' ids

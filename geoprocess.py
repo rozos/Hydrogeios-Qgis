@@ -4,23 +4,22 @@ import ftools_utils
 import h_utils
 
 def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
+    """Intersect tow shapefiles. Taken from ftools."""
 
     # make sure layer A is loaded
     layerAloaded=h_utils.isShapefileLoaded(inputLayerAname)
     if not layerAloaded:
-        pathFilenameA=os.path.join( path, inputLayerAname)
-        if not h_utils.loadShapefileToCanvas(pathFilenameA+".shp" ):
+        if not h_utils.loadShapefileToCanvas(path, inputLayerAname):
             return False
 
     # make sure layer B is loaded
     layerBloaded=h_utils.isShapefileLoaded(inputLayerBname)
     if not layerBloaded:
-        pathFilenameB=os.path.join( path, inputLayerBname) 
-        if not h_utils.loadShapefileToCanvas(path, pathFilenameB+".shp" ):
+        if not h_utils.loadShapefileToCanvas(path, inputLayerBname):
             return False
 
     # Del output shapefile
-    h_utils.unloadLayer(outputLayerName)
+    outputWasLoaded=h_utils.unloadLayer(outputLayerName)
     outpathFilename=os.path.join( path, outputLayerName+".shp") 
     fileExists= os.path.isfile(outpathFilename)
     if fileExists:
@@ -220,9 +219,172 @@ def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
                         break
     del writer
 
+    # Restore previous canvas loaded layers
     if not layerAloaded:
         h_utils.unloadLayer(inputLayerAname)
     if not layerBloaded:
         h_utils.unloadLayer(inputLayerBname)
+    if outputWasLoaded:
+        h_utils.loadShapefileToCanvas(path, outputLayerName)
 
     return True
+
+
+
+def dissolve(path, inputLayerAname, outputLayerName, myParam=0 ,useField=True):
+    """Dissolves polygon shapefile. Taken from ftools."""
+
+#def dissolve( self, useField ):
+#  GEOS_EXCEPT = True
+#  FEATURE_EXCEPT = True
+#  vproviderA = self.vlayerA.dataProvider()
+
+    mySelectionA=None
+
+    # make sure layer A is loaded
+    layerAloaded=h_utils.isShapefileLoaded(inputLayerAname)
+    if not layerAloaded:
+        if not h_utils.loadShapefileToCanvas(path, inputLayerAname):
+            return False
+
+    # Get layers and providers
+    vproviderA = h_utils.getLayerProvider(inputLayerAname)
+    vlayerA = ftools_utils.getVectorLayerByName(inputLayerAname)
+
+    # Del output shapefile
+    h_utils.unloadLayer(outputLayerName)
+    outpathFilename=os.path.join( path, outputLayerName+".shp") 
+    fileExists= os.path.isfile(outpathFilename)
+    if fileExists:
+        ok=h_utils.delExistingShapefile(path, outputLayerName)
+        if not ok: return False
+
+    # Open writer
+    writer = QgsVectorFileWriter( outpathFilename, "UTF-8", vproviderA.fields(),
+                                  vproviderA.geometryType(), vproviderA.crs() )
+    if writer.hasError():
+        message="Unable to create " + outpathFilename
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        return False
+
+    inFeat = QgsFeature()
+    outFeat = QgsFeature()
+    nElement = 0
+    attrs = None
+
+    # there is selection in input layer
+    if mySelectionA:
+      nFeat = vlayerA.selectedFeatureCount()
+      selectionA = vlayerA.selectedFeatures()
+      if not useField:
+        #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ), 0 )
+        #self.emit( SIGNAL( "runRange(PyQt_PyObject)" ), ( 0, nFeat ) )
+        first = True
+        for inFeat in selectionA:
+          nElement += 1
+          #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ), nElement )
+          if first:
+            attrs = inFeat.attributes()
+            tmpInGeom = QgsGeometry( inFeat.geometry() )
+            outFeat.setGeometry( tmpInGeom )
+            first = False
+          else:
+            tmpInGeom = QgsGeometry( inFeat.geometry() )
+            tmpOutGeom = QgsGeometry( outFeat.geometry() )
+            try:
+              tmpOutGeom = QgsGeometry( tmpOutGeom.combine( tmpInGeom ) )
+              outFeat.setGeometry( tmpOutGeom )
+            except:
+              GEOS_EXCEPT = False
+              continue
+        outFeat.setAttributes( attrs )
+        writer.addFeature( outFeat )
+      else:
+        #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ), 0)
+        #self.emit( SIGNAL( "runRange(PyQt_PyObject)" ), ( 0, nFeat ) )
+
+        outFeats = {}
+        attrs = {}
+
+        for inFeat in selectionA:
+          nElement += 1
+          #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ),  nElement )
+          atMap = inFeat.attributes()
+          tempItem = unicode(atMap[myParam]).strip()
+
+          if not (tempItem in outFeats):
+            outFeats[tempItem] = QgsGeometry(inFeat.geometry())
+            attrs[tempItem] = atMap
+          else:
+            try:
+              outFeats[tempItem] = outFeats[tempItem].combine(inFeat.geometry())
+            except:
+              GEOS_EXCEPT = False
+              continue
+        for k in outFeats.keys():
+          feature = QgsFeature()
+          feature.setAttributes(attrs[k])
+          feature.setGeometry(outFeats[k])
+          writer.addFeature( feature )
+    # there is no selection in input layer
+    else:
+      nFeat = vproviderA.featureCount()
+      if not useField:
+        #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ), 0)
+        #self.emit( SIGNAL( "runRange(PyQt_PyObject)" ), ( 0, nFeat ) )
+        first = True
+        fitA = vproviderA.getFeatures()
+        while fitA.nextFeature( inFeat ):
+          nElement += 1
+          #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ),  nElement )
+          if first:
+            attrs = inFeat.attributes()
+            tmpInGeom = QgsGeometry( inFeat.geometry() )
+            outFeat.setGeometry( tmpInGeom )
+            first = False
+          else:
+            tmpInGeom = QgsGeometry( inFeat.geometry() )
+            tmpOutGeom = QgsGeometry( outFeat.geometry() )
+            try:
+              tmpOutGeom = QgsGeometry( tmpOutGeom.combine( tmpInGeom ) )
+              outFeat.setGeometry( tmpOutGeom )
+            except:
+              GEOS_EXCEPT = False
+              continue
+        outFeat.setAttributes( attrs )
+        writer.addFeature( outFeat )
+      else:
+        #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ), 0)
+        #self.emit( SIGNAL( "runRange(PyQt_PyObject)" ), ( 0, nFeat ) )
+
+        outFeats = {}
+        attrs = {}
+
+        fitA = vproviderA.getFeatures()
+        while fitA.nextFeature( inFeat ):
+          nElement += 1
+          #self.emit( SIGNAL( "runStatus(PyQt_PyObject)" ),  nElement )
+          atMap = inFeat.attributes()
+          tempItem = unicode(atMap[myParam]).strip()
+
+          if not (tempItem in outFeats):
+            outFeats[tempItem] = QgsGeometry(inFeat.geometry())
+            attrs[tempItem] = atMap
+          else:
+            try:
+              outFeats[tempItem] = outFeats[tempItem].combine(inFeat.geometry())
+            except:
+              GEOS_EXCEPT = False
+              continue
+        for k in outFeats.keys():
+          feature = QgsFeature()
+          feature.setAttributes(attrs[k])
+          feature.setGeometry(outFeats[k])
+          writer.addFeature( feature )
+    del writer
+
+    if not layerAloaded:
+        h_utils.unloadLayer(inputLayerAname)
+
+    return True
+

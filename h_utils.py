@@ -26,10 +26,13 @@ def floatsEqual(afloat, bfloat, exponent):
 
 
 def unloadLayer(layerName):
-    """Unloads a layer from canvas."""
+    """Unloads a layer from canvas. Returns true if it was loaded."""
     layer=ftools_utils.getVectorLayerByName(layerName)
     if layer:
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+        return True
+    else:
+        return False
 
 
 
@@ -37,7 +40,7 @@ def loadShapefileToCanvas(path, fileName):
     """Wraps the ftools function. It displayes an error message if something
     goes wrong."""
 
-    pathFilename=os.path.join(path, fileName)
+    pathFilename=os.path.join(path, fileName+".shp")
     if not ftools_utils.addShapeToCanvas(pathFilename):
         message="Error loading shapefile "+pathFilename
         QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
