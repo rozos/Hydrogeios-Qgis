@@ -1,3 +1,7 @@
+# Install QGIS 2.4
+# Install TauDEM 5.1.2 Command Line Executables
+# Install hydrogeios-qgis
+
 # Define paths
 pluginpath="c:/dev/hydrogeios-qgis"
 projectpath="c:/dev/Mesogeia"

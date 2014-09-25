@@ -220,4 +220,9 @@ def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
                         break
     del writer
 
+    if not layerAloaded:
+        h_utils.unloadLayer(inputLayerAname)
+    if not layerBloaded:
+        h_utils.unloadLayer(inputLayerBname)
+
     return True
