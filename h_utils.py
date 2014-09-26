@@ -392,7 +392,7 @@ def delSpecificShapes(layerName, ids):
 
     layer.commitChanges()
 
-    return ok
+    return True
 
 
 
