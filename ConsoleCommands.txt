@@ -9,9 +9,9 @@ projectpath="c:/dev/testHydrogeios/Sarantapotamos"
 taudempath="c:/dev/TauDem"
 
 
-# Define DEM. The DEM should be of geotiff format
+# Define raster files. These files should be of geotiff format and have consistend # projection
 demname="Sarantapotamos"
-
+cnname="CN"
 
 # Define delineation threshold
 threshold=150
@@ -63,8 +63,11 @@ nodataShapeId=h_utils.getElementIndexByVal(dnvals, h_const.nodataCode)
 h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 
+
 # Disolve Subbas layer to joing small polygons with mother polys
 geoprocess.dissolve(projectpath, "Subbas", h_const.subbasLayerName )
+h_utils.unloadLayer("Subbas")
+h_utils.unloadLayer("MyOutlet")
 
 
 # Delete from the attribute table of layer River the field Length
@@ -77,7 +80,7 @@ h_initLayers.doAll(projectpath)
 
 
 # Create HRU
-h_hru.doAll(projectpath, "Mesogeia", bandnum=1, cngroups)
+h_hru.doAll(projectpath, cnname, bandnum=1, cngroups)
 
 
 # Digitizie shapes in GroundWater layer
