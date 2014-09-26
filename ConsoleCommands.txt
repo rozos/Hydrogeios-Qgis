@@ -3,21 +3,6 @@
 # Install hydrogeios-qgis
 
 
-# Define paths
-pluginpath="c:/dev/hydrogeios-qgis"
-projectpath="c:/dev/testHydrogeios/Sarantapotamos"
-taudempath="c:/dev/TauDem"
-
-# Define raster files. These files should be of geotiff format and have consistend # projection
-demname="Sarantapotamos"
-cnname="CN"
-
-# Define delineation threshold
-threshold=150
-
-# Define CN grouping
-cngroups=(250, 600, 1500,)
-
 
 # Import hydrogeios
 import sys
@@ -30,6 +15,25 @@ import h_hru
 import h_initLayers
 import h_groundWater
 import h_topology
+
+
+
+# Define paths
+pluginpath="c:/dev/hydrogeios-qgis"
+projectpath="c:/dev/testHydrogeios/Sarantapotamos"
+taudempath="c:/dev/TauDem"
+
+# Define raster files. These files should be of geotiff format and have consistend 
+# projection
+demname="Sarantapotamos"
+cnname="CN"
+
+# Define delineation threshold
+threshold=50
+
+# Define CN grouping
+cngroups=(250, 600, 1500,)
+
 
 
 # Initialize TauDEM
@@ -79,10 +83,10 @@ h_initLayers.doAll(projectpath)
 
 # Create HRU
 h_utils.loadRasterfileToCanvas(projectpath, cnname)
-h_hru.doAll(projectpath, cnname, bandnum=1, cngroups)
+h_hru.doAll(projectpath, cnname, 1, cngroups)
 
 
-# Digitizie shapes in GroundWater layer
+# Digitizie GroundWater polygons. Make sure you snap to GroundWater verteces!
 # Digitize boreholes
 # Digitize springs
 
@@ -92,13 +96,16 @@ h_utils.loadShapefileToCanvas(projectpath, h_const.riverexitnodeLayerName)
 h_groundWater.doAll(projectpath)
 
 
+# Digitize irrigation areas
+
+
 # Create hydrojunctions
 h_const.DEMlayerName=demname
 h_topology.createHydrojunctionLayer(projectpath)
 
 
 # Add aqueduct nodes in hydrojunction
-# Digitize Aqueduct
+# Digitize Aqueduct. Make sure it snaps to Hydrojuntions!
 
 
 # Build topology
