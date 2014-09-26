@@ -1,6 +1,6 @@
 from qgis.core import *
 from PyQt4 import QtGui
-from PyQt4.QtCore import QVariant
+from PyQt4.QtCore import QVariant, QFileInfo
 from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
 from osgeo import gdal, ogr
 import ftools_utils
@@ -51,9 +51,36 @@ def loadShapefileToCanvas(path, layername):
 
 
 
+def loadRasterfileToCanvas(path, layername):
+    """Loads a raste to canvas."""
+    pathFilename=os.path.join(path, layername+".tif")
+    file_info = QFileInfo(pathFilename)
+    if file_info.exists():
+        layer_name = file_info.completeBaseName()
+    else:
+        message="Error loading raster"+pathFilename
+        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        return False
+    rlayer_new = QgsRasterLayer( pathFilename, layer_name, True )
+    if rlayer_new.isValid():
+        QgsMapLayerRegistry.instance().addMapLayers( [rlayer_new] )
+        return True
+    else:
+        return False
+
+
+
 def isShapefileLoaded(layerName):
     """Check if a shapefile is loaded into canvas."""
     layer=ftools_utils.getVectorLayerByName(layerName)
+    if layer!=None: return True
+    else: return False
+
+
+
+def isRasterLoaded(layerName):
+    """Check if a raster is loaded into canvas."""
+    layer=ftools_utils.getRasterLayerByName(layerName)
     if layer!=None: return True
     else: return False
 
