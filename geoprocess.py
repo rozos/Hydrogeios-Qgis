@@ -19,7 +19,7 @@ def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
             return False
 
     # Del output shapefile
-    outputWasLoaded=h_utils.unloadLayer(outputLayerName)
+    outputWasLoaded=h_utils.unloadShapefile(outputLayerName)
     outpathFilename=os.path.join( path, outputLayerName+".shp") 
     fileExists= os.path.isfile(outpathFilename)
     if fileExists:
@@ -221,9 +221,9 @@ def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
 
     # Restore previous canvas loaded layers
     if not layerAloaded:
-        h_utils.unloadLayer(inputLayerAname)
+        h_utils.unloadShapefile(inputLayerAname)
     if not layerBloaded:
-        h_utils.unloadLayer(inputLayerBname)
+        h_utils.unloadShapefile(inputLayerBname)
     if outputWasLoaded:
         h_utils.loadShapefileToCanvas(path, outputLayerName)
 
@@ -252,7 +252,7 @@ def dissolve(path, inputLayerAname, outputLayerName, myParam=0 ,useField=True):
     vlayerA = ftools_utils.getVectorLayerByName(inputLayerAname)
 
     # Del output shapefile
-    h_utils.unloadLayer(outputLayerName)
+    h_utils.unloadShapefile(outputLayerName)
     outpathFilename=os.path.join( path, outputLayerName+".shp") 
     fileExists= os.path.isfile(outpathFilename)
     if fileExists:
@@ -384,7 +384,7 @@ def dissolve(path, inputLayerAname, outputLayerName, myParam=0 ,useField=True):
     del writer
 
     if not layerAloaded:
-        h_utils.unloadLayer(inputLayerAname)
+        h_utils.unloadShapefile(inputLayerAname)
 
     return True
 

@@ -8,7 +8,6 @@ pluginpath="c:/dev/hydrogeios-qgis"
 projectpath="c:/dev/testHydrogeios/Sarantapotamos"
 taudempath="c:/dev/TauDem"
 
-
 # Define raster files. These files should be of geotiff format and have consistend # projection
 demname="Sarantapotamos"
 cnname="CN"
@@ -16,9 +15,8 @@ cnname="CN"
 # Define delineation threshold
 threshold=150
 
-
 # Define CN grouping
-cngroups=(250, 600, 1500)
+cngroups=(250, 600, 1500,)
 
 
 # Import hydrogeios
@@ -48,7 +46,7 @@ TauDEM.autoDelineate(threshold)
 
 
 # Delineate with user outputs
-h_utils.unloadLayer(h_const.riverLayerName)
+h_utils.unloadShapefile(h_const.riverLayerName)
 TauDEM.autoDelineate(threshold, outlet="MyOutlet")
 
 
@@ -66,8 +64,8 @@ h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 # Disolve Subbas layer to joing small polygons with mother polys
 geoprocess.dissolve(projectpath, "Subbas", h_const.subbasLayerName )
-h_utils.unloadLayer("Subbas")
-h_utils.unloadLayer("MyOutlet")
+h_utils.unloadShapefile("Subbas")
+h_utils.unloadShapefile("MyOutlet")
 
 
 # Delete from the attribute table of layer River the field Length
@@ -80,6 +78,7 @@ h_initLayers.doAll(projectpath)
 
 
 # Create HRU
+h_utils.loadRasterfileToCanvas(projectpath, cnname)
 h_hru.doAll(projectpath, cnname, bandnum=1, cngroups)
 
 

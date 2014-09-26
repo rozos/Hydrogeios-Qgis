@@ -30,7 +30,7 @@ def createSubbasinHRU(path):
     layer that links Subbasin with HRU."""
 
     # Delete existing shapefile SubGroundHRU
-    h_utils.unloadLayer(h_const.subbasHRULayerName)
+    h_utils.unloadShapefile(h_const.subbasHRULayerName)
     if h_utils.shapefileExists(path, h_const.subbasHRULayerName):
         ok=h_utils.delExistingShapefile( path, h_const.subbasHRULayerName)
         if not ok: return False
@@ -55,7 +55,7 @@ def createSubbasinHRU(path):
     ok= h_utils.addMeasureToAttrTable( h_const.subbasHRULayerName,
                                        h_const.subbasHRUFieldArea)
     # Unload layer
-    h_utils.unloadLayer(h_const.subbasHRULayerName)
+    h_utils.unloadShapefile(h_const.subbasHRULayerName)
 
     return ok
 
@@ -68,7 +68,7 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
 
     # Reclassify CNraster (id of CN classes instead of CN values)
     if h_utils.isShapefileLoaded(h_const.HRULayerName):
-	h_utils.unloadLayer(h_const.HRULayerName)
+	h_utils.unloadShapefile(h_const.HRULayerName)
     ok=h_utils.reclassifyRaster(path, CNrasterName, bandnum, 0, rangeUpVals,
                                 h_const.HRUrasterLayerName)
     if not ok:

@@ -254,7 +254,7 @@ def createRiverGroundwater(path):
     if not ok: return False
 
     # Delete existing shapefile
-    h_utils.unloadLayer(h_const.riverGrdwatLayerName)
+    h_utils.unloadShapefile(h_const.riverGrdwatLayerName)
     if h_utils.shapefileExists(path, h_const.riverGrdwatLayerName ):
         ok=h_utils.delExistingShapefile( path, h_const.riverGrdwatLayerName )
         if not ok: return False
@@ -272,7 +272,7 @@ def createRiverGroundwater(path):
     ok= h_utils.addMeasureToAttrTable( h_const.riverGrdwatLayerName,
                                        h_const.riverGrdwatFieldLength )
     # Unload the layer
-    h_utils.unloadLayer(h_const.riverGrdwatLayerName)
+    h_utils.unloadShapefile(h_const.riverGrdwatLayerName)
     return ok
     
     
@@ -287,7 +287,7 @@ def createGroundwaterSubbasinHRU(path):
     if not ok: return False
 
     # Delete existing shapefile SubGroundHRU
-    h_utils.unloadLayer(h_const.grdwatSubbasHRULayerName)
+    h_utils.unloadShapefile(h_const.grdwatSubbasHRULayerName)
     if h_utils.shapefileExists(path, h_const.grdwatSubbasHRULayerName):
        ok=h_utils.delExistingShapefile( path, h_const.grdwatSubbasHRULayerName )
        if not ok: return False
@@ -305,6 +305,6 @@ def createGroundwaterSubbasinHRU(path):
     ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
                                        h_const.grdwatSubbasHRUFieldArea)
     # Unload the layer
-    h_utils.unloadLayer(h_const.grdwatSubbasHRULayerName)
+    h_utils.unloadShapefile(h_const.grdwatSubbasHRULayerName)
 
     return ok

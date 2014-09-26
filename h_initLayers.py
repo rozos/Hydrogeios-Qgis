@@ -265,7 +265,7 @@ def createRiverexitnodeLayer(path):
     ok= h_utils.addShapeIdsToAttrTable(h_const.riverexitnodeLayerName, 
                                        h_const.riverexitnodeFieldId)
     if ok: 
-        h_utils.unloadLayer(h_const.riverexitnodeLayerName)
+        h_utils.unloadShapefile(h_const.riverexitnodeLayerName)
         return ok
     else:
         return false
@@ -347,7 +347,7 @@ def linkSubbasinToRiverexitnode(path):
     ok= h_utils.setFieldAttrValues(h_const.subbasLayerName, 
                                  h_const.riverexitnodeFieldId, riverexitnodeIds)
     if ok: 
-        h_utils.unloadLayer(h_const.riverexitnodeLayerName)
+        h_utils.unloadShapefile(h_const.riverexitnodeLayerName)
         return ok
     else:
         return false

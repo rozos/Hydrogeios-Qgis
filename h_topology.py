@@ -110,7 +110,7 @@ def createHydrojunctionLayer(path):
 
     # Unload shapefile
     if h_utils.isShapefileLoaded(h_const.hydrojncLayerName):
-        h_utils.unloadLayer(h_const.hydrojncLayerName)
+        h_utils.unloadShapefile(h_const.hydrojncLayerName)
     
     # Get upstream nodes of river segments
     res= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "last")
