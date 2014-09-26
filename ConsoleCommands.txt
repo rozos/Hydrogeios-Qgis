@@ -2,11 +2,23 @@
 # Install TauDEM 5.1.2 Command Line Executables
 # Install hydrogeios-qgis
 
+
 # Define paths
 pluginpath="c:/dev/hydrogeios-qgis"
-projectpath="c:/dev/Mesogeia"
+projectpath="c:/dev/testHydrogeios/Sarantapotamos"
 taudempath="c:/dev/TauDem"
-demname="Mesogeia"
+
+
+# Define DEM. The DEM should be of geotiff format
+demname="Sarantapotamos"
+
+
+# Define delineation threshold
+threshold=150
+
+
+# Define CN grouping
+cngroups=(250, 600, 1500)
 
 
 # Import hydrogeios
@@ -22,26 +34,29 @@ import h_groundWater
 import h_topology
 
 
-# Initial delineation
+# Initialize TauDEM
 TauDEM.initialize(taudempath, projectpath, demname)
-TauDEM.autoDelineate(thresh=50)
 
 
-# Define project properties and set "Enable 'on the fly' CRS transformation.
-# Load created River shapefile and use it (enable snapping) to create the point 
-# layer MyOutlet. Load the raster with suffix w (e.g. Mesogeiaw.tif)
-# Unload River, unload raster with suffix w.
+# Initial delineation
+TauDEM.autoDelineate(threshold)
+
+
+# Define project projection (should be the same with DEM projection). Set Enable 
+#'on the fly' CRS transformation. Load created River shapefile and use it (enable
+# snapping before) to create the point layer MyOutlet.
 
 
 # Delineate with user outputs
-TauDEM.autoDelineate(thresh=50, outlet="MyOutlet")
+h_utils.unloadLayer(h_const.riverLayerName)
+TauDEM.autoDelineate(threshold, outlet="MyOutlet")
 
 
-# Convert raster layer with suffix w using polygonize to vector layer Subbas
+# Convert raster layer of subbasin to an intermediate shapefile
 h_utils.createVectorFromRaster(projectpath, demname+'w.tif', 1, "Subbas", "DN")
 
 
-# Load layer and delete nodata
+# Load intermediate layer to delete nodata polygons
 h_utils.loadShapefileToCanvas(projectpath, "Subbas")
 dnvals=h_utils.getFieldAttrValues("Subbas", "DN")
 nodataShapeId=h_utils.getElementIndexByVal(dnvals, h_const.nodataCode)
@@ -62,7 +77,7 @@ h_initLayers.doAll(projectpath)
 
 
 # Create HRU
-h_hru.doAll(projectpath, "Mesogeia", bandnum=1, rangeUpVals=(100, 250, 1500))
+h_hru.doAll(projectpath, "Mesogeia", bandnum=1, cngroups)
 
 
 # Digitizie shapes in GroundWater layer
