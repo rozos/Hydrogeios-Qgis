@@ -141,6 +141,11 @@ def createHydrojunctionLayer(path):
     borXList= []
     borYList= []
     if pointIds!=[NULL]:
+        if pointIds[0]==NULL:
+            message="Group IDs not defined in " + h_const.borehLayerName
+            okBtn=QtGui.QMessageBox.Ok
+            QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+            return False
         borGrpIds=set(pointIds)
         for grpid in borGrpIds:
             indexes=h_utils.getElementIndexByVal(pointIds, grpid)

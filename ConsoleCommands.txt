@@ -3,6 +3,23 @@
 # Install hydrogeios-qgis
 
 
+# Define paths
+pluginpath="c:/dev/hydrogeios-qgis"
+projectpath="c:/dev/testHydrogeios/Sarantapotamos"
+taudempath="c:/dev/TauDem"
+
+# Define raster files. These files should be of geotiff format and have 
+# consistent projection.
+demname="Sarantapotamos"
+cnname="CN"
+
+# Define delineation threshold
+threshold=50
+
+# Define CN grouping
+cngroups=(0.25, 0.60, 1.00,)
+
+
 
 # Import hydrogeios
 import sys
@@ -18,24 +35,6 @@ import h_topology
 
 
 
-# Define paths
-pluginpath="c:/dev/hydrogeios-qgis"
-projectpath="c:/dev/testHydrogeios/Sarantapotamos"
-taudempath="c:/dev/TauDem"
-
-# Define raster files. These files should be of geotiff format and have consistend 
-# projection
-demname="Sarantapotamos"
-cnname="CN"
-
-# Define delineation threshold
-threshold=50
-
-# Define CN grouping
-cngroups=(250, 600, 1500,)
-
-
-
 # Initialize TauDEM
 TauDEM.initialize(taudempath, projectpath, demname)
 
@@ -44,12 +43,13 @@ TauDEM.initialize(taudempath, projectpath, demname)
 TauDEM.autoDelineate(threshold)
 
 
-# Define project projection (should be the same with DEM projection). Set Enable 
-#'on the fly' CRS transformation. Load created River shapefile and use it (enable
-# snapping before) to create the point layer MyOutlet.
+# Define project projection (should be the same with DEM projection). Set Enable
+#'on the fly' CRS transformation. Load created River shapefile and use it 
+# (enable snapping before) to create the point layer MyOutlet (set it to have
+# the same projection with DEM layers).
 
 
-# Delineate with user outputs
+# Re-delineate with user defined outputs
 h_utils.unloadShapefile(h_const.riverLayerName)
 TauDEM.autoDelineate(threshold, outlet="MyOutlet")
 
@@ -65,8 +65,7 @@ nodataShapeId=h_utils.getElementIndexByVal(dnvals, h_const.nodataCode)
 h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 
-
-# Disolve Subbas layer to joing small polygons with mother polys
+# Disolve Subbas layer to merge small polygons into mother polys
 geoprocess.dissolve(projectpath, "Subbas", h_const.subbasLayerName )
 h_utils.unloadShapefile("Subbas")
 h_utils.unloadShapefile("MyOutlet")
@@ -87,7 +86,7 @@ h_hru.doAll(projectpath, cnname, 1, cngroups)
 
 
 # Digitizie GroundWater polygons. Make sure you snap to GroundWater verteces!
-# Digitize boreholes
+# Digitize boreholes (define group IDs)
 # Digitize springs
 
 
