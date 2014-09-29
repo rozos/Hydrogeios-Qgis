@@ -4,17 +4,17 @@
 
 
 # Define paths
-pluginpath="c:/dev/hydrogeios-qgis"
-projectpath="c:/dev/testHydrogeios/Sarantapotamos"
-taudempath="c:/dev/TauDem"
+pluginpath= "c:/dev/hydrogeios-qgis"
+projectpath= "c:/dev/testHydrogeios/Sarantapotamos"
+taudempath= "c:/dev/TauDem"
 
 # Define raster files. These files should be of geotiff format and have 
 # consistent projection.
-demname="Sarantapotamos"
-cnname="CN"
+demname= "Sarantapotamos"
+cnname= "CN"
 
 # Define delineation threshold
-threshold=50
+threshold= 50
 
 # Define CN grouping
 cngroups=(0.25, 0.60, 1.00,)
@@ -47,6 +47,7 @@ TauDEM.autoDelineate(threshold)
 #'on the fly' CRS transformation. Load created River shapefile and use it 
 # (enable snapping before) to create the point layer MyOutlet (set it to have
 # the same projection with DEM layers).
+h_utils.loadRasterfileToCanvas(projectpath, demname)
 
 
 # Re-delineate with user defined outputs
@@ -103,7 +104,7 @@ h_const.DEMlayerName=demname
 h_topology.createHydrojunctionLayer(projectpath)
 
 
-# Add aqueduct nodes in hydrojunction
+# Add aqueduct nodes in Hydrojunction
 # Digitize Aqueduct. Make sure it snaps to Hydrojuntions!
 
 

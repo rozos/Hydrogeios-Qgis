@@ -166,7 +166,7 @@ def aread8_outlet(outlet):
 
 
 def areadinf():
-    cmd = "areadinf" + _argument("ang") + _argument("sca")
+    cmd = "areadinf" + _argument("ang") + _argument("sca") + " -nc"
     return _execute(cmd)
 
 
