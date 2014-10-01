@@ -120,7 +120,7 @@ def _outletarg(outlet):
 def _execute(cmd):
     """Executes a taudem command and handle errors accordingly."""
 
-    res = os.system(os.path.join(_taudem,cmd))
+    res = os.system(os.path.join('"'+_taudem+'"',cmd))
     if res!=0:
         errlogFile = os.path.join(_path, "error.log") 
         try:
