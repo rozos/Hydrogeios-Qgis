@@ -38,9 +38,9 @@ def initialize(taudemPath, projectPath, DEMname):
         return "The defined DEM does not exist!"
 
     global _path, _dem, _taudem
-    _path   = projectPath
+    _path   = '"'+projectPath+'"'
     _dem    = DEMname
-    _taudem = taudemPath
+    _taudem = '"'+taudemPath+'"'
 
     return "OK"
 
@@ -120,14 +120,15 @@ def _outletarg(outlet):
 def _execute(cmd):
     """Executes a taudem command and handle errors accordingly."""
 
-    res = os.system(os.path.join('"'+_taudem+'"',cmd))
+    taudemcmd=os.path.join('"'+_taudem,cmd+'"')
+    res = os.system(taudemcmd)
     if res!=0:
-        errlogFile = os.path.join(_path, "error.log") 
+        errlogFile = os.path.join(_path, "error.log")
         try:
-            res =os.system(os.path.join(_taudem,cmd)+" 1> "+errlogFile+" 2>&1")
+            res =os.system(taudemcmd +" 1> "+errlogFile+" 2>&1")
             f=open(errlogFile, 'a+')
             f.write('\n\n PREVIOUS OUTPUT WAS PRODUCED BY THE FOLLOWING \n')
-            f.write(os.path.join(_taudem,cmd) +'\n')
+            f.write(taudemcmd +'\n')
         except Exception as e:
             res = str(e)
     return res
