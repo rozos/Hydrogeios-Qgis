@@ -45,9 +45,9 @@ TauDEM.autoDelineate(threshold)
 
 # Define project projection (should be the same with DEM projection). Set Enable
 #'on the fly' CRS transformation. Load created River shapefile and use it 
-# (enable snapping before) to create the point layer Outlet (set it to have
+# (enable snapping to river before) to create the point layer Outlet (set it to have
 # the same projection with DEM layers). Digitizie first any additional control 
-# and the river exit as the last point.
+# and then the river exit as the last layer point.
 h_utils.loadRasterfileToCanvas(projectpath, demname)
 
 
@@ -105,7 +105,7 @@ h_const.DEMlayerName=demname
 h_topology.createHydrojunctionLayer(projectpath)
 
 
-# Add aqueduct nodes in Hydrojunction
+# Add aqueduct nodes (set junction type to 1) in Hydrojunction
 # Digitize Aqueduct. Make sure it snaps to Hydrojuntions!
 
 

@@ -138,7 +138,6 @@ def createHydrojunctionLayer(path):
 
     # Add to the previous list the coords of downstream node of the 1st segm.
     res= getRiverExit(path)
-    print res
     if res==False: return False
     rivXList= [res[0]] + rivXList
     rivYList= [res[1]] + rivYList

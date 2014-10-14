@@ -135,7 +135,7 @@ aquedFieldLength=aquedFieldNames[5]
 
 
 # Outlet layer specifications
-outletLayerName="MyOutlet"
+outletLayerName="Outlet"
 outletLayerType=QGis.WKBPoint
 outletFieldNames=( "X", "Y")
 outletFieldTypes=(QVariant.Double, QVariant.Double)
