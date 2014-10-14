@@ -1,4 +1,5 @@
 from __future__ import division 
+import sys
 from qgis.core import *
 from PyQt4 import QtGui
 from PyQt4.QtCore import QVariant
@@ -270,7 +271,7 @@ def linkIrrigHydrojunction():
     if centroids==None: 
         return True
     idsList=_getHydrojunctIds(centroids)
-    if idsList==None:
+    if idsList==False:
         return False
 
     # Write hydrojnct ids to attribute table of Irrigation
@@ -296,6 +297,8 @@ def linkSpringHydrojunction():
         return True
     xSpring, ySpring = res[0], res[1]
     idsList=_getHydrojunctIds(zip(xSpring, ySpring) )
+    if idsList==False:
+        return False
 
     # Write hydrojnct ids to attribute table of Spring
     res=h_utils.setFieldAttrValues(h_const.springLayerName, 
@@ -320,6 +323,8 @@ def linkRiverexitnodeHydrojunction():
         return True
     xNode, yNode= res[0], res[1]
     idsList=_getHydrojunctIds(zip(xNode, yNode) )
+    if idsList==False:
+        return False
 
     # Write hydrojnct ids to attribute table of RiverExitNode
     res=h_utils.setFieldAttrValues(h_const.riverexitnodeLayerName, 
@@ -327,6 +332,19 @@ def linkRiverexitnodeHydrojunction():
     return res
 
 
+def _hydroJunctionsSameLocationError(res):
+    """Displays error message and pring to stderr some info."""
+    message="Hydrojunctions on exactly same location!"
+    okBtn=QtGui.QMessageBox.Ok
+    QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+    sys.stderr.write("Hydrojunction IDs on same location:"+str(res))
+
+def _nohydroJunctionsOnThisPointError(xy):
+    """Displays error message and pring to stderr some info."""
+    message="No hydrojunction with these coordinates!"
+    okBtn=QtGui.QMessageBox.Ok
+    QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+    sys.stderr.write("X,Y:"+str(xy))
 
 def _getHydrojunctIds(coords):
     """Returns a list of ids of the Hydrojuntion nodes that have the 
@@ -335,7 +353,7 @@ def _getHydrojunctIds(coords):
     # Make sure Hydrojunction layer is OK
     if not h_utils.layerNameTypeOK(h_const.hydrojncLayerName, 
                                    h_const.hydrojncLayerType):
-        return None
+        return False
 
     # Get Hydrojunction layer coordinates
     [hydrojuncXlist, hydrojuncYlist]= \
@@ -346,12 +364,12 @@ def _getHydrojunctIds(coords):
     idsList= []
     for xy in coords:
         res= h_utils.getElementIndexByVal(hydrojunctionCoords, xy)
-        if (len(res)==1):
-            message="Hydrojunctions on exactly same location!"
-            okBtn=QtGui.QMessageBox.Ok
-            QtGui.QMessageBox.critical(None,'Error',message, okBtn)
-	    sys.stderr.write(str(res))
-            return None
+        if res==[]:
+            _nohydroJunctionsOnThisPointError(xy)
+            return False
+        if (len(res)>1):
+            _hydroJunctionsSameLocationError(res)
+            return False
         junctid=res[0]
         idsList.append(junctid)
     
