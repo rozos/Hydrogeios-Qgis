@@ -98,13 +98,21 @@ def layerNamesTypesOK():
     return True
 
 
-def getRiverExit():
+def getRiverExit(path):
     """This function returns the exit of the river."""
-    rivsegmStr= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "last")
-    rivsegmEnd= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
-    # Find which end node does not overlap with a start node
-    for node in zip(rivsegmEnd[0], rivsegmEnd[1]):
-        if h_utils.getElementIndexByVal(rivsegmStr, node)==[]:
+    # If Outlet use first point as exit node
+    if h_utils.shapefileExists(path, h_const.outletLayerName):
+        h_utils.loadShapefileToCanvas(path, h_const.outletLayerName)
+        xUserOuts,yUserOuts=h_utils.getPointLayerCoords(h_const.outletLayerName)
+        if xUserOuts==[]: return False
+        return (xUserOuts[0], yUserOuts[0])
+    # Find which river exit node is unique
+    x,y=0,1
+    rivsegmExit= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
+    rivsegmExitPairCoords=zip(rivsegmExit[x], rivsegmExit[y])
+    for node in rivsegmExitPairCoords:
+        indexes=h_utils.getElementIndexByVal(rivsegmExitPairCoords, node)
+        if len(indexes)==1:
             return node
     return False
 
@@ -129,9 +137,9 @@ def createHydrojunctionLayer(path):
     rivXList, rivYList= res[0], res[1]
 
     # Add to the previous list the coords of downstream node of the 1st segm.
-    res= getRiverExit()
-    if res==False: return False
+    res= getRiverExit(path)
     print res
+    if res==False: return False
     rivXList= [res[0]] + rivXList
     rivYList= [res[1]] + rivYList
     

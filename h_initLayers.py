@@ -250,22 +250,23 @@ def createRiverexitnodeLayer(path):
         return False
 
     # Create a point layer with the river segment outlets
+    riverexitnodeLayerName=h_const.riverexitnodeLayerName
+    h_utils.unloadShapefile(riverexitnodeLayerName)
     coordinates=zip(endPntXs, endPntYs)
-    ok= h_utils.createPointLayer(path, h_const.riverexitnodeLayerName,
-                                 coordinates, h_const.riverexitnodeFieldNames, 
+    ok= h_utils.createPointLayer(path, riverexitnodeLayerName, coordinates, 
+                                 h_const.riverexitnodeFieldNames, 
                                  h_const.riverexitnodeFieldTypes, ([], [], [],))
     if not ok: return False
 
     # Load river exit add Ids and unload
-    riverexitnodeLayerName=h_const.riverexitnodeLayerName
-    if not h_utils.isShapefileLoaded(h_const.riverexitnodeLayerName):
+    if not h_utils.isShapefileLoaded(riverexitnodeLayerName):
         ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName)
         if not ok: return False
 
     ok= h_utils.addShapeIdsToAttrTable(h_const.riverexitnodeLayerName, 
                                        h_const.riverexitnodeFieldId)
     if ok: 
-        h_utils.unloadShapefile(h_const.riverexitnodeLayerName)
+        h_utils.unloadShapefile(riverexitnodeLayerName)
         return ok
     else:
         return false

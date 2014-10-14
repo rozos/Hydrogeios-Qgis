@@ -46,7 +46,7 @@ def initialize(taudemPath, projectPath, DEMname):
 
 
 
-def autoDelineate(thresh, outlet=None):
+def autoDelineate(thresh, outlet=None, moveOutlet=False):
     """Run all TauDEM commands to delineate a watershed."""
     if _path=="" or _dem=="" or _taudem=="":
         return "Please run initialize() first!"
@@ -78,7 +78,7 @@ def autoDelineate(thresh, outlet=None):
     res = threshold(thresh)
     if res != 0:
         return "threshold failed with " + str(res)
-    if outlet!=None:
+    if outlet!=None and moveOutlet:
         res = moveoutletstostreams(outlet)
         if res != 0:
             return "moveoutletstostreams failed with " + str(res)
@@ -88,6 +88,10 @@ def autoDelineate(thresh, outlet=None):
         res = dropanalysis("Outlet")
         if res != 0:
             return "dropanalysis failed with " + str(res)
+    elif outlet!=None:
+        res = streamnet("Outlet")
+        if res != 0:
+            return "streamnet failed with " + str(res)
     else:
         res = streamnet()
         if res != 0:
