@@ -98,6 +98,16 @@ def layerNamesTypesOK():
     return True
 
 
+def getRiverExit():
+    """This function returns the exit of the river."""
+    rivsegmStr= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "last")
+    rivsegmEnd= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
+    # Find which end node does not overlap with a start node
+    for node in zip(rivsegmEnd[0], rivsegmEnd[1]):
+        if h_utils.getElementIndexByVal(rivsegmStr, node)==[]:
+            return node
+    return False
+
 
 def createHydrojunctionLayer(path): 
     """This function creates a new point shapefile (or updates the existing),
@@ -118,11 +128,12 @@ def createHydrojunctionLayer(path):
     if res==False: return False
     rivXList, rivYList= res[0], res[1]
 
-    # Add to the previouw list the coords of downstream node of the 1st segm.
-    (tmpList1, tmpList2)= h_utils.getSegmentEndsCoords(h_const.riverLayerName, 
-                                                       "first")
-    rivXList= [tmpList1[0]] + rivXList
-    rivYList= [tmpList2[0]] + rivYList
+    # Add to the previous list the coords of downstream node of the 1st segm.
+    res= getRiverExit()
+    if res==False: return False
+    print res
+    rivXList= [res[0]] + rivXList
+    rivYList= [res[1]] + rivYList
     
     # Get centroids of Irrigation layer 
     irgXList= []
