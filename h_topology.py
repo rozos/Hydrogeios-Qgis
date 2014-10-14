@@ -270,6 +270,8 @@ def linkIrrigHydrojunction():
     if centroids==None: 
         return True
     idsList=_getHydrojunctIds(centroids)
+    if idsList==None:
+        return False
 
     # Write hydrojnct ids to attribute table of Irrigation
     res=h_utils.setFieldAttrValues(h_const.irrigLayerName, 
@@ -333,7 +335,7 @@ def _getHydrojunctIds(coords):
     # Make sure Hydrojunction layer is OK
     if not h_utils.layerNameTypeOK(h_const.hydrojncLayerName, 
                                    h_const.hydrojncLayerType):
-        return False
+        return None
 
     # Get Hydrojunction layer coordinates
     [hydrojuncXlist, hydrojuncYlist]= \
@@ -344,7 +346,11 @@ def _getHydrojunctIds(coords):
     idsList= []
     for xy in coords:
         res= h_utils.getElementIndexByVal(hydrojunctionCoords, xy)
-        assert(len(res)==1)
+        if (len(res)==1):
+            message="Two hydrojunctions on exactly same location!"
+            okBtn=QtGui.QMessageBox.Ok
+            QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+            return None
         junctid=res[0]
         idsList.append(junctid)
     
