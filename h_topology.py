@@ -347,9 +347,10 @@ def _getHydrojunctIds(coords):
     for xy in coords:
         res= h_utils.getElementIndexByVal(hydrojunctionCoords, xy)
         if (len(res)==1):
-            message="Two hydrojunctions on exactly same location!"
+            message="Hydrojunctions on exactly same location!"
             okBtn=QtGui.QMessageBox.Ok
             QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+	    sys.stderr.write(str(res))
             return None
         junctid=res[0]
         idsList.append(junctid)
