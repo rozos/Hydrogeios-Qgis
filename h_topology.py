@@ -159,7 +159,7 @@ def createHydrojunctionLayer(path):
     # Make a List of coords of the gravity centres of the Borhole groups points
     borXList= []
     borYList= []
-    if pointIds!=[NULL]:
+    if pointIds!=[]:
         if pointIds[0]==NULL:
             message="Group IDs not defined in " + h_const.borehLayerName
             okBtn=QtGui.QMessageBox.Ok
