@@ -1,3 +1,4 @@
+from PyQt4 import QtGui
 from qgis.core import *
 import os.path
 import ftools_utils
