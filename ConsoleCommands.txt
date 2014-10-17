@@ -3,9 +3,14 @@
 # Install hydrogeios-qgis
 
 
-# Define paths
-pluginpath= "c:/dev/hydrogeios-qgis"
-projectpath= "c:/dev/testHydrogeios/Sarantapotamos"
+# Define plugin path
+from PyQt4.QtGui import QFileDialog
+pluginpath= str( QFileDialog.getExistingDirectory(None, "Plugin", "/", QFileDialog.ShowDirsOnly) )
+
+# Define project path
+projectpath= str( QFileDialog.getExistingDirectory(None, "Project", "/", QFileDialog.ShowDirsOnly) )
+
+# Define taudem path
 taudempath= "c:/Program Files/MapWindow/Taudem5Exe"
 
 # Define raster files. These files should be of geotiff format and have 
@@ -82,9 +87,15 @@ h_utils.delField(h_const.riverLayerName, "Length")
 h_initLayers.doAll(projectpath)
 
 
+
 # Create HRU
 h_utils.loadRasterfileToCanvas(projectpath, cnname)
-h_hru.doAll(projectpath, cnname, 1, cngroups)
+h_hru.createHRU(projectpath, cnname, 1, cngroups)
+
+# Create Subbasin-HRU shapefile
+h_utils.loadShapefileToCanvas(projectpath, h_const.HRULayerName)
+h_hru.createSubbasinHRU(projectpath)
+
 
 
 # Digitizie GroundWater polygons. Make sure you snap to GroundWater verteces!
@@ -101,6 +112,7 @@ h_groundWater.doAll(projectpath)
 
 
 # Create hydrojunctions
+h_utils.loadRasterfileToCanvas(projectpath, demname)
 h_const.DEMlayerName=demname
 h_topology.createHydrojunctionLayer(projectpath)
 
