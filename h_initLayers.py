@@ -328,37 +328,3 @@ def linkSubbasinRiver():
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.riverFieldId, rivsId)
     return res
-
-
-def getSubbasinExitCoords(path):
-    """Gets the coordinates of the exit node of the river segment of the 
-    subbasin."""
-
-    # Get river segments
-    # Get coordinates of points of river segments
-    # Find 
-
-
-def linkSubbasinToRiverexitnode(path):
-    """Links each subbasin to its corresponding exit river node."""
-
-    # Load river exit nodes layer
-    riverexitnodeLayerName=h_const.riverexitnodeLayerName
-    if not h_utils.isShapefileLoaded(riverexitnodeLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName)
-        if not ok: return False
-
-    # Get river nodes' ids
-    riverexitnodeIds=h_utils.getFieldAttrValues(h_const.riverexitnodeLayerName, 
-                                                h_const.riverexitnodeFieldId )
-    if riverexitnodeIds==None: return False
-
-    # Put these ids into Subbasin (river exit nodes' order = river segments' 
-    # order = subbasin polygons order)
-    ok= h_utils.setFieldAttrValues(h_const.subbasLayerName, 
-                                 h_const.riverexitnodeFieldId, riverexitnodeIds)
-    if ok: 
-        h_utils.unloadShapefile(h_const.riverexitnodeLayerName)
-        return ok
-    else:
-        return False
