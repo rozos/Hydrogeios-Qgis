@@ -133,7 +133,7 @@ def layerFeaturesNumberOK(layerName, featuresNum):
 
 
 
-def getSegmentEndsCoords(layerName, firstORlast):
+def getSegmentPntCoords(layerName, firstORlast):
     """Get coordinates of the ending nodes of a line layer segments."""
 
     if not layerNameTypeOK(layerName, QGis.Line): return False
@@ -155,6 +155,10 @@ def getSegmentEndsCoords(layerName, firstORlast):
             lastnode=len(nodes)-1
             XList.append( nodes[lastnode][x] )
             YList.append( nodes[lastnode][y] )
+        elif firstORlast=="mid":
+            midnode=int(len(nodes)/2)
+            XList.append( nodes[midnode][x] )
+            YList.append( nodes[midnode][y] )
         else: 
             return False
 

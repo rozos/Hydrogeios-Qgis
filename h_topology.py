@@ -108,7 +108,7 @@ def getRiverExit(path):
         return (xUserOuts[0], yUserOuts[0])
     # Find which river exit node is unique
     x,y=0,1
-    rivsegmExit= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
+    rivsegmExit= h_utils.getSegmentPntCoords(h_const.riverLayerName, "first")
     rivsegmExitPairCoords=zip(rivsegmExit[x], rivsegmExit[y])
     for node in rivsegmExitPairCoords:
         indexes=h_utils.getElementIndexByVal(rivsegmExitPairCoords, node)
@@ -132,7 +132,7 @@ def createHydrojunctionLayer(path):
         h_utils.unloadShapefile(h_const.hydrojncLayerName)
     
     # Get upstream nodes of river segments
-    res= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "last")
+    res= h_utils.getSegmentPntCoords(h_const.riverLayerName, "last")
     if res==False: return False
     rivXList, rivYList= res[0], res[1]
 
@@ -240,14 +240,14 @@ def _linkRiverductHydrojunction(layerName, reversDirect):
     # Get coordinates of river or aqueduct segments' first and last nodes
     if reversDirect:
         rivEndnodeXlist, rivEndnodeYlist = \
-                   h_utils.getSegmentEndsCoords(layerName, "first")
+                   h_utils.getSegmentPntCoords(layerName, "first")
         rivStrnodeXlist, rivStrnodeYlist = \
-                    h_utils.getSegmentEndsCoords(layerName, "last")
+                    h_utils.getSegmentPntCoords(layerName, "last")
     else:
         rivEndnodeXlist, rivEndnodeYlist = \
-                    h_utils.getSegmentEndsCoords(layerName, "last")
+                    h_utils.getSegmentPntCoords(layerName, "last")
         rivStrnodeXlist, rivStrnodeYlist = \
-                   h_utils.getSegmentEndsCoords(layerName, "first")
+                   h_utils.getSegmentPntCoords(layerName, "first")
 
     # Write to fromNode, toNode the appropriate hydrojunction ids
     toNodes= []

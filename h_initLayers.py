@@ -112,7 +112,7 @@ def createOutletsLayer(path):
     """ Create a new point layer with the end nodes of the rivers segments."""
 
     # Get outlets of river segments
-    (endPntXs,endPntYs)= h_utils.getSegmentEndsCoords(h_const.riverLayerName,
+    (endPntXs,endPntYs)= h_utils.getSegmentPntCoords(h_const.riverLayerName,
                                                       "first")
 
     coordinates=zip(endPntXs, endPntYs)
@@ -243,7 +243,7 @@ def createRiverexitnodeLayer(path):
     """Initialize/create Riverexitnode layer"""
 
     # Get outlets of river segments
-    res= h_utils.getSegmentEndsCoords(h_const.riverLayerName, "first")
+    res= h_utils.getSegmentPntCoords(h_const.riverLayerName, "first")
     if res!=False: 
         #endPntXs,endPntYs= res[0], res[1]
         duplCoords= zip(res[0], res[1])
@@ -271,7 +271,7 @@ def createRiverexitnodeLayer(path):
         h_utils.unloadShapefile(riverexitnodeLayerName)
         return ok
     else:
-        return false
+        return False
 
 
 
@@ -291,15 +291,15 @@ def linkSubbasinRiver():
     if not h_utils.layerFeaturesNumberOK(h_const.riverLayerName, subbasCount): 
         return False 
 
-    # Get coordinates of river segments' first nodes
-    rivSrtNodeXlist, rivSrtNodeYlist = \
-                    h_utils.getSegmentEndsCoords(h_const.riverLayerName, "last")
+    # Get coordinates of river segments mid-nodes
+    rivInpNodeXlist, rivInpNodeYlist = \
+                    h_utils.getSegmentPntCoords(h_const.riverLayerName, "mid")
 
-    # Loop through every river start node
-    rivIds = [None] * subbasCount
+    # Loop through every river input node
+    rivsId = [None] * subbasCount
     inFeat = QgsFeature()
-    for rivid, strNodeX, strNodeY in zip( range(0,len(rivSrtNodeXlist)), \
-                                          rivSrtNodeXlist, rivSrtNodeYlist):
+    for rivid, strNodeX, strNodeY in zip( range(0,len(rivInpNodeXlist)), \
+                                          rivInpNodeXlist, rivInpNodeYlist):
         # Loop through every subbasin polygon
         foundStart= False
         subbPolygons= h_utils.getLayerFeatures(h_const.subbasLayerName)
@@ -315,7 +315,7 @@ def linkSubbasinRiver():
                                                 QtGui.QMessageBox.Yes)
                     return False 
                 # Record the river_id
-                rivIds[i]= rivid
+                rivsId[i]= rivid
             i= i+1
 
         if not foundStart:
@@ -326,9 +326,17 @@ def linkSubbasinRiver():
 
     # Save edits
     res=h_utils.setFieldAttrValues(h_const.subbasLayerName,
-                                   h_const.riverFieldId, rivIds)
+                                   h_const.riverFieldId, rivsId)
     return res
 
+
+def getSubbasinExitCoords(path):
+    """Gets the coordinates of the exit node of the river segment of the 
+    subbasin."""
+
+    # Get river segments
+    # Get coordinates of points of river segments
+    # Find 
 
 
 def linkSubbasinToRiverexitnode(path):
@@ -353,4 +361,4 @@ def linkSubbasinToRiverexitnode(path):
         h_utils.unloadShapefile(h_const.riverexitnodeLayerName)
         return ok
     else:
-        return false
+        return False
