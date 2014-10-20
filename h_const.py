@@ -33,14 +33,16 @@ grdwatLayerName= "GroundWater"
 grdwatLayerType= QGis.Polygon
 grdwatGeomType= QGis.WKBPolygon
 grdwatFieldNames=("GROUND_ID", "NAME", "DESCR", "TYPE", "X_CENTROID",
-                  "Y_CENTROID", "INI_LEV", "TOP_LEVEL", "BOT_LEVEL", "POR",
-                  "COND", "COND_GRP", "POR_GRP", )
+                  "Y_CENTROID", "AREA", "INI_LEV", "TOP_LEVEL", "BOT_LEVEL", 
+                  "POR", "COND", "COND_GRP", "POR_GRP", )
 grdwatFieldTypes=(QVariant.Int, QVariant.String, QVariant.String, QVariant.Int,
-                  QVariant.Double, QVariant.Double, QVariant.Double,
-                  QVariant.Double, QVariant.Double, QVariant.Double,
-                  QVariant.Double, QVariant.Int, QVariant.Int, )
+                  QVariant.Double, QVariant.Double ,QVariant.Double,
+                  QVariant.Double, QVariant.Double, QVariant.Double, 
+                  QVariant.Double, QVariant.Double, QVariant.Int, 
+                  QVariant.Int, )
 grdwatFieldId=   grdwatFieldNames[0]
 grdwatFieldName= grdwatFieldNames[1]
+grdwatFieldArea= grdwatFieldNames[6]
 
 
 # Hydrojunction layer specifications

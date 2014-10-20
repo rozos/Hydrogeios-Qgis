@@ -63,11 +63,7 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    if not linkSubbasinToRiverexitnode(path):
-        message="linkSubbasinToRiverexitnode Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+
     return True
 
 

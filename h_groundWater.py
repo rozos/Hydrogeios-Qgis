@@ -18,7 +18,14 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    # Create the pdf table with the distances between groundwater cells
+    # Update the area of groundwater cells
+    if not h_utils.addMeasureToAttrTable(h_const.grdwatLayerName, 
+	                            h_const.grdwatFieldArea):
+        message="Update area of groundwater cells Failed. Continue?"
+        reply=QtGui.QMessageBox.question(None, 'Delete', message,
+                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
+        if reply==QtGui.QMessageBox.No: return False
+    # Create the dbf table with the distances between groundwater cells
     res=distanceBetweenGroundwaterCells()
     if res!=False:
         iNodes=res[0]
@@ -35,7 +42,7 @@ def doAll(path):
         reply=QtGui.QMessageBox.question(None, 'Delete', message,
                                    QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
         if reply==QtGui.QMessageBox.No: return False
-    # Create the pdf table with the edge between groundwater cells
+    # Create the dbf table with the edge between groundwater cells
     res = edgeBetweenGroundwaterCells()
     if res!=False:
         iNodes=res[0]
