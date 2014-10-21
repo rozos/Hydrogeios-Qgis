@@ -21,6 +21,7 @@ riverFieldTypes=(QVariant.Int, QVariant.String, QVariant.String, QVariant.Int,
                  QVariant.Double, QVariant.Double, QVariant.Double,
                  QVariant.Double, QVariant.Double, )
 riverFieldId= riverFieldNames[0]
+riverFieldLength= riverFieldNames[5]
 
 
 # Field names given to start/end nodes of a segment

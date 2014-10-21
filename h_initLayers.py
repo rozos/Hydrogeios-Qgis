@@ -221,6 +221,12 @@ def initRiverLayer(path):
     # Add id of segments to attribute table
     ok=h_utils.addShapeIdsToAttrTable(h_const.riverLayerName,
                                       h_const.riverFieldId)
+    if not ok: return False 
+
+    # Add length of segments to attribute table
+    ok=h_utils.addMeasureToAttrTable(h_const.riverLayerName,
+                                      h_const.riverFieldLength)
+
     return ok
 
 
