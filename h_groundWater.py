@@ -300,8 +300,8 @@ def createGroundwaterSubbasinHRU(path):
        if not ok: return False
 
     # Intersect Groundwater with SubbasinHRU
-    ok=geoprocess.intersect( path, h_const.grdwatLayerName, 
-                               h_const.subbasHRULayerName, 
+    ok=geoprocess.intersect( path, h_const.subbasHRULayerName,
+                               h_const.grdwatLayerName,
                                h_const.grdwatSubbasHRULayerName)
     if not ok: return False
 
