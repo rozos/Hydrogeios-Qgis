@@ -305,13 +305,13 @@ def createGroundwaterSubbasinHRU(path):
                                h_const.grdwatSubbasHRULayerName)
     if not ok: return False
 
-    # Load RiverGroundwater
+    # Load SubGroundHRU
     h_utils.loadShapefileToCanvas(path, h_const.grdwatSubbasHRULayerName)
 
     # Update the area values of the SubGroundHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
                                        h_const.grdwatSubbasHRUFieldArea)
-    # Unload the layer
+    # Unload SubGroundHRU layer
     h_utils.unloadShapefile(h_const.grdwatSubbasHRULayerName)
 
     return ok
