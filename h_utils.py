@@ -760,3 +760,18 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
         polygonIds.append(polygonId)
 
     return polygonIds
+
+
+
+def copyShapefile(origShapefile, copyShapefile):
+    pass
+    #from shapely.geometry import mapping, shape
+    #import fiona
+# Read the original Shapefile
+    #with fiona.collection('original.shp', 'r') as input:
+    # The output has the same schema
+        #schema = input.schema.copy()
+    #    # write a new shapefile
+        #with fiona.collection(''file1.shp', 'w', 'ESRI Shapefile', schema) as output:
+            #for elem in input:
+                 #output.write({'properties': elem['properties'],'geometry': mapping(shape(elem['geometry']))})
