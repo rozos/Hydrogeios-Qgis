@@ -457,7 +457,6 @@ def delField(layerName, fieldName):
 
 
 
-
 def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
                      attrValues):
     """Creates a shapefile with points and populates its attribute table"""
