@@ -28,6 +28,7 @@ def floatsEqual(afloat, bfloat, exponent):
 def unloadShapefile(layerName):
     """Unloads a shapefile from canvas. Returns true if it was loaded."""
     if isShapefileLoaded(layerName):
+        layer=ftools_utils.getVectorLayerByName(layerName)
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
         return True
     else:
