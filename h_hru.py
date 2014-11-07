@@ -6,6 +6,7 @@ import ftools_utils
 import geoprocess
 import h_const
 import h_utils
+import h_initLayers
 
 
 def doAll(path, CNrasterName, bandnum, rangeUpVals):
@@ -66,9 +67,12 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     The classification into miltipolygon shapes is based on the provided
     ranges."""
 
+    # Unload HRU and HRUundis
+    HRUundLayerName=h_const.HRULayerName+"_undis"
+    h_utils.unloadShapefile(HRUundLayerName)
+    h_utils.unloadShapefile(h_const.HRULayerName)
+
     # Reclassify CNraster (id of CN classes instead of CN values)
-    if h_utils.isShapefileLoaded(h_const.HRULayerName):
-	h_utils.unloadShapefile(h_const.HRULayerName)
     ok=h_utils.reclassifyRaster(path, CNrasterName, bandnum, 0, rangeUpVals,
                                 h_const.HRUrasterLayerName)
     if not ok:
@@ -78,24 +82,39 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
 
     # Turn HRUraster into vector
     ok=h_utils.createVectorFromRaster(path,h_const.HRUrasterLayerName+'.tif',1,
-                                      h_const.HRULayerName, h_const.HRUFieldId)
+                                      HRUundLayerName, h_const.HRUFieldId)
     if not ok:
         message="Creation of " + h_const.HRUrasterLayerName + " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
-    # Load HRU shapefile
-    h_utils.loadShapefileToCanvas(path, h_const.HRULayerName)
+    # Load undissolved HRU shapefile created from HRUraster
+    h_utils.loadShapefileToCanvas(path, HRUundLayerName)
 
     # Delete pogyons generated from non-data pixels
     filterExpr=h_const.HRUFieldId + "<0"
-    listIds=h_utils.getQueryShapeIds(h_const.HRULayerName, filterExpr)
+    listIds=h_utils.getQueryShapeIds(HRUundLayerName, filterExpr)
     if listIds==False:
-        message="Delete non-data of " + h_const.HRUrasterLayerName + " failed!"
+        message="Delete non-data of " + HRUundLayerName+ " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     if listIds!=[]:
-        ok=h_utils.delSpecificShapes(h_const.HRULayerName, listIds)
+        ok=h_utils.delSpecificShapes(HRUundLayerName, listIds)
+
+    # Dissolve undissolved HRU layer
+    ok=geoprocess.dissolve(path, HRUundLayerName, h_const.HRULayerName,
+                           useField=h_const.HRUFieldId)
+    if not ok:
+        message="Dissolving of " + h_const.HRUundLayerName+ " failed!"
+        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        return False
         if not ok: return False
+
+    # Initialize dissolved HRU layer
+    h_initLayers.initializeLayer(path, h_const.HRULayerName, 
+             h_const.HRULayerType, h_const.HRUFieldNames, h_const.HRUFieldTypes)
+
+    # Unload undissolved HRU layer
+    h_utils.unloadShapefile(HRUundLayerName)
 
     return True
