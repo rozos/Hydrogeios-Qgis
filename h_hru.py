@@ -83,7 +83,7 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
 
     # Turn HRUraster into vector
     ok=h_utils.createVectorFromRaster(path,h_const.HRUrasterLayerName+'.tif',1,
-                                      HRUundLayerName, h_const.HRUFieldId)
+                                      HRUundLayerName, h_const.HRUundisFieldId)
     if not ok:
         message="Creation of " + h_const.HRUrasterLayerName + " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
@@ -93,7 +93,7 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     h_utils.loadShapefileToCanvas(path, HRUundLayerName)
 
     # Delete pogyons generated from non-data pixels
-    filterExpr=h_const.HRUFieldId + "<0"
+    filterExpr=h_const.HRUundisFieldId+ "<0"
     listIds=h_utils.getQueryShapeIds(HRUundLayerName, filterExpr)
     if listIds==False:
         message="Delete non-data of " + HRUundLayerName+ " failed!"
@@ -112,8 +112,9 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
         return False
 
     # Initialize dissolved HRU layer
-    h_initLayers.initializeLayer(path, h_const.HRULayerName, 
+    ok=h_initLayers.initializeLayer(path, h_const.HRULayerName, 
              h_const.HRULayerType, h_const.HRUFieldNames, h_const.HRUFieldTypes)
+    if not ok: return False
 
     # Unload undissolved HRU layer
     h_utils.unloadShapefile(HRUundLayerName)

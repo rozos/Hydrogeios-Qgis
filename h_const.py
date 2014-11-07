@@ -165,6 +165,7 @@ HRUFieldTypes=(QVariant.Int, QVariant.String, QVariant.String, QVariant.Double,
                QVariant.Double, QVariant.Double, QVariant.Double,
                QVariant.Double, QVariant.Double, )
 HRUFieldId=HRUFieldNames[0]
+HRUundisFieldId="HRUundisID"
 
 
 # SubbasinHRU layer specifications
