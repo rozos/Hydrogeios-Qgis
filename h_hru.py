@@ -75,6 +75,7 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     # Reclassify CNraster (id of CN classes instead of CN values)
     ok=h_utils.reclassifyRaster(path, CNrasterName, bandnum, 0, rangeUpVals,
                                 h_const.HRUrasterLayerName)
+#   CHECK WHAT HAPPENS WHEN PROVIDED rangeUpVals ARE OUTSIDE CN VALUES !!!
     if not ok:
         message=CNrasterName+ "  reclassification failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
