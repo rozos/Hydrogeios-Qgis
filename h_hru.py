@@ -100,6 +100,7 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
         return False
     if listIds!=[]:
         ok=h_utils.delSpecificShapes(HRUundLayerName, listIds)
+        if not ok: return False
 
     # Dissolve undissolved HRU layer
     ok=geoprocess.dissolve(path, HRUundLayerName, h_const.HRULayerName,
@@ -108,7 +109,6 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
         message="Dissolving of " + h_const.HRUundLayerName+ " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
-        if not ok: return False
 
     # Initialize dissolved HRU layer
     h_initLayers.initializeLayer(path, h_const.HRULayerName, 
