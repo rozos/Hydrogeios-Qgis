@@ -119,4 +119,14 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     # Unload undissolved HRU layer
     h_utils.unloadShapefile(HRUundLayerName)
 
+    # Add area to HRU attribute table
+    ok=h_utils.addMeasureToAttrTable(h_const.HRULayerName, h_const.HRUFieldArea)
+    if not ok: return False
+
+    # Add HRU id and HRU code to attribute table
+    ok= h_utils.addShapeIdsToAttrTable(h_const.HRULayerName, h_const.HRUFieldId)
+    if not ok: return False
+    ok=h_utils.addShapeIdsToAttrTable(h_const.HRULayerName,h_const.HRUFieldCode)
+    if not ok: return False
+
     return True

@@ -165,6 +165,8 @@ HRUFieldTypes=(QVariant.Int, QVariant.String, QVariant.String, QVariant.Double,
                QVariant.Double, QVariant.Double, QVariant.Double,
                QVariant.Double, QVariant.Double, )
 HRUFieldId=HRUFieldNames[0]
+HRUFieldCode=HRUFieldNames[4]
+HRUFieldArea=HRUFieldNames[3]
 HRUundisFieldId="HRUundisID"
 
 
