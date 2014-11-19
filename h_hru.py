@@ -30,13 +30,13 @@ def createSubbasinHRU(path):
     """Use Subbasin polygons to intersect the HRU polygons to create a new
     layer that links Subbasin with HRU."""
 
-    # Delete existing shapefile SubGroundHRU
+    # Delete existing shapefile SubbasinHRU
     h_utils.unloadShapefile(h_const.subbasHRULayerName)
     if h_utils.shapefileExists(path, h_const.subbasHRULayerName):
         ok=h_utils.delExistingShapefile( path, h_const.subbasHRULayerName)
         if not ok: return False
 
-    # Check Subbasin and HRU are loaded and get their layers
+    # Check Subbasin and HRU types
     if not h_utils.layerNameTypeOK(h_const.subbasLayerName,
                                    h_const.subbasLayerType) or \
        not h_utils.layerNameTypeOK(h_const.HRULayerName,
@@ -68,9 +68,10 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
     ranges."""
 
     # Unload HRU and HRUundis
-    HRUundLayerName=h_const.HRULayerName+"_undis"
+    #HRUundLayerName=h_const.HRULayerName+"_undis"
+    HRUundLayerName=h_const.HRULayerName
     h_utils.unloadShapefile(HRUundLayerName)
-    h_utils.unloadShapefile(h_const.HRULayerName)
+    #h_utils.unloadShapefile(h_const.HRULayerName)
 
     # Reclassify CNraster (id of CN classes instead of CN values)
     ok=h_utils.reclassifyRaster(path, CNrasterName, bandnum, 0, rangeUpVals,
@@ -104,29 +105,27 @@ def createHRU(path, CNrasterName, bandnum, rangeUpVals):
         if not ok: return False
 
     # Dissolve undissolved HRU layer
-    ok=geoprocess.dissolve(path, HRUundLayerName, h_const.HRULayerName,
-                           useField=h_const.HRUFieldId)
-    if not ok:
-        message="Dissolving of " + h_const.HRUundLayerName+ " failed!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
-        return False
+    #ok=geoprocess.dissolve(path, HRUundLayerName, h_const.HRULayerName,
+    #                       useField=h_const.HRUFieldId)
+    #if not ok:
+    #    message="Dissolving of " + h_const.HRUundLayerName+ " failed!"
+    #    QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+    #    return False
 
     # Initialize dissolved HRU layer
-    ok=h_initLayers.initializeLayer(path, h_const.HRULayerName, 
-             h_const.HRULayerType, h_const.HRUFieldNames, h_const.HRUFieldTypes)
-    if not ok: return False
+    #ok=h_initLayers.initializeLayer(path, h_const.HRULayerName, 
+    #        h_const.HRULayerType, h_const.HRUFieldNames, h_const.HRUFieldTypes)
+    #if not ok: return False
 
     # Unload undissolved HRU layer
-    h_utils.unloadShapefile(HRUundLayerName)
+    #h_utils.unloadShapefile(HRUundLayerName)
 
     # Add area to HRU attribute table
-    ok=h_utils.addMeasureToAttrTable(h_const.HRULayerName, h_const.HRUFieldArea)
-    if not ok: return False
+    #ok=h_utils.addMeasureToAttrTable(h_const.HRULayerName,h_const.HRUFieldArea)
+    #if not ok: return False
 
-    # Add HRU id and HRU code to attribute table
-    ok= h_utils.addShapeIdsToAttrTable(h_const.HRULayerName, h_const.HRUFieldId)
-    if not ok: return False
-    ok=h_utils.addShapeIdsToAttrTable(h_const.HRULayerName,h_const.HRUFieldCode)
-    if not ok: return False
+    # Add HRU id to attribute table
+    #ok=h_utils.addShapeIdsToAttrTable(h_const.HRULayerName, h_const.HRUFieldId)
+    #if not ok: return False
 
     return True
