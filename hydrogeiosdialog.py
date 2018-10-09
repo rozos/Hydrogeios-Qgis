@@ -20,7 +20,7 @@
  ***************************************************************************/
 """
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from ui_hydrogeios import Ui_Hydrogeios
 
 

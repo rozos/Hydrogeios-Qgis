@@ -1,8 +1,8 @@
 from __future__ import division 
 import sys
 from qgis.core import *
-from PyQt4 import QtGui
-from PyQt4.QtCore import QVariant
+from PyQt5 import QtGui
+from PyQt5.QtCore import QVariant
 import ftools_utils
 import h_const
 import h_utils

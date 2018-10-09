@@ -1,5 +1,5 @@
-from PyQt4 import QtGui
-from PyQt4.QtCore import QVariant
+from PyQt5 import QtGui
+from PyQt5.QtCore import QVariant
 from qgis.core import *
 import math
 import itertools

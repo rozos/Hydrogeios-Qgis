@@ -1,6 +1,6 @@
 from qgis.core import *
-from PyQt4 import QtGui
-from PyQt4.QtCore import QVariant, QFileInfo
+from PyQt5 import QtGui
+from PyQt5.QtCore import QVariant, QFileInfo
 from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
 from osgeo import gdal, ogr
 import ftools_utils
@@ -52,7 +52,7 @@ def loadShapefileToCanvas(path, layername):
     goes wrong."""
 
     if isShapefileLoaded(layername):
-	return True
+        return True
     pathFilename=os.path.join(path, layername+".shp")
     if not ftools_utils.addShapeToCanvas(pathFilename):
         message="Error loading shapefile "+pathFilename
@@ -465,7 +465,7 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
     message=""
     if len(fieldNames) != len(fieldTypes):
         message="createPointLayer: "+ filename +"FieldNames.no <> FieldTypes.no"
-    if len(fieldNames) > 1 and len(fieldNames)<>len(attrValues):
+    if len(fieldNames) > 1 and len(fieldNames)!=len(attrValues):
         message="createPointLayer: "+ filename +"FieldNames.no <> attrValues.no"
     if len(message)!=0:
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)

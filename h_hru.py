@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt5 import QtGui
 from qgis.core import *
 #from qgis.analysis import QgsOverlayAnalyzer
 import os.path
