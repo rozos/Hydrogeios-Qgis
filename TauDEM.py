@@ -7,7 +7,7 @@
                               -------------------
         begin                : 2014-09-09
         copyright            : (C) 2014 by ITIA
-        email                : rozos@itia.ntua.gr
+        email                : rozos@gmail.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -25,9 +25,10 @@ import os
 _path=""
 _dem=""
 _taudem=""
+_debug=False
 
 
-def initialize(taudemPath, projectPath, DEMname):
+def initialize(taudemPath, projectPath, DEMname, debug):
     """Initialize the global variables of TauDEM module."""
     if not os.path.exists(os.path.join(taudemPath,"streamnet")) and \
        not os.path.exists(os.path.join(taudemPath,"streamnet.exe")):
@@ -37,10 +38,11 @@ def initialize(taudemPath, projectPath, DEMname):
     if not os.path.exists(os.path.join(projectPath,DEMname+".tif")):
         return "The defined DEM does not exist!"
 
-    global _path, _dem, _taudem
+    global _path, _dem, _taudem, _debug
     _path   = '"'+projectPath+'"'
     _dem    = DEMname
     _taudem = '"'+taudemPath+'"'
+    _debug = debug
 
     return "OK"
 
@@ -125,6 +127,9 @@ def _execute(cmd):
     """Executes a taudem command and handle errors accordingly."""
 
     taudemcmd=os.path.join('"'+_taudem,cmd+'"')
+    if _debug:
+        taudemcmd=taudemcmd+"&pause"
+        print(taudemcmd)
     res = os.system(taudemcmd)
     if res!=0:
         errlogFile = os.path.join(_path, "error.log")
