@@ -1,4 +1,4 @@
-from PyQt5 import QtGui
+from PyQt5.QtWidgets import *
 from qgis.core import *
 import os.path
 import ftools_utils
@@ -14,61 +14,62 @@ def doAll(path):
     Project."""
     if not initIrrigLayer(path):
         message="initIrrigLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not initSubbasinLayer(path):
         message="initSubbasinLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not h_utils.addShapeIdsToAttrTable(h_const.subbasLayerName,
                                           h_const.subbasFieldId):
         message="addSubbasinId Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not initGrdWatLayer(path):
         message="initGrdWatLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not initSpringLayer(path):
         message="initSpringLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not initBorehLayer(path):
         message="initBorehLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not initRiverLayer(path):
         message="initRiverLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not initAqueductLayer(path):
         message="initAqueductLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not createRiverexitnodeLayer(path):
         message="initRiverexitnodeLayer Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not linkSubbasinRiver():
         message="linkSubbasinRiver Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
 
     return True
 
 
 
-def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
+def initializeLayer(path, layerName, layerType, layercrs, fieldNames, 
+                    fieldTypes):
     """Create a new empty layer with the given fields in attribute table or
     (if already there) make sure the attribute table has all required fields"""
 
@@ -81,17 +82,16 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
         # Create an empty layer
         pathFilename=os.path.join(path, layerName)
         writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
-                                    layerType, None, "ESRI Shapefile")
+                                    layerType, layercrs, "ESRI Shapefile")
         if writer.hasError() != QgsVectorFileWriter.NoError:
             message="Error creating shapefile "+ layerName
-            QtGui.QMessageBox.critical(None,'Error',message,
-                                       QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
             return False
         # Delete the writer to flush features to disk (optional)
         del writer
 
     # Make sure the layer is loaded 
-    if not h_utils.isShapefileLoaded(layerName):
+    if not h_utils.isLayerLoaded(layerName):
         if not h_utils.loadShapefileToCanvas(path, layerName):
             return False
 
@@ -118,7 +118,7 @@ def createOutletsLayer(path):
     if not ok: return False
 
     # Make sure the layer is loaded 
-    if not h_utils.isShapefileLoaded(h_const.outletLayerName):
+    if not h_utils.isLayerLoaded(h_const.outletLayerName):
         ok=h_utils.loadShapefileToCanvas(path, h_const.outletLayerName)
 
     return ok
@@ -173,7 +173,7 @@ def initSubbasinLayer(path):
     if not ok: return False
 
     # Make sure the layer is loaded 
-    if not h_utils.isShapefileLoaded(h_const.subbasLayerName):
+    if not h_utils.isLayerLoaded(h_const.subbasLayerName):
         ok=h_utils.loadShapefileToCanvas(path, h_const.subbasLayerName)
 
     return ok
@@ -263,7 +263,7 @@ def createRiverexitnodeLayer(path):
     if not ok: return False
 
     # Load river exit add Ids and unload
-    if not h_utils.isShapefileLoaded(riverexitnodeLayerName):
+    if not h_utils.isLayerLoaded(riverexitnodeLayerName):
         ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName)
         if not ok: return False
 
@@ -313,8 +313,7 @@ def linkSubbasinRiver():
                     foundStart= True
                 else:
                     message="Polygons of Subbasin overlap!"
-                    QtGui.QMessageBox.critical(None,'Error',message, 
-                                                QtGui.QMessageBox.Yes)
+                    QMessageBox.critical(None,'Error',message, QMessageBox.Yes)
                     return False 
                 # Record the river_id
                 rivsId[i]= rivid
@@ -322,8 +321,7 @@ def linkSubbasinRiver():
 
         if not foundStart:
             message="The start of a river segment is outside of the subbasin!"
-            QtGui.QMessageBox.critical(None,'Error',message, 
-                                        QtGui.QMessageBox.Yes)
+            QMessageBox.critical(None,'Error',message, QMessageBox.Yes)
             return False 
 
     # Save edits

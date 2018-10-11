@@ -8,13 +8,13 @@ def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
     """Intersect tow shapefiles. Taken from ftools."""
 
     # make sure layer A is loaded
-    layerAloaded=h_utils.isShapefileLoaded(inputLayerAname)
+    layerAloaded=h_utils.isLayerLoaded(inputLayerAname)
     if not layerAloaded:
         if not h_utils.loadShapefileToCanvas(path, inputLayerAname):
             return False
 
     # make sure layer B is loaded
-    layerBloaded=h_utils.isShapefileLoaded(inputLayerBname)
+    layerBloaded=h_utils.isLayerLoaded(inputLayerBname)
     if not layerBloaded:
         if not h_utils.loadShapefileToCanvas(path, inputLayerBname):
             return False
@@ -30,8 +30,10 @@ def intersect( path, inputLayerAname, inputLayerBname, outputLayerName):
     # Get layers and providers
     vproviderA = h_utils.getLayerProvider(inputLayerAname)
     vproviderB = h_utils.getLayerProvider(inputLayerBname)
-    vlayerA = ftools_utils.getVectorLayerByName(inputLayerAname)
-    vlayerB = ftools_utils.getVectorLayerByName(inputLayerBname)
+    layers=QgsProject.instance().mapLayersByName(inputLayerAname)
+    vlayerA = layers[0]
+    layers=QgsProject.instance().mapLayersByName(inputLayerBname)
+    vlayerB = layers[0]
 
     mySelectionA=None
     mySelectionB=None
@@ -243,14 +245,15 @@ def dissolve(path, inputLayerAname, outputLayerName, myParam=0 ,useField=True):
     mySelectionA=None
 
     # make sure layer A is loaded
-    layerAloaded=h_utils.isShapefileLoaded(inputLayerAname)
+    layerAloaded=h_utils.isLayerLoaded(inputLayerAname)
     if not layerAloaded:
         if not h_utils.loadShapefileToCanvas(path, inputLayerAname):
             return False
 
     # Get layers and providers
     vproviderA = h_utils.getLayerProvider(inputLayerAname)
-    vlayerA = ftools_utils.getVectorLayerByName(inputLayerAname)
+    layers=QgsProject.instance().mapLayersByName(inputLayerAname)
+    vlayerA = layers[0]
 
     # Del output shapefile
     h_utils.unloadShapefile(outputLayerName)

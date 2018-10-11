@@ -4,7 +4,6 @@
 
 
 # Define plugin path
-from PyQt4.QtGui import QFileDialog # Not required in QGIS 3.2.3 and above
 pluginpath= str( QFileDialog.getExistingDirectory(None, "Plugin", "/", QFileDialog.ShowDirsOnly) )
 
 # Define project path
@@ -74,6 +73,8 @@ h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 # Disolve Subbas layer to merge small polygons into mother polys
 geoprocess.dissolve(projectpath, "Subbas", h_const.subbasLayerName )
+
+
 h_utils.unloadShapefile("Subbas")
 h_utils.unloadShapefile("Outlet")
 

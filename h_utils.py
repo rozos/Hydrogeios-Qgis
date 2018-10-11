@@ -1,12 +1,12 @@
 from qgis.core import *
-from PyQt5 import QtGui
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QVariant, QFileInfo
 from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
 from osgeo import gdal, ogr
 import ftools_utils
 import os.path
 import h_const
-
+import h_initLayers
 
 
 def floatsEqual(afloat, bfloat, exponent):
@@ -27,9 +27,10 @@ def floatsEqual(afloat, bfloat, exponent):
 
 def unloadShapefile(layerName):
     """Unloads a shapefile from canvas. Returns true if it was loaded."""
-    if isShapefileLoaded(layerName):
-        layer=ftools_utils.getVectorLayerByName(layerName)
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+    if isLayerLoaded(layerName):
+        layers=QgsProject.instance().mapLayersByName(layerName)
+        if len(layers)>0:
+            QgsProject.instance().removeMapLayer(layer[0])
         return True
     else:
         return False
@@ -40,7 +41,7 @@ def unloadRaster(layerName):
     """Unloads a raster from canvas. Returns true if it was loaded."""
     layer=ftools_utils.getRasterLayerByName(layerName)
     if layer:
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+        QgsProject.instance().removeMapLayer(layer)
         return True
     else:
         return False
@@ -51,12 +52,12 @@ def loadShapefileToCanvas(path, layername):
     """Wraps the ftools function. It displayes an error message if something
     goes wrong."""
 
-    if isShapefileLoaded(layername):
+    if isLayerLoaded(layername):
         return True
     pathFilename=os.path.join(path, layername+".shp")
     if not ftools_utils.addShapeToCanvas(pathFilename):
         message="Error loading shapefile "+pathFilename
-        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None, 'Error', message, QMessageBox.Ok)
         return False
     return True
 
@@ -64,35 +65,38 @@ def loadShapefileToCanvas(path, layername):
 
 def loadRasterfileToCanvas(path, layername):
     """Loads a raste to canvas."""
+    if isLayerLoaded(layername):
+        return True
     pathFilename=os.path.join(path, layername+".tif")
     file_info = QFileInfo(pathFilename)
     if file_info.exists():
         layer_name = file_info.completeBaseName()
     else:
         message="Error loading raster"+pathFilename
-        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None, 'Error', message, QMessageBox.Ok)
         return False
-    rlayer_new = QgsRasterLayer( pathFilename, layer_name, True )
+    layeropts=QgsRasterLayer.LayerOptions(True)    
+    rlayer_new = QgsRasterLayer( pathFilename, layer_name, 'gdal', layeropts )
     if rlayer_new.isValid():
-        QgsMapLayerRegistry.instance().addMapLayers( [rlayer_new] )
+        QgsProject.instance().addMapLayer(rlayer_new)
         return True
     else:
         return False
 
 
 
-def isShapefileLoaded(layerName):
+def isLayerLoaded(layerName):
     """Check if a shapefile is loaded into canvas."""
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if layer!=None: return True
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)>0: return True
     else: return False
 
 
 
 def isRasterLoaded(layerName):
     """Check if a raster is loaded into canvas."""
-    layer=ftools_utils.getRasterLayerByName(layerName)
-    if layer!=None: return True
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)>0: return True
     else: return False
 
 
@@ -107,14 +111,15 @@ def shapefileExists(path, filename):
 
 def layerNameTypeOK(layerName, layerType):
     """This function checks if the type of a layer is what is supposed to be"""
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer:
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)==0:
         message=layerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
+    layer=layers[0]
     if layer.geometryType() != layerType:
         message=layerName + " is not a type "+ str(layerType) + " layer!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
     return True
 
@@ -127,7 +132,7 @@ def layerFeaturesNumberOK(layerName, featuresNum):
     if nfeats==None: return False
     if nfeats!=featuresNum:
         message=layerName+" has not "+ str(featuresNum) + " features!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
     return True
 
@@ -185,7 +190,7 @@ def getFieldIndexByName(layerName, fieldName, warn=True):
     if warn:
         message="Field with name "+str(fieldName)+" not found in layer " +\
                  str(layerName)
-        QtGui.QMessageBox.warning(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.warning(None,'Error',message, QMessageBox.Ok)
     return None
 
 
@@ -243,11 +248,12 @@ def getPolyLayerCentroids(layerName):
 
 def getLayerProvider(layerName):
     """This function returns the dataprovider of a loaded layer"""
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer:
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)==0:
         message=layerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return None
+    layer=layers[0]
     provider= layer.dataProvider()
 
     return provider
@@ -275,8 +281,9 @@ def getMinFeatureMeasure(layerName):
     """This function returns the area/length of the smallest polygon/line of
     a shapefile."""
     # Get the type
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer: return None
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layer)==0: return None 
+    layer=layers[0]
     layerType=layer.geometryType()
 
     # Return 0 if it is point layer
@@ -314,7 +321,7 @@ def getCellValue(layerName, coords, band):
         elif band>rlayer.bandCount():
             message=layerName + "  has not that many bands!"
     if len(message)>0:
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return None
 
     identity=rlayer.dataProvider().identify( QgsPoint(coords[0], coords[1]),
@@ -344,11 +351,12 @@ def getQueryShapeIds(layerName, filterExpr):
     """Prepare a list of feature ids that meet filterExpr."""
 
     # Get layer
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer:
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)==0:
         message=layerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
+    layer=layers[0]
 
     # Prepare the list
     featreRequest=QgsFeatureRequest().setFilterExpression(filterExpr)
@@ -366,18 +374,19 @@ def setFieldAttrValues(layerName, fieldName, values):
     features= getLayerFeatures(layerName)
     if not features:
         message= layerName + " is an empty layer!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # Get the index of fieldName
     fieldIndex=getFieldIndexByName(layerName, fieldName)
     if fieldIndex==None:
         message= layerName + " attribute table does not contain this field!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # Start editing layer
-    layer=ftools_utils.getVectorLayerByName(layerName)
+    layers=QgsProject.instance().mapLayersByName(layerName)[0]
+    layer=layers[0]
     layer.startEditing()
 
     # Set the values of the fieldName
@@ -399,17 +408,17 @@ def delExistingShapefile(path, filename):
     """ Delete an existing layer."""
     if shapefileExists(path, filename):
         message="Delete shapefile "+filename+"?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
         pathFilename=os.path.join(path, filename)
         if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
             message="Can't delete shapefile "+pathFilename
-            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None,'Err',message,QMessageBox.Ok)
             return False
     else:
         message="Shapefile "+filename+" not there!"
-        QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Err',message,QMessageBox.Ok)
         return False
     return True
 
@@ -419,11 +428,12 @@ def delSpecificShapes(layerName, ids):
     """Deletes the features of which the id is inside the list of ids."""
 
     # Get layer
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer:
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)==0:
         message=layerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
+    layer=layers[0]
 
     layer.startEditing()
 
@@ -446,7 +456,8 @@ def delField(layerName, fieldName):
 
     provider=getLayerProvider(layerName)
     if provider==None: return False
-    layer=ftools_utils.getVectorLayerByName(layerName)
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    layer=layers[0]
 
     layer.startEditing()
     ok = provider.deleteAttributes([fieldindex])
@@ -468,7 +479,7 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
     if len(fieldNames) > 1 and len(fieldNames)!=len(attrValues):
         message="createPointLayer: "+ filename +"FieldNames.no <> attrValues.no"
     if len(message)!=0:
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # Delete existing layer
@@ -485,7 +496,7 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
                                 QGis.WKBPoint, None, "ESRI Shapefile")
     if writer.hasError() != QgsVectorFileWriter.NoError:
         message="Error creating shapefile "+filename
-        QtGui.QMessageBox.critical(None,'Error',message,QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message,QMessageBox.Ok)
         return False
 
     # Add points to layer
@@ -515,7 +526,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
     sourceRaster = gdal.Open(pathFilename)
     if not sourceRaster:
         message=pathFilename + "  not found!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # Delete existing (if any) output shapefile
@@ -527,7 +538,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
     band = sourceRaster.GetRasterBand(bandnum)
     if band==None:
         message="Raster " + rasterFileName + " does not have band "+str(bandnum)
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
     bandArray = band.ReadAsArray()
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -535,7 +546,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
     outDatasource = driver.CreateDataSource(pathFilename+ ".shp")
     if outDatasource==None:
         message="Could not create " + outShapeFileName
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
     outLayer = outDatasource.CreateLayer("polygonized", srs=None)
     newField = ogr.FieldDefn(outShapeId, ogr.OFTInteger)
@@ -558,13 +569,13 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
     inRaster=ftools_utils.getRasterLayerByName(inRasterName)
     if not inRaster:
         message=inRasterName+ "  not loaded or not a raster!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # Check path exists
     if not os.path.isdir(path):
         message= path + " does not exist!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
 
@@ -615,7 +626,7 @@ def createDBF(path, fileName, fieldNames, fieldTypes, values):
        not fieldNamesEqualValueLists or \
        not len(values):
         message="createDBF:" + fileName + " arguments error!"
-        QtGui.QMessageBox.critical(None, 'Error', message,QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None, 'Error', message,QMessageBox.Ok)
         return False
 
     # Delete existing
@@ -639,11 +650,13 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
     off added field"""
 
     # Get layer and enable editing
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer:
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)==0:
         message="Layer " + layerName + " is not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message,QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message,QMessageBox.Ok)
         return None
+    layer=layers[0]
+
     layer.startEditing()
 
     # Get dataprovider
@@ -657,7 +670,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
         if field.type() != fieldType:
             message="Field " + str(fieldName) + " already in layer " + \
                     str(layerName) + " but not of expected type!"
-            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None,'Err',message,QMessageBox.Ok)
             return None
     else:
         #message="Field "+str(fieldName)+" is added to "+str(layerName)
@@ -665,7 +678,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
         ok = provider.addAttributes( [ QgsField(fieldName,fieldType) ] )
         if not ok:
             message="Could not add a field to layer" + str(layerName)
-            QtGui.QMessageBox.critical(None,'Err',message,QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None,'Err',message,QMessageBox.Ok)
             return None
         layer.updateFields()
         fieldIndex=getFieldIndexByName(layerName, fieldName)
@@ -690,17 +703,18 @@ def addMeasureToAttrTable(layerName, fieldName):
     """Add area/length of each feature to the attribute table of a
     polygon/line shapefile"""
     # Get the layer
-    layer=ftools_utils.getVectorLayerByName(layerName)
-    if not layer:
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)==0:
         message= "Layer " + layerName + " not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
+    layer=layers[0]
 
     # Check layer type
     layerType=layer.geometryType()
     if layerType==QGis.Point:
         message= layerName + "is a point layer. Cannot add a measure!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # Make sure fieldName is already there or create one
@@ -709,14 +723,14 @@ def addMeasureToAttrTable(layerName, fieldName):
         fieldIndex=addFieldToAttrTable(layerName, fieldName, QVariant.Double)
         if fieldIndex==None: 
             message= "Cannot add measure to layer" + layerName
-            QtGui.QMessageBox.critical(None,'Err',message, QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None,'Err',message, QMessageBox.Ok)
             return False
 
     # Get features
     features= getLayerFeatures(layerName)
     if not features:
         message= layerName + " empty layer!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # Add area/length to attribute table
@@ -730,7 +744,7 @@ def addMeasureToAttrTable(layerName, fieldName):
     ok=setFieldAttrValues(layerName, fieldName, measures) 
     if not ok:
         message= "error applying setFieldAttrValue on " + layerName
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     return ok
@@ -761,6 +775,21 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
 
     return polygonIds
 
+
+def dissolve(projectpath, dissolve_layer, outlayername,outfields,outfieldtypes):
+    layers=QgsProject.instance().mapLayersByName(dissolve_layer)
+    if len(layers)==0:
+        message="Error getting shapefile to dissolve!"
+        QMessageBox.critical(None, 'Error', message, QMessageBox.Ok)
+        return None
+    inlayer=layers[0]
+    
+    outlayer= h_initLayers.initializeLayer(projectpath, outlayername, 
+                       QgsWkbTypes.Polygon, inlayer.crs(), outfields, 
+                       outfieldtypes) 
+    #processing.run("qgis:dissolve", {'INPUT': inlayer, 
+    #                        'DISSOLVE_ALL': True, 'OUTPUT':outlayer})
+    return outlayer
 
 
 def copyShapefile(origShapefile, copyShapefile):
