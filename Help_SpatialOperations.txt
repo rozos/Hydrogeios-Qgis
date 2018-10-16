@@ -28,7 +28,6 @@ cngroups=(0.25, 0.60, 1.00,)
 # Import hydrogeios
 import sys
 sys.path.append(pluginpath)
-import geoprocess
 import TauDEM
 import h_const
 import h_utils
@@ -72,7 +71,7 @@ h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 
 # Disolve Subbas layer to merge small polygons into mother polys
-geoprocess.dissolve(projectpath, "Subbas", h_const.subbasLayerName )
+h_utils.dissolve(projectpath, 'Subbas', h_const.subbasLayerName)
 
 
 h_utils.unloadShapefile("Subbas")

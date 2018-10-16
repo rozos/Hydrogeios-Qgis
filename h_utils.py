@@ -5,6 +5,7 @@ from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
 from osgeo import gdal, ogr
 import ftools_utils
 import os.path
+import processing
 import h_const
 import h_initLayers
 
@@ -30,7 +31,7 @@ def unloadShapefile(layerName):
     if isLayerLoaded(layerName):
         layers=QgsProject.instance().mapLayersByName(layerName)
         if len(layers)>0:
-            QgsProject.instance().removeMapLayer(layer[0])
+            QgsProject.instance().removeMapLayer(layers[0])
         return True
     else:
         return False
@@ -776,20 +777,18 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     return polygonIds
 
 
-def dissolve(projectpath, dissolve_layer, outlayername,outfields,outfieldtypes):
-    layers=QgsProject.instance().mapLayersByName(dissolve_layer)
-    if len(layers)==0:
-        message="Error getting shapefile to dissolve!"
-        QMessageBox.critical(None, 'Error', message, QMessageBox.Ok)
-        return None
-    inlayer=layers[0]
-    
-    outlayer= h_initLayers.initializeLayer(projectpath, outlayername, 
-                       QgsWkbTypes.Polygon, inlayer.crs(), outfields, 
-                       outfieldtypes) 
-    #processing.run("qgis:dissolve", {'INPUT': inlayer, 
-    #                        'DISSOLVE_ALL': True, 'OUTPUT':outlayer})
-    return outlayer
+def dissolve(projectpath, dissolve_layer, outlayername):
+    layers=QgsProject.instance().mapLayersByName(dissolve_layer) 
+    inlayer=os.path.join(projectpath, dissolve_layer+".shp")
+    outlayer=os.path.join(projectpath, outlayername+".shp")
+    try:
+        processing.run('qgis:dissolve', {'FIELD': ['DN'], 'INPUT': inlayer, 
+                        'OUTPUT':outlayer} )
+    except Exception as e:
+        print(str(e))
+        return False
+        
+    return True
 
 
 def copyShapefile(origShapefile, copyShapefile):
