@@ -10,6 +10,7 @@ import h_const
 import h_initLayers
 
 
+
 def floatsEqual(afloat, bfloat, exponent):
     """Returns true if float numbers are close enough. Closeness is defined by
     the exponent."""
@@ -110,16 +111,17 @@ def shapefileExists(path, filename):
 
 
 
-def layerNameTypeOK(layerName, layerType):
-    """This function checks if the type of a layer is what is supposed to be"""
+def layerNameTypeOK(layerName, expectedgeomType):
+    """This function checks the geometry of a layer is what is supposed to be"""
     layers=QgsProject.instance().mapLayersByName(layerName)
     if len(layers)==0:
         message=layerName + "  not loaded!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
     layer=layers[0]
-    if layer.geometryType() != layerType:
-        message=layerName + " is not a type "+ str(layerType) + " layer!"
+    if layer.geometryType() != expectedgeomType:
+        message= layerName + " is a type " + str(layer.geometryType()) + \
+                  " layer! A type " + str(expectedgeomType) + " was expected."
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
     return True
@@ -142,7 +144,7 @@ def layerFeaturesNumberOK(layerName, featuresNum):
 def getSegmentPntCoords(layerName, firstORlast):
     """Get coordinates of the ending nodes of a line layer segments."""
 
-    if not layerNameTypeOK(layerName, QGis.Line): return False
+    if not layerNameTypeOK(layerName, QgsWkbTypes.LineGeometry): return False
 
     segments=getLayerFeatures(layerName)
     if segments==False: return False 
@@ -208,7 +210,7 @@ def getPointLayerCoords(layerName):
     """This function returns the coordinates of a point layer.
     returns (xList, yList). """
     # Check if it is a point layer
-    if not layerNameTypeOK(layerName, QGis.Point): return None
+    if not layerNameTypeOK(layerName, QgsWkbTypes.PointGeometry): return None
 
     # Get points of HydroJunction layer
     points= getLayerFeatures(layerName)
@@ -230,7 +232,7 @@ def getPolyLayerCentroids(layerName):
     """Get centroids of a polygon layer."""
 
     # Make sure this is a polygon layer
-    if not layerNameTypeOK(layerName, QGis.Polygon):
+    if not layerNameTypeOK(layerName, QgsWkbTypes.PolygonGeometry):
         return None
 
     # Get polygons of layerName
@@ -288,7 +290,7 @@ def getMinFeatureMeasure(layerName):
     layerType=layer.geometryType()
 
     # Return 0 if it is point layer
-    if layerType==QGis.Point: return 0
+    if layerType==QgsLayerItem.Point: return 0
 
     # Get features
     features= getLayerFeatures(layerName)
@@ -298,9 +300,9 @@ def getMinFeatureMeasure(layerName):
     inFeat= QgsFeature()
     minfeature=1e12 # An arbitrary large number
     while features.nextFeature(inFeat):
-        if layerType==QGis.Polygon:
+        if layerType==QgsLayerItem.Polygon:
             minfeature=min(minfeature, inFeat.geometry().area() )
-        if layerType==QGis.Line:
+        if layerType==QgsLayerItem.Line:
             minfeature=min(minfeature, inFeat.geometry().length() )
 
     return minfeature
@@ -386,7 +388,7 @@ def setFieldAttrValues(layerName, fieldName, values):
         return False
 
     # Start editing layer
-    layers=QgsProject.instance().mapLayersByName(layerName)[0]
+    layers=QgsProject.instance().mapLayersByName(layerName)
     layer=layers[0]
     layer.startEditing()
 
@@ -394,10 +396,10 @@ def setFieldAttrValues(layerName, fieldName, values):
     i=0
     inFeat=QgsFeature()
     while features.nextFeature(inFeat):
+        if i>=len(values): break
         inFeat.setAttribute(fieldIndex, values[i])
         layer.updateFeature(inFeat)
         i=i+1
-        if i>=len(values): break
 
     # Save edits
     layer.commitChanges()
@@ -494,7 +496,7 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
         fieldList.append( QgsField(fieldname, fieldtype) )
     pathFilename=os.path.join(path, filename)
     writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
-                                QGis.WKBPoint, None, "ESRI Shapefile")
+                                QgsLayerItem.WKBPoint, None, "ESRI Shapefile")
     if writer.hasError() != QgsVectorFileWriter.NoError:
         message="Error creating shapefile "+filename
         QMessageBox.critical(None,'Error',message,QMessageBox.Ok)
@@ -713,7 +715,7 @@ def addMeasureToAttrTable(layerName, fieldName):
 
     # Check layer type
     layerType=layer.geometryType()
-    if layerType==QGis.Point:
+    if layerType==QgsLayerItem.Point:
         message= layerName + "is a point layer. Cannot add a measure!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
@@ -738,9 +740,9 @@ def addMeasureToAttrTable(layerName, fieldName):
     inFeat= QgsFeature()
     measures= []
     while features.nextFeature(inFeat):
-        if layerType==QGis.Polygon:
+        if layerType==QgsLayerItem.Polygon:
             measures.append(inFeat.geometry().area() )
-        if layerType==QGis.Line:
+        if layerType==QgsLayerItem.Line:
             measures.append(inFeat.geometry().length() )
     ok=setFieldAttrValues(layerName, fieldName, measures) 
     if not ok:
@@ -757,8 +759,10 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     pointLayername corresponds to. Returns the list with the polygon ids
     to which each point corresponds to."""
 
-    if not layerNameTypeOK(polyLayerName, QGis.Polygon): return None
-    if not layerNameTypeOK(pointLayerName, QGis.Point): return None
+    if not layerNameTypeOK(polyLayerName, QgsWkbTypes.PointGeometry): 
+        return None
+    if not layerNameTypeOK(pointLayerName, QgsWkbTypes.PointGeometry): 
+        return None
 
     points=getLayerFeatures(pointLayerName)
 

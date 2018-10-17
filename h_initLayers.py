@@ -68,8 +68,7 @@ def doAll(path):
 
 
 
-def initializeLayer(path, layerName, layerType, layercrs, fieldNames, 
-                    fieldTypes):
+def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     """Create a new empty layer with the given fields in attribute table or
     (if already there) make sure the attribute table has all required fields"""
 
@@ -81,8 +80,9 @@ def initializeLayer(path, layerName, layerType, layercrs, fieldNames,
             fieldList.append(QgsField(fieldname,fieldtype) )
         # Create an empty layer
         pathFilename=os.path.join(path, layerName)
-        writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
-                                    layerType, layercrs, "ESRI Shapefile")
+        writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList, layerType,
+                       QgsCoordinateReferenceSystem(h_const.projectcrs), 
+                       "ESRI Shapefile")
         if writer.hasError() != QgsVectorFileWriter.NoError:
             message="Error creating shapefile "+ layerName
             QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
@@ -283,9 +283,9 @@ def linkSubbasinRiver():
 
     # Make sure River and Subbasin layers are OK
     if not h_utils.layerNameTypeOK(h_const.riverLayerName, 
-                                                    h_const.riverLayerType) or \
+                                                    h_const.riverGeomType) or \
        not h_utils.layerNameTypeOK(h_const.subbasLayerName, 
-                                                     h_const.subbasLayerType):
+                                                     h_const.subbasGeomType):
         return False
 
     # Check that number of river segments euqals the number of subbasins
