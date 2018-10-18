@@ -142,44 +142,58 @@ def layerFeaturesNumberOK(layerName, featuresNum):
 
 
 def getSegmentPntCoords(layerName, firstORlast):
-    """Get coordinates of the ending nodes of a line layer segments."""
+    """Get coordinates of the ending nodes of the segments of a line layer."""
 
-    if not layerNameTypeOK(layerName, QgsWkbTypes.LineGeometry): return False
+    if not layerNameTypeOK(layerName, QgsWkbTypes.LineGeometry): 
+        print("getSegmentPntCoords: Wrong layer geometry type!") 
+        return False
 
     segments=getLayerFeatures(layerName)
-    if segments==False: return False 
+    if segments==None: 
+        print("getSegmentPntCoords: Could not get layer segments!") 
+        return False 
 
     inFeat = QgsFeature()
-    XList= []
-    YList= []
+    #XList= []
+    #YList= []
+    Points= []
     x,y = 0,1
     while segments.nextFeature(inFeat):
-        nodes=inFeat.geometry().asPolyline()
+        nodes=inFeat.geometry().asMultiPolyline()
+        if len(nodes)==0:
+            print("getSegmentPntCoords: Could not get nodes of polyline!") 
+            #return None, None
+            return None
         if firstORlast=="first":
             frstnode=0
-            XList.append( nodes[frstnode][x] )
-            YList.append( nodes[frstnode][y] )
+            Points.append(nodes[0][frstnode])
+            #XList.append( nodes[frstnode][x] )
+            #YList.append( nodes[frstnode][y] )
         elif firstORlast=="last":
             lastnode=len(nodes)-1
-            XList.append( nodes[lastnode][x] )
-            YList.append( nodes[lastnode][y] )
+            Points.append(nodes[0][lastnode])
+            #XList.append( nodes[lastnode][x] )
+            #YList.append( nodes[lastnode][y] )
         elif firstORlast=="mid":
             midnode=int(len(nodes)/2)
-            XList.append( nodes[midnode][x] )
-            YList.append( nodes[midnode][y] )
+            Points.append(nodes[0][midnode])
+            #XList.append( nodes[midnode][x] )
+            #YList.append( nodes[midnode][y] )
         else: 
             return False
+            print("getSegmentPntCoords: Uknown second argument!") 
 
-    return XList, YList
+    #return XList, YList
+    return Points 
 
 
 
 def getFieldIndexByName(layerName, fieldName, warn=True):
-    """Returns the index of the field named 'name' of the attribute table
-    of the layer 'vlayer'. If no field with name 'name', returns None and
+    """Returns the index of the field named fieldName of the attribute table
+    of the layer 'vlayer'. If no field with name fieldName, returns None and
     displays an error dialog."""
     provider=getLayerProvider(layerName)
-    if provider:
+    if provider!=None:
         i = 0
         fieldsList=provider.fields()
         for field in fieldsList:
@@ -187,6 +201,7 @@ def getFieldIndexByName(layerName, fieldName, warn=True):
                 return i
             i = i + 1
     else:
+        print("Layer " + layerName + " not found!")
         return None
 
     # No field with this name found
@@ -237,7 +252,7 @@ def getPolyLayerCentroids(layerName):
 
     # Get polygons of layerName
     polygons= getLayerFeatures(layerName)
-    if not polygons: return None
+    if polygons==None: return None
 
     coords= []
     inFeat=QgsFeature()
@@ -266,7 +281,7 @@ def getLayerProvider(layerName):
 def getLayerFeatures(layerName):
     """This function returns the features of a shapefile."""
     provider= getLayerProvider(layerName)
-    if not provider: return None
+    if provider==None: return None
     features= provider.getFeatures()
     return features
 
@@ -275,7 +290,7 @@ def getLayerFeatures(layerName):
 def getLayerFeaturesCount(layerName):
     """This function returns the number of features of a shapefile."""
     provider= getLayerProvider(layerName)
-    if not provider: return None
+    if provider==None: return None
     return provider.featureCount()
 
 
@@ -294,7 +309,7 @@ def getMinFeatureMeasure(layerName):
 
     # Get features
     features= getLayerFeatures(layerName)
-    if not features: return None
+    if features==None: return None
 
     # Loop to find smalest polygon
     inFeat= QgsFeature()
@@ -327,7 +342,7 @@ def getCellValue(layerName, coords, band):
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return None
 
-    identity=rlayer.dataProvider().identify( QgsPoint(coords[0], coords[1]),
+    identity=rlayer.dataProvider().identify( QgsPointXY(coords[0], coords[1]),
                                            QgsRaster.IdentifyFormatValue )
     return identity.results()[band]
 
@@ -336,7 +351,7 @@ def getCellValue(layerName, coords, band):
 def getFieldAttrValues(layerName, fieldName):
     """Gets all values of a field of the attribute table."""
     features=getLayerFeatures(layerName)
-    if not features:return None
+    if features==None:return None
     fieldIndex=getFieldIndexByName(layerName, fieldName)
     if fieldIndex==None:return None
 
@@ -375,7 +390,7 @@ def setFieldAttrValues(layerName, fieldName, values):
 
     # Get features of layer
     features= getLayerFeatures(layerName)
-    if not features:
+    if features==None:
         message= layerName + " is an empty layer!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
@@ -491,12 +506,11 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
             return False
 
     # Create empty point layer and add attribute fields
-    fieldList = QgsFields()
-    for fieldname,fieldtype in zip(fieldNames, fieldTypes):
-        fieldList.append( QgsField(fieldname, fieldtype) )
     pathFilename=os.path.join(path, filename)
-    writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList,
-                                QgsLayerItem.WKBPoint, None, "ESRI Shapefile")
+    writer= QgsVectorFileWriter(pathFilename, "utf8", QgsFields(),
+                                QgsWkbTypes.Point, 
+                                QgsCoordinateReferenceSystem(h_const.projectcrs)
+                                , "ESRI Shapefile")
     if writer.hasError() != QgsVectorFileWriter.NoError:
         message="Error creating shapefile "+filename
         QMessageBox.critical(None,'Error',message,QMessageBox.Ok)
@@ -505,7 +519,7 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
     # Add points to layer
     for i, xy in zip( range(0,len(coords)), coords):
         feat = QgsFeature()
-        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(xy[0],xy[1])))
+        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(xy[0],xy[1])))
         # Add values to attribute table
         rowValues=[]
         for j in range(0, len(fieldNames)):
@@ -664,16 +678,21 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
 
     # Get dataprovider
     provider=getLayerProvider(layerName)
+    if provider==None:
+        print("Layer " + layerName + " not found!")
+        return None
 
     # Check if the fieldName already exists and if not add one
     fieldIndex=getFieldIndexByName(layerName, fieldName, warn=False)
     if fieldIndex!=None:
-        # Make sure fieldName is fieldType
+        # Make sure fieldName is the expected field type
         field=provider.fields()[fieldIndex]
         if field.type() != fieldType:
-            message="Field " + str(fieldName) + " already in layer " + \
-                    str(layerName) + " but not of expected type!"
+            message="Field " + str(fieldName) + " of " + str(layerName) + \
+                    " is type " + str(field.type()) + " whereas expected " + \
+                    str(fieldType) + "!"
             QMessageBox.critical(None,'Err',message,QMessageBox.Ok)
+            print("Type " + field.typeName() + " field " + field.name() + "!")
             return None
     else:
         #message="Field "+str(fieldName)+" is added to "+str(layerName)
@@ -731,7 +750,7 @@ def addMeasureToAttrTable(layerName, fieldName):
 
     # Get features
     features= getLayerFeatures(layerName)
-    if not features:
+    if features==None:
         message= layerName + " empty layer!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
@@ -760,11 +779,16 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     to which each point corresponds to."""
 
     if not layerNameTypeOK(polyLayerName, QgsWkbTypes.PointGeometry): 
+        print("linkPointLayerToPolygonLayer: wrong poly layer!")
         return None
     if not layerNameTypeOK(pointLayerName, QgsWkbTypes.PointGeometry): 
+        print("linkPointLayerToPolygonLayer: wrong point layer!")
         return None
 
     points=getLayerFeatures(pointLayerName)
+    if points==None:
+        print("linkPointLayerToPolygonLayer: no points in layer!")
+        return None
 
     polygonIds=[]
     inFeat1 = QgsFeature()
@@ -781,6 +805,7 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     return polygonIds
 
 
+
 def dissolve(projectpath, dissolve_layer, outlayername):
     layers=QgsProject.instance().mapLayersByName(dissolve_layer) 
     inlayer=os.path.join(projectpath, dissolve_layer+".shp")
@@ -793,6 +818,7 @@ def dissolve(projectpath, dissolve_layer, outlayername):
         return False
         
     return True
+
 
 
 def copyShapefile(origShapefile, copyShapefile):

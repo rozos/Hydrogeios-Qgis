@@ -68,19 +68,14 @@ def doAll(path):
 
 
 
-def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
+def initializeLayer(path, layerName, wkbtype, fieldNames, fieldTypes):
     """Create a new empty layer with the given fields in attribute table or
     (if already there) make sure the attribute table has all required fields"""
 
     # If layer does not exist create one
     if not h_utils.shapefileExists(path, layerName): 
-        # Initialize the list with name/type of attribute table fields
-        fieldList = QgsFields()
-        for fieldname,fieldtype in zip(fieldNames, fieldTypes):
-            fieldList.append(QgsField(fieldname,fieldtype) )
-        # Create an empty layer
         pathFilename=os.path.join(path, layerName)
-        writer= QgsVectorFileWriter(pathFilename, "utf8", fieldList, layerType,
+        writer= QgsVectorFileWriter(pathFilename, "utf8", QgsFields(), wkbtype,
                        QgsCoordinateReferenceSystem(h_const.projectcrs), 
                        "ESRI Shapefile")
         if writer.hasError() != QgsVectorFileWriter.NoError:
@@ -93,11 +88,13 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
     # Make sure the layer is loaded 
     if not h_utils.isLayerLoaded(layerName):
         if not h_utils.loadShapefileToCanvas(path, layerName):
+            print("Problem loading layer " + " layerName!")
             return False
 
     # Make sure all required fields are there
     for fieldname,fieldtype in zip(fieldNames, fieldTypes):
         if h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)==None:
+            print("Problem in field " + fieldname + "!")
             return False
 
     return True
@@ -105,7 +102,7 @@ def initializeLayer(path, layerName, layerType, fieldNames, fieldTypes):
 
 
 def createOutletsLayer(path):
-    """ Create a new point layer with the end nodes of the rivers segments."""
+    """Create a new point layer with the end nodes of the rivers segments."""
 
     # Get outlets of river segments
     (endPntXs,endPntYs)= h_utils.getSegmentPntCoords(h_const.riverLayerName,
@@ -129,7 +126,7 @@ def initIrrigLayer(path):
     """Initialize irrigation layer"""
 
     # Initialize layer
-    ok= initializeLayer(path, h_const.irrigLayerName, h_const.irrigGeomType,
+    ok= initializeLayer(path, h_const.irrigLayerName, h_const.irrigWkbType,
                        h_const.irrigFieldNames, h_const.irrigFieldTypes)
     if not ok: return False
 
@@ -141,18 +138,24 @@ def initSubbasinLayer(path):
     """Initialize subbasin layer"""
 
     # Initialize layer
-    ok= initializeLayer(path, h_const.subbasLayerName, h_const.subbasGeomType,
+    ok= initializeLayer(path, h_const.subbasLayerName, h_const.subbasWkbType,
                        h_const.subbasFieldNames, h_const.subbasFieldTypes)
-    if not ok: return False
+    if not ok:
+        print("Failed to initialize layer!")
+        return False
 
     # Add area of polygons to attribute table
     fieldIndex= h_utils.addMeasureToAttrTable(h_const.subbasLayerName, 
                                       h_const.subbasFieldArea)
-    if fieldIndex==None: return False
+    if fieldIndex==None: 
+        print("Failed to add area to attribute table!")
+        return False
 
     # Get centroids
     centroids=h_utils.getPolyLayerCentroids(h_const.subbasLayerName)
-    if centroids==None: return False
+    if centroids==None: 
+        print("Failed to get centroids!")
+        return False
 
     # Add coordinates of polygon centroids to attribute table
     xCoord=[]
@@ -162,15 +165,21 @@ def initSubbasinLayer(path):
         yCoord.append(y)
     ok= h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.subbasFieldX, xCoord);
-    if not ok: return False
+    if not ok:
+        print("Failed to add X coordinates!")
+        return False
     ok=h_utils.setFieldAttrValues(h_const.subbasLayerName,
                                    h_const.subbasFieldY, yCoord);
-    if not ok: return False
+    if not ok:
+        print("Failed to add Y coordinates!")
+        return False
 
     # Add id of polygons to attribute table
     ok=h_utils.addShapeIdsToAttrTable(h_const.subbasLayerName,
                                       h_const.subbasFieldId)
-    if not ok: return False
+    if not ok:
+        print("Failed to add Ids.")
+        return False
 
     # Make sure the layer is loaded 
     if not h_utils.isLayerLoaded(h_const.subbasLayerName):
@@ -182,7 +191,7 @@ def initSubbasinLayer(path):
 
 def initGrdWatLayer(path):
     """Initialize groundwater layer"""
-    ok= initializeLayer(path, h_const.grdwatLayerName, h_const.grdwatGeomType,
+    ok= initializeLayer(path, h_const.grdwatLayerName, h_const.grdwatWkbType,
                        h_const.grdwatFieldNames, h_const.grdwatFieldTypes)
     if not ok: return False
 
@@ -196,7 +205,7 @@ def initGrdWatLayer(path):
 
 def initSpringLayer(path):
     """Initialize spring layer"""
-    ok= initializeLayer(path, h_const.springLayerName, h_const.springGeomType,
+    ok= initializeLayer(path, h_const.springLayerName, h_const.springWkbType,
                        h_const.springFieldNames, h_const.springFieldTypes)
     if not ok: return False
     return True
@@ -205,7 +214,7 @@ def initSpringLayer(path):
 
 def initBorehLayer(path):
     """Initialize boreholes layer"""
-    ok= initializeLayer(path, h_const.borehLayerName, h_const.borehGeomType,
+    ok= initializeLayer(path, h_const.borehLayerName, h_const.borehWkbType,
                        h_const.borehFieldNames, h_const.borehFieldTypes)
     if not ok: return False
     return True
@@ -214,7 +223,7 @@ def initBorehLayer(path):
 
 def initRiverLayer(path):
     """Initialize river layer"""
-    ok= initializeLayer(path, h_const.riverLayerName, h_const.riverGeomType,
+    ok= initializeLayer(path, h_const.riverLayerName, h_const.riverWkbType,
                        h_const.riverFieldNames, h_const.riverFieldTypes)
     if not ok: return False 
 
@@ -233,7 +242,7 @@ def initRiverLayer(path):
 
 def initAqueductLayer(path):
     """Initialize aqueduct layer"""
-    ok= initializeLayer(path, h_const.aquedLayerName, h_const.aquedGeomType,
+    ok= initializeLayer(path, h_const.aquedLayerName, h_const.aquedWkbType,
                        h_const.aquedFieldNames, h_const.aquedFieldTypes)
     if not ok: return False 
 
@@ -246,10 +255,11 @@ def createRiverexitnodeLayer(path):
 
     # Get outlets of river segments
     res= h_utils.getSegmentPntCoords(h_const.riverLayerName, "first")
-    if res!=False: 
+    if res!=False and res[0]!=None: 
         #endPntXs,endPntYs= res[0], res[1]
         duplCoords= zip(res[0], res[1])
     else:
+        print("No start node coordinates found!")
         return False
 
     # Create a point layer with the river segment outlets
@@ -286,16 +296,21 @@ def linkSubbasinRiver():
                                                     h_const.riverGeomType) or \
        not h_utils.layerNameTypeOK(h_const.subbasLayerName, 
                                                      h_const.subbasGeomType):
+        print("River or Subbasin layers not OK!")
         return False
 
     # Check that number of river segments euqals the number of subbasins
     subbasCount= h_utils.getLayerFeaturesCount(h_const.subbasLayerName)
     if not h_utils.layerFeaturesNumberOK(h_const.riverLayerName, subbasCount): 
+        print("River segments not equal to Subbasin polygons!")
         return False 
 
     # Get coordinates of river segments mid-nodes
     rivInpNodeXlist, rivInpNodeYlist = \
                     h_utils.getSegmentPntCoords(h_const.riverLayerName, "mid")
+    if rivInpNodeXlist==None: 
+        print("Failed to get coordinates of river segments mid-nodes!")
+        return False
 
     # Loop through every river input node
     rivsId = [None] * subbasCount
@@ -308,7 +323,7 @@ def linkSubbasinRiver():
         i=0
         while subbPolygons.nextFeature(inFeat):
             # Find if this point belongs to this subbasin 
-            if inFeat.geometry().contains(QgsPoint(strNodeX,strNodeY)):
+            if inFeat.geometry().contains(QgsPointXY(strNodeX,strNodeY)):
                 if not foundStart:
                     foundStart= True
                 else:
