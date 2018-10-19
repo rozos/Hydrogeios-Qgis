@@ -260,7 +260,6 @@ def createRiverexitnodeLayer(path):
     # Create a point layer with the river segment outlets
     riverexitnodeLayerName=h_const.riverexitnodeLayerName
     h_utils.unloadShapefile(riverexitnodeLayerName)
-    #coordinates=zip(endPntXs, endPntYs)
     points=list(set(duplpoints))
     ok= h_utils.createPointLayer(path, riverexitnodeLayerName, points, 
                                  h_const.riverexitnodeFieldNames, 

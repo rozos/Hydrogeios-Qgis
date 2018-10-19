@@ -688,8 +688,6 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
             print("Type " + field.typeName() + " field " + field.name() + "!")
             return None
     else:
-        #message="Field "+str(fieldName)+" is added to "+str(layerName)
-        #QtGui.QMessageBox.warning(None,'Info',message,QtGui.QMessageBox.Ok)
         ok = provider.addAttributes( [ QgsField(fieldName,fieldType) ] )
         if not ok:
             message="Could not add a field to layer" + str(layerName)
@@ -816,13 +814,3 @@ def dissolve(projectpath, dissolve_layer, outlayername):
 
 def copyShapefile(origShapefile, copyShapefile):
     pass
-    #from shapely.geometry import mapping, shape
-    #import fiona
-# Read the original Shapefile
-    #with fiona.collection('original.shp', 'r') as input:
-    # The output has the same schema
-        #schema = input.schema.copy()
-    #    # write a new shapefile
-        #with fiona.collection(''file1.shp', 'w', 'ESRI Shapefile', schema) as output:
-            #for elem in input:
-                 #output.write({'properties': elem['properties'],'geometry': mapping(shape(elem['geometry']))})
