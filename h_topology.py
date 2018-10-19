@@ -100,18 +100,17 @@ def layerNamesTypesOK():
 
 def getRiverExit(path):
     """This function returns the exit of the river."""
-    # If Outlet use first point as exit node
+    # If Outlet layer exists, use first point as exit node
     if h_utils.shapefileExists(path, h_const.outletLayerName):
         h_utils.loadShapefileToCanvas(path, h_const.outletLayerName)
         xUserOuts,yUserOuts=h_utils.getPointLayerCoords(h_const.outletLayerName)
         if xUserOuts==[]: return False
-        return (xUserOuts[0], yUserOuts[0])
+        return QgsPointXY(xUserOuts[0], yUserOuts[0] )
     # Find which river exit node is unique
     x,y=0,1
-    rivsegmExit= h_utils.getSegmentPntCoords(h_const.riverLayerName, "first")
-    rivsegmExitPairCoords=zip(rivsegmExit[x], rivsegmExit[y])
-    for node in rivsegmExitPairCoords:
-        indexes=h_utils.getElementIndexByVal(rivsegmExitPairCoords, node)
+    rivsegmExits= h_utils.getSegmentPoints(h_const.riverLayerName, "first")
+    for node in rivsegmExits:
+        indexes=h_utils.getElementIndexByVal(rivsegmExits, node)
         if len(indexes)==1:
             return node
     return False
@@ -132,16 +131,21 @@ def createHydrojunctionLayer(path):
         h_utils.unloadShapefile(h_const.hydrojncLayerName)
     
     # Get upstream nodes of river segments
-    res= h_utils.getSegmentPntCoords(h_const.riverLayerName, "last")
-    if res==False: return False
-    rivXList, rivYList= res[0], res[1]
+    rivLastNodes= h_utils.getSegmentPoints(h_const.riverLayerName, "last")
+    if rivLastNodes==[]: return False
 
     # Add to the previous list the coords of downstream node of the 1st segm.
-    res= getRiverExit(path)
-    if res==False: return False
-    rivXList= [res[0]] + rivXList
-    rivYList= [res[1]] + rivYList
+    rivExit= getRiverExit(path)
+    if rivExit==False: return False
+    rivLastNodes= rivExit + rivLastNodes
     
+    # Get coordinates of river nodes
+    rivXList=[]
+    rivYList=[]
+    for item in rivLastNodes:
+        rivXList.append(item.x())
+        rivYList.append(item.y())
+
     # Get centroids of Irrigation layer 
     irgXList= []
     irgYList= []
@@ -181,7 +185,7 @@ def createHydrojunctionLayer(path):
     # Create a new layer or update the existing
     xCoords= rivXList+irgXList+borXList+sprXList
     yCoords= rivYList+irgYList+borYList+sprYList
-    # Create a list with id of the junction type of each junciton
+    # Create a list with id of the junction type of each junction
     junctTypes= ( [h_const.hydrojncTypeRiv]*len(rivXList) + 
                  [h_const.hydrojncTypeIrg]*len(irgXList) + 
                  [h_const.hydrojncTypeBor]*len(borXList) +
@@ -233,35 +237,28 @@ def _linkRiverductHydrojunction(layerName, reversDirect):
                                    h_const.hydrojncLayerType):
         return False
 
-    # Get Hydrojunction layer coordinates
+    # Get Hydrojunction layer points
     [hydrojuncXlist, hydrojuncYlist]= \
                           h_utils.getPointLayerCoords(h_const.hydrojncLayerName)
+    hydrojunctions=[]
+    for x,y in zip(hydrojuncXlist, hydrojuncYlist):
+        hydrojunctions.append(QgsPointXY(x,y))
 
     # Get coordinates of river or aqueduct segments' first and last nodes
     if reversDirect:
-        rivEndnodeXlist, rivEndnodeYlist = \
-                   h_utils.getSegmentPntCoords(layerName, "first")
-        rivStrnodeXlist, rivStrnodeYlist = \
-                    h_utils.getSegmentPntCoords(layerName, "last")
+        rivEndnodes= h_utils.getSegmentPoints(layerName, "first")
+        rivStrtnodes= h_utils.getSegmentPoints(layerName, "last")
     else:
-        rivEndnodeXlist, rivEndnodeYlist = \
-                    h_utils.getSegmentPntCoords(layerName, "last")
-        rivStrnodeXlist, rivStrnodeYlist = \
-                   h_utils.getSegmentPntCoords(layerName, "first")
+        rivEndnodes= h_utils.getSegmentPoints(layerName, "last")
+        rivStrtnodes= h_utils.getSegmentPoints(layerName, "first")
 
     # Write to fromNode, toNode the appropriate hydrojunction ids
     toNodes= []
     fromNodes= []
-    for strNodeX, strNodeY, endNodeX, endNodeY in zip(rivStrnodeXlist, 
-                             rivStrnodeYlist, rivEndnodeXlist, rivEndnodeYlist):
-        for j, hydrojunctX, hydrojunctY in zip(range(0, len(hydrojuncXlist)), \
-                                                hydrojuncXlist, hydrojuncYlist):
-            if h_utils.floatsEqual(strNodeX, hydrojunctX, h_const.precise) and\
-                    h_utils.floatsEqual(strNodeY, hydrojunctY, h_const.precise):
-                fromNodes.append(j)
-            if h_utils.floatsEqual(endNodeX, hydrojunctX, h_const.precise) and\
-                    h_utils.floatsEqual(endNodeY, hydrojunctY, h_const.precise):
-                toNodes.append(j)
+    for rivstrtNode, rivendNode in zip(rivStrtnodes, rivEndnodes):
+        for j,hydrojunction in zip(range(0,len(hydrojunctions)),hydrojunctions):
+            if rivstrtNode==hydrojunction: fromNodes.append(j)
+            if rivendNode==hydrojunction: toNodes.append(j)
 
     # Write values to attribute table
     res=h_utils.setFieldAttrValues(layerName, 
@@ -276,7 +273,7 @@ def _linkRiverductHydrojunction(layerName, reversDirect):
 
 def linkIrrigHydrojunction(): 
     """This function finds for each Irrigation polygon the corresponding 
-    hydrojunciton node"""
+    hydrojunction node"""
 
     # Make sure Irrigation layer is OK
     if not h_utils.layerNameTypeOK(h_const.irrigLayerName, 

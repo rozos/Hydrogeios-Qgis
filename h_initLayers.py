@@ -105,11 +105,9 @@ def createOutletsLayer(path):
     """Create a new point layer with the end nodes of the rivers segments."""
 
     # Get outlets of river segments
-    (endPntXs,endPntYs)= h_utils.getSegmentPntCoords(h_const.riverLayerName,
-                                                      "first")
+    endPnts= h_utils.getSegmentPoints(h_const.riverLayerName, "first")
 
-    coordinates=zip(endPntXs, endPntYs)
-    ok= h_utils.createPointLayer(path, h_const.outletLayerName, coordinates,
+    ok= h_utils.createPointLayer(path, h_const.outletLayerName, endPnts,
                           h_const.outletFieldNames, h_const.outletFieldTypes,
                           (endPntXs, endPntYs) )
     if not ok: return False
@@ -254,20 +252,17 @@ def createRiverexitnodeLayer(path):
     """Initialize/create Riverexitnode layer"""
 
     # Get outlets of river segments
-    res= h_utils.getSegmentPntCoords(h_const.riverLayerName, "first")
-    if res!=False and res[0]!=None: 
-        #endPntXs,endPntYs= res[0], res[1]
-        duplCoords= zip(res[0], res[1])
-    else:
-        print("No start node coordinates found!")
+    duplpoints= h_utils.getSegmentPoints(h_const.riverLayerName, "first")
+    if duplpoints==False or duplpoints==None: 
+        print("No start node found!")
         return False
 
     # Create a point layer with the river segment outlets
     riverexitnodeLayerName=h_const.riverexitnodeLayerName
     h_utils.unloadShapefile(riverexitnodeLayerName)
     #coordinates=zip(endPntXs, endPntYs)
-    coordinates=list(set(duplCoords))
-    ok= h_utils.createPointLayer(path, riverexitnodeLayerName, coordinates, 
+    points=list(set(duplpoints))
+    ok= h_utils.createPointLayer(path, riverexitnodeLayerName, points, 
                                  h_const.riverexitnodeFieldNames, 
                                  h_const.riverexitnodeFieldTypes, ([], [], [],))
     if not ok: return False
@@ -306,24 +301,22 @@ def linkSubbasinRiver():
         return False 
 
     # Get coordinates of river segments mid-nodes
-    rivInpNodeXlist, rivInpNodeYlist = \
-                    h_utils.getSegmentPntCoords(h_const.riverLayerName, "mid")
-    if rivInpNodeXlist==None: 
+    rivInpNodes= h_utils.getSegmentPoints(h_const.riverLayerName, "mid")
+    if rivInpNodes==None: 
         print("Failed to get coordinates of river segments mid-nodes!")
         return False
 
     # Loop through every river input node
     rivsId = [None] * subbasCount
     inFeat = QgsFeature()
-    for rivid, strNodeX, strNodeY in zip( range(0,len(rivInpNodeXlist)), \
-                                          rivInpNodeXlist, rivInpNodeYlist):
+    for rivid, strtNode in zip( range(0,len(rivInpNodes)), rivInpNodes ):
         # Loop through every subbasin polygon
         foundStart= False
         subbPolygons= h_utils.getLayerFeatures(h_const.subbasLayerName)
         i=0
         while subbPolygons.nextFeature(inFeat):
             # Find if this point belongs to this subbasin 
-            if inFeat.geometry().contains(QgsPointXY(strNodeX,strNodeY)):
+            if inFeat.geometry().contains(strtNode):
                 if not foundStart:
                     foundStart= True
                 else:

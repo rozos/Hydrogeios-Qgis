@@ -141,49 +141,39 @@ def layerFeaturesNumberOK(layerName, featuresNum):
 
 
 
-def getSegmentPntCoords(layerName, firstORlast):
+def getSegmentPoints(layerName, firstORlast):
     """Get coordinates of the ending nodes of the segments of a line layer."""
 
     if not layerNameTypeOK(layerName, QgsWkbTypes.LineGeometry): 
-        print("getSegmentPntCoords: Wrong layer geometry type!") 
+        print("getSegmentPoints: Wrong layer geometry type!") 
         return False
 
     segments=getLayerFeatures(layerName)
     if segments==None: 
-        print("getSegmentPntCoords: Could not get layer segments!") 
+        print("getSegmentPoints: Could not get layer segments!") 
         return False 
 
     inFeat = QgsFeature()
-    #XList= []
-    #YList= []
     Points= []
     x,y = 0,1
     while segments.nextFeature(inFeat):
         nodes=inFeat.geometry().asMultiPolyline()
         if len(nodes)==0:
-            print("getSegmentPntCoords: Could not get nodes of polyline!") 
-            #return None, None
-            return None
+            print("getSegmentPoints: Could not get nodes of polyline!") 
+            return []
         if firstORlast=="first":
             frstnode=0
             Points.append(nodes[0][frstnode])
-            #XList.append( nodes[frstnode][x] )
-            #YList.append( nodes[frstnode][y] )
         elif firstORlast=="last":
-            lastnode=len(nodes)-1
+            lastnode=len(nodes[0])-1
             Points.append(nodes[0][lastnode])
-            #XList.append( nodes[lastnode][x] )
-            #YList.append( nodes[lastnode][y] )
         elif firstORlast=="mid":
-            midnode=int(len(nodes)/2)
+            midnode=int(len(nodes[0])/2)
             Points.append(nodes[0][midnode])
-            #XList.append( nodes[midnode][x] )
-            #YList.append( nodes[midnode][y] )
         else: 
-            return False
-            print("getSegmentPntCoords: Uknown second argument!") 
+            print("getSegmentPoints: Uknown second argument!") 
+            return []
 
-    #return XList, YList
     return Points 
 
 
@@ -216,8 +206,11 @@ def getFieldIndexByName(layerName, fieldName, warn=True):
 def getElementIndexByVal(alist, value):
     """Finds the indexes of the elements of the list with numbers 'alist' that
     are equal to the value 'value'."""
-    return [ i for i in range(len(alist))
-            if floatsEqual(alist[i],value,h_const.precise) ]
+    if type(value==float):
+        return [ i for i in range(len(alist))
+                if floatsEqual(alist[i],value,h_const.precise) ]
+    if type(value==qgis._core.QgsPointXY):
+        return [ i for i in range(len(alist)) if alist[i]==value ]
 
 
 
@@ -486,7 +479,7 @@ def delField(layerName, fieldName):
 
 
 
-def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
+def createPointLayer(path, filename, points, fieldNames, fieldTypes,
                      attrValues):
     """Creates a shapefile with points and populates its attribute table"""
 
@@ -517,9 +510,9 @@ def createPointLayer(path, filename, coords, fieldNames, fieldTypes,
         return False
 
     # Add points to layer
-    for i, xy in zip( range(0,len(coords)), coords):
+    for i, point in zip( range(0,len(points)), points):
         feat = QgsFeature()
-        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(xy[0],xy[1])))
+        feat.setGeometry(QgsGeometry.fromPointXY(point))
         # Add values to attribute table
         rowValues=[]
         for j in range(0, len(fieldNames)):
