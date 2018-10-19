@@ -3,7 +3,7 @@ from qgis.core import *
 #from qgis.analysis import QgsOverlayAnalyzer
 import os.path
 import ftools_utils
-import geoprocess
+import processing
 import h_const
 import h_utils
 import h_initLayers
@@ -26,32 +26,37 @@ def doAll(path, CNrasterName, bandnum, rangeUpVals):
 
 
 
-def createSubbasinHRU(path):
+def createSubbasinHRU(projectpath):
     """Use Subbasin polygons to intersect the HRU polygons to create a new
     layer that links Subbasin with HRU."""
 
     # Delete existing shapefile SubbasinHRU
     h_utils.unloadShapefile(h_const.subbasHRULayerName)
-    if h_utils.shapefileExists(path, h_const.subbasHRULayerName):
-        ok=h_utils.delExistingShapefile( path, h_const.subbasHRULayerName)
+    if h_utils.shapefileExists(projectpath, h_const.subbasHRULayerName):
+        ok=h_utils.delExistingShapefile(projectpath, h_const.subbasHRULayerName)
         if not ok: return False
 
     # Check Subbasin and HRU types
     if not h_utils.layerNameTypeOK(h_const.subbasLayerName,
-                                   h_const.subbasLayerType) or \
+                                   h_const.subbasGeomType) or \
        not h_utils.layerNameTypeOK(h_const.HRULayerName,
-                                   h_const.HRULayerType):
+                                   h_const.HRUGeomType):
         return False
 
     # Intersect Subbasin with HRU
-    ok = geoprocess.intersect( path, h_const.subbasLayerName, 
-                                 h_const.HRULayerName,
-                                 h_const.subbasHRULayerName)
-    if not ok: return False
-
+    subbasinlayer=os.path.join(projectpath, h_const.subbasLayerName+".shp")
+    hrulayer=os.path.join(projectpath, h_const.HRULayerName+".shp")
+    outlayer=os.path.join(projectpath, h_const.subbasHRULayerName+".shp")
+    try:
+        processing.run('qgis:intersection', { 'INPUT': h_const.subbasLayerName,
+                       'INPUT_FIELDS': [], 'OUTPUT': outlayer,
+                       'OVERLAY': hrulayer, 'OVERLAY_FIELDS': [] } )
+    except Exception as e:
+        print(str(e))
+        return False
+        
     # Load SubbasinHRU
-    h_utils.loadShapefileToCanvas(path, h_const.subbasHRULayerName)
-
+    h_utils.loadShapefileToCanvas(projectpath, h_const.subbasHRULayerName)
     # Update the area values of the SubbasinHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.subbasHRULayerName,
                                        h_const.subbasHRUFieldArea)

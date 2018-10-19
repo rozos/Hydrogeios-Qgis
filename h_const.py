@@ -12,7 +12,7 @@ nodataCode=-2147483647
 
 # River layer specifications
 riverLayerName="River"
-riverLayerType=QgsLayerItem.Line
+#riverLayerType=QgsLayerItem.Line
 riverWkbType=QgsWkbTypes.LineString
 riverGeomType=QgsWkbTypes.LineGeometry
 riverFieldNames=("RIVER_ID", "NAME", "DESCR", "FROM_NODE", "TO_NODE", "LENGTH",
@@ -34,7 +34,7 @@ toNodeFieldName =   "TO_NODE"
 
 # Groundwater cells layer specifications
 grdwatLayerName= "GroundWater"
-grdwatLayerType= QgsLayerItem.Polygon
+#grdwatLayerType= QgsLayerItem.Polygon
 grdwatWkbType= QgsWkbTypes.Polygon
 grdwatGeomType= QgsWkbTypes.PolygonGeometry
 grdwatFieldNames=("GROUND_ID", "NAME", "DESCR", "TYPE", "X_CENTROID",
@@ -54,7 +54,7 @@ grdwatFieldArea= grdwatFieldNames[6]
 hydrojncLayerName="HydroJunction"
 hydrojncFieldNames=("JUNCT_ID", "NAME", "DESCR", "JUNCT_TYPE", "TS_ID",
                     "X", "Y", "Z")
-hydrojncLayerType= QgsLayerItem.Point
+#hydrojncLayerType= QgsLayerItem.Point
 hydrojncWkbType= QgsWkbTypes.Point
 hydrojncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                     QVariant.Int, QVariant.Int, QVariant.Double,
@@ -69,7 +69,7 @@ hydrojncTypeSpr=4
 
 # Irrigation layer specifications
 irrigLayerName="Irrigation"
-irrigLayerType=QgsLayerItem.Polygon
+#irrigLayerType=QgsLayerItem.Polygon
 irrigWkbType=QgsWkbTypes.Polygon
 irrigGeomType=QgsWkbTypes.PolygonGeometry
 irrigFieldNames=("IRRIG_AREA", hydrojncFieldId, "RET_PIPE", "RET_RATIO")
@@ -80,7 +80,7 @@ irrigFieldArea=  irrigFieldNames[0]
 
 # River nodes
 riverexitnodeLayerName= "RiverExitNode"
-riverexitnodeLayerType= QgsLayerItem.Point
+#riverexitnodeLayerType= QgsLayerItem.Point
 riverexitnodeWkbType= QgsWkbTypes.Point
 riverexitnodeGeomType= QgsWkbTypes.PointGeometry
 riverexitnodeFieldNames= ("NODE_ID", grdwatFieldId, hydrojncFieldId)
@@ -90,7 +90,7 @@ riverexitnodeFieldId= riverexitnodeFieldNames[0]
 
 # Subbasing layer specifications
 subbasLayerName="Subbasin"
-subbasLayerType=QgsLayerItem.Polygon
+#subbasLayerType=QgsLayerItem.Polygon
 subbasWkbType=QgsWkbTypes.Polygon
 subbasGeomType=QgsWkbTypes.PolygonGeometry
 subbasFieldNames=("SUB_ID", "NAME", "DESCR", "AREA", "X_CENTROID", "Y_CENTROID",
@@ -110,7 +110,7 @@ subbasFieldPrimLen= subbasFieldNames[10]
 
 # Borehole layer specifications
 borehLayerName="Borehole"
-borehLayerType=QgsLayerItem.Point
+#borehLayerType=QgsLayerItem.Point
 borehWkbType=QgsWkbTypes.Point
 borehGeomType=QgsWkbTypes.PointGeometry
 borehFieldNames=("NAME", "DESCR", "TYPE", "X", "Y", "Z", grdwatFieldId,
@@ -124,7 +124,7 @@ borehFieldGroupId = borehFieldNames[8]
 
 # Spring specifications
 springLayerName= "Spring"
-springLayerType=QgsLayerItem.Point 
+#springLayerType=QgsLayerItem.Point 
 springWkbType=QgsWkbTypes.Point 
 springGeomType=QgsWkbTypes.PointGeometry
 springFieldNames=("NAME", "DESCR", hydrojncFieldId, "INI_DISCH", "X", "Y", 
@@ -137,7 +137,7 @@ springFieldTypes=(QVariant.String, QVariant.String, QVariant.Int,
 
 # Aqueduct layer specifications
 aquedLayerName= "Aqueduct"
-aquedLayerType=QgsLayerItem.Line 
+#aquedLayerType=QgsLayerItem.Line 
 aquedWkbType=QgsWkbTypes.LineString 
 aquedGeomType=QgsWkbTypes.LineGeometry
 aquedFieldNames=("NAME", "DESCR", "LEAK_CF", "FROM_NODE", "TO_NODE", 
@@ -150,7 +150,7 @@ aquedFieldLength=aquedFieldNames[5]
 
 # Outlet layer specifications
 outletLayerName="Outlet"
-outletLayerType=QgsLayerItem.Point
+#outletLayerType=QgsLayerItem.Point
 outletWkbType=QgsWkbTypes.Point
 outletFieldNames=( "X", "Y")
 outletFieldTypes=(QVariant.Double, QVariant.Double)
@@ -158,7 +158,7 @@ outletFieldTypes=(QVariant.Double, QVariant.Double)
 
 # RiverGround layer specifications
 riverGrdwatLayerName="RiverGround"
-riverGrdwatLayerType=QgsLayerItem.Line 
+#riverGrdwatLayerType=QgsLayerItem.Line 
 riverGrdwatWkbType=QgsWkbTypes.LineString
 riverGrdwatGeomType= QgsWkbTypes.LineGeometry
 riverGrdwatFieldNames=(riverFieldId, grdwatFieldId, "LENGTH",)
@@ -169,7 +169,7 @@ riverGrdwatFieldLength=riverGrdwatFieldNames[2]
 
 # HRU layer specifications
 HRULayerName="HRU"
-HRULayerType= QgsLayerItem.Polygon
+#HRULayerType= QgsLayerItem.Polygon
 HRUWkbType= QgsWkbTypes.Polygon
 HRUGeomType= QgsWkbTypes.PolygonGeometry
 HRUFieldNames=("HRU_ID", "DESCR", "NAME", "AREA", "HRU_CODE", "RNF_CF",
@@ -186,7 +186,7 @@ HRUundisFieldId="HRUundisID"
 
 # SubbasinHRU layer specifications
 subbasHRULayerName="SubbasinHRU"
-subbasHRULayerType= QgsLayerItem.Polygon
+#subbasHRULayerType= QgsLayerItem.Polygon
 subbasHRUWkbType= QgsWkbTypes.Polygon
 subbasHRUGeomType= QgsWkbTypes.PolygonGeometry
 subbasHRUFieldNames=("NAME", "DESCR", HRUFieldId, subbasFieldId, "AREA",
@@ -199,7 +199,7 @@ subbasHRUFieldArea=subbasHRUFieldNames[4]
 
 # subGroundHRU layer specifications
 grdwatSubbasHRULayerName="SubGroundHRU"
-grdwatSubbasHRULayerType= QgsLayerItem.Polygon
+#grdwatSubbasHRULayerType= QgsLayerItem.Polygon
 grdwatSubbasHRUWkbType= QgsWkbTypes.Polygon
 grdwatSubbasHRUGeomType= QgsWkbTypes.PolygonGeometry
 grdwatSubbasHRUFieldNames=(HRUFieldId, subbasFieldId, grdwatFieldId, "AREA",)
