@@ -1,12 +1,11 @@
-from PyQt5 import QtGui
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QVariant
 from qgis.core import *
 import math
 import itertools
-import ftools_utils
+import processing
 import h_const
 import h_utils
-import geoprocess
 
 
 def doAll(path):
@@ -15,16 +14,16 @@ def doAll(path):
     # Name groundwater cells
     if not nameGroundwaterCells():
         message="nameGroundwaterCells Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Update the area of groundwater cells
     if not h_utils.addMeasureToAttrTable(h_const.grdwatLayerName, 
-	                            h_const.grdwatFieldArea):
+                                         h_const.grdwatFieldArea):
         message="Update area of groundwater cells Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Create the dbf table with the distances between groundwater cells
     res=distanceBetweenGroundwaterCells()
     if res!=False:
@@ -39,9 +38,9 @@ def doAll(path):
         ok=False
     if not ok:
         message="distanceBetweenGroundwaterCells Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Create the dbf table with the edge between groundwater cells
     res = edgeBetweenGroundwaterCells()
     if res!=False:
@@ -56,51 +55,51 @@ def doAll(path):
         ok=False
     if not ok:
         message="edgeBetweenGroundwaterCells Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Link the springs with groundwater cells
     if not linkSpringToGroundwater():
         message="linkSpringToGroundwater Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Link the springs with subbasin polygons
     if not linkSpringToSubbasin():
         message="linkSpringToSubbasin Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Link the boreholes with groundwater cells
     if not linkBoreholeToGroundwater():
         message="linkBoreholeToGroundwater Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Link the boreholes with subbasin polygons
     if not linkBoreholeToSubbasin():
         message="linkBoreholeToSubbasin Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Link the RiverNode with the groundwater cells
     if not linkRiverNodeGroundwater():
         message="linkRiverNodeGroundwater Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Link the river with groundwater cells
     if not createRiverGroundwater(path):
         message="createRiverGroundwater Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     # Link the SubbasinHRU with the groundwater cells
     if not createGroundwaterSubbasinHRU(path):
         message="createGroundwaterSubbasinHRU Failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
 
     return True
 
@@ -267,9 +266,15 @@ def createRiverGroundwater(path):
         if not ok: return False
 
     # Intersect river with Groundwater
-    ok=geoprocess.intersect( path, h_const.riverLayerName, 
-                               h_const.grdwatLayerName, 
-                               h_const.riverGrdwatLayerName )
+    riverlayername=os.path.join(projectpath, h_const.riverLayerName+".shp")
+    grdwatlayername=os.path.join(projectpath, h_const.grdwatLayerName+".shp")
+    outlayername=os.path.join(projectpath, h_const.riverGrdwatLayerName+".shp")
+    try:
+        processing.run('qgis:intersection', { 'INPUT': riverlayername,
+                       'INPUT_FIELDS': [], 'OUTPUT': outlayername,
+                       'OVERLAY': grdwatlayername, 'OVERLAY_FIELDS': [] } )
+    except Exception as e:
+        print(str(e))
     if not ok: return False
 
     # Load RiverGroundwater
@@ -284,7 +289,7 @@ def createRiverGroundwater(path):
     
     
 
-def createGroundwaterSubbasinHRU(path):
+def createGroundwaterSubbasinHRU(prjpath):
     """Use groundwater cells to intersect the subbasinHRU polygons to create a 
     SubGroundHRU  layer."""
 
@@ -300,9 +305,15 @@ def createGroundwaterSubbasinHRU(path):
        if not ok: return False
 
     # Intersect Groundwater with SubbasinHRU
-    ok=geoprocess.intersect( path, h_const.subbasHRULayerName,
-                               h_const.grdwatLayerName,
-                               h_const.grdwatSubbasHRULayerName)
+    subhrulayername=os.path.join(prjpath, h_const.subbasHRULayerName+".shp")
+    grdwatlayername=os.path.join(prjpath, h_const.grdwatLayerName+".shp")
+    outlayername=os.path.join(prjpath, h_const.grdwatSubbasHRULayerName+".shp")
+    try:
+        processing.run('qgis:intersection', { 'INPUT': subhrulayername,
+                       'INPUT_FIELDS': [], 'OUTPUT': outlayername,
+                       'OVERLAY': grdwatlayername, 'OVERLAY_FIELDS': [] } )
+    except Exception as e:
+        print(str(e))
     if not ok: return False
 
     # Load SubGroundHRU

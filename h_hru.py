@@ -2,7 +2,6 @@ from PyQt5 import QtGui
 from qgis.core import *
 #from qgis.analysis import QgsOverlayAnalyzer
 import os.path
-import ftools_utils
 import processing
 import h_const
 import h_utils
@@ -43,24 +42,31 @@ def createSubbasinHRU(projectpath):
                                    h_const.HRUGeomType):
         return False
 
-    # Intersect Subbasin with HRU
-    subbasinlayer=os.path.join(projectpath, h_const.subbasLayerName+".shp")
-    hrulayer=os.path.join(projectpath, h_const.HRULayerName+".shp")
-    outlayer=os.path.join(projectpath, h_const.subbasHRULayerName+".shp")
+    # Fix HRU geometries
+    hrulayername=os.path.join(projectpath, h_const.HRULayerName+".shp")
+    hrufixedlayername=os.path.join(projectpath, "HRU_f.shp")
     try:
-        processing.run('qgis:intersection', { 'INPUT': h_const.subbasLayerName,
-                       'INPUT_FIELDS': [], 'OUTPUT': outlayer,
-                       'OVERLAY': hrulayer, 'OVERLAY_FIELDS': [] } )
+        processing.run('qgis:fixgeometries', { 'INPUT': hrulayername,
+                       'OUTPUT': hrufixedlayername } )
     except Exception as e:
         print(str(e))
         return False
-        
-    # Load SubbasinHRU
-    h_utils.loadShapefileToCanvas(projectpath, h_const.subbasHRULayerName)
+
+    # Intersect Subbasin with HRU
+    subbasinlayername=os.path.join(projectpath, h_const.subbasLayerName+".shp")
+    outlayername=os.path.join(projectpath, h_const.subbasHRULayerName+".shp")
+    try:
+        processing.run('qgis:intersection', { 'INPUT': subbasinlayername,
+                       'INPUT_FIELDS': [], 'OUTPUT': outlayername,
+                       'OVERLAY': hrufixedlayername, 'OVERLAY_FIELDS': [] } )
+    except Exception as e:
+        print(str(e))
+        return False
+
     # Update the area values of the SubbasinHRU polygons in the attr. table
+    h_utils.loadShapefileToCanvas(projectpath, h_const.subbasHRULayerName)
     ok= h_utils.addMeasureToAttrTable( h_const.subbasHRULayerName,
                                        h_const.subbasHRUFieldArea)
-    # Unload layer
     h_utils.unloadShapefile(h_const.subbasHRULayerName)
 
     return ok

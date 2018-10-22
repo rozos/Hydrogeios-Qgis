@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import *
 from qgis.core import *
 import os.path
-import ftools_utils
 import h_const
 import h_utils
 import h_topology
@@ -266,7 +265,7 @@ def createRiverexitnodeLayer(path):
                                  h_const.riverexitnodeFieldTypes, ([], [], [],))
     if not ok: return False
 
-    # Load river exit add Ids and unload
+    # Load river exit, add Ids to attr. table, and unload
     if not h_utils.isLayerLoaded(riverexitnodeLayerName):
         ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName)
         if not ok: return False

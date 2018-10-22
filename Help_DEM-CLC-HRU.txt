@@ -1,0 +1,22 @@
+# DEM
+# Obtain DTM from 
+# http://www.eea.europa.eu/data-and-maps/data/eu-dem#tab-original-data
+# Clip the DEM, reproject to EPSG 2100, change resolution
+import os
+bounds='22.276454 38.393083 23.260178 38.789073'
+resolution='100 100'
+largeDEM='d:\Data\eudem_dem_5deg_n35e020.tif'
+cmd='gdalwarp -s_srs EPSG:4258 -t_srs EPSG:2100 -te ' + bounds + ' -te_srs EPSG:4258 -tr ' + resolution + ' -of GTiff ' + largeDEM + ' "' + projectpath+ '"/DEM.tif&pause'
+os.system(cmd)
+
+
+# CORINE LAND COVER
+# Download a CLC layer from
+# https://land.copernicus.eu/pan-european/corine-land-cover/clc-2006?tab=download
+# clip the layer to the study area (data type is byte)
+
+
+# HRU
+# Calculate DEM slope (Raster -> analysis -> Slope).
+# Combine raster layers to produce HRU (Raster -> Raster Calculator).
+#(( "CLC@1" = 12 OR "CLC@1" = 13 )*5 + ("CLC@1" != 12 AND "CLC@1" != 13)*2 ) *6 + (("Slope@1"<10)*1 +("Slope@1" >= 10)*4)*3 + 18 + 10

@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QVariant, QFileInfo
 from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
 from osgeo import gdal, ogr
-import ftools_utils
 import os.path
 import processing
 import h_const
@@ -41,7 +40,7 @@ def unloadShapefile(layerName):
 
 def unloadRaster(layerName):
     """Unloads a raster from canvas. Returns true if it was loaded."""
-    layer=ftools_utils.getRasterLayerByName(layerName)
+    layer=getRasterLayerByName(layerName)
     if layer:
         QgsProject.instance().removeMapLayer(layer)
         return True
@@ -57,7 +56,7 @@ def loadShapefileToCanvas(path, layername):
     if isLayerLoaded(layername):
         return True
     pathFilename=os.path.join(path, layername+".shp")
-    if not ftools_utils.addShapeToCanvas(pathFilename):
+    if not addShapeToCanvas(pathFilename):
         message="Error loading shapefile "+pathFilename
         QMessageBox.critical(None, 'Error', message, QMessageBox.Ok)
         return False
@@ -324,7 +323,7 @@ def getCellValue(layerName, coords, band):
     if len(coords)!=2:
         message="A pair of two numbers only is required for coordinates!"
     else:
-        rlayer=ftools_utils.getRasterLayerByName(layerName)
+        rlayer=getRasterLayerByName(layerName)
         if rlayer==None:
             message=layerName + "  not loaded or not a raster!"
         elif band<1:
@@ -493,6 +492,11 @@ def createPointLayer(path, filename, points, fieldNames, fieldTypes,
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
+    # Create QgsFields (a list of QgsFields)
+    myqgsfields=QgsFields()
+    for ifieldname, ifieldtype in zip (fieldNames, fieldTypes):
+        myqgsfields.append(QgsField(ifieldname, ifieldtype))
+
     # Delete existing layer
     if shapefileExists(path, filename):
         if not delExistingShapefile(path, filename):
@@ -500,7 +504,7 @@ def createPointLayer(path, filename, points, fieldNames, fieldTypes,
 
     # Create empty point layer and add attribute fields
     pathFilename=os.path.join(path, filename)
-    writer= QgsVectorFileWriter(pathFilename, "utf8", QgsFields(),
+    writer= QgsVectorFileWriter(pathFilename, "utf8", myqgsfields,
                                 QgsWkbTypes.Point, 
                                 QgsCoordinateReferenceSystem(h_const.projectcrs)
                                 , "ESRI Shapefile")
@@ -510,7 +514,8 @@ def createPointLayer(path, filename, points, fieldNames, fieldTypes,
         return False
 
     # Add points to layer
-    for i, point in zip( range(0,len(points)), points):
+    npoints= sum(1 for _ in points) 
+    for i, point in zip( range(0,npoints), points):
         feat = QgsFeature()
         feat.setGeometry(QgsGeometry.fromPointXY(point))
         # Add values to attribute table
@@ -576,7 +581,7 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
     """ Reclassify a raster to groups defined by rangeUpValues."""
 
     # Get raster
-    inRaster=ftools_utils.getRasterLayerByName(inRasterName)
+    inRaster=getRasterLayerByName(inRasterName)
     if not inRaster:
         message=inRasterName+ "  not loaded or not a raster!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
@@ -587,7 +592,6 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
         message= path + " does not exist!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
-
 
     # Define band
     boh = QgsRasterCalculatorEntry()
@@ -769,7 +773,7 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     pointLayername corresponds to. Returns the list with the polygon ids
     to which each point corresponds to."""
 
-    if not layerNameTypeOK(polyLayerName, QgsWkbTypes.PointGeometry): 
+    if not layerNameTypeOK(polyLayerName, QgsWkbTypes.PolygonGeometry): 
         print("linkPointLayerToPolygonLayer: wrong poly layer!")
         return None
     if not layerNameTypeOK(pointLayerName, QgsWkbTypes.PointGeometry): 
@@ -814,3 +818,31 @@ def dissolve(projectpath, dissolve_layer, outlayername):
 
 def copyShapefile(origShapefile, copyShapefile):
     pass
+
+
+
+# Return QgsRasterLayer from a layer name ( as string )
+def getRasterLayerByName( myName ):
+    layermap = QgsProject.instance().mapLayers()
+    for key, layer in layermap.items():
+        if layer.type() == QgsMapLayer.RasterLayer and layer.name() == myName:
+            if layer.isValid():
+                return layer
+            else:
+                return None
+
+
+
+# Convinience function to add a vector layer to canvas based on input shapefile path ( as string )
+def addShapeToCanvas( shapefile_path ):
+    file_info = QFileInfo( shapefile_path )
+    if file_info.exists():
+        layer_name = file_info.completeBaseName()
+    else:
+        return False
+    vlayer_new = QgsVectorLayer( shapefile_path, layer_name, "ogr" )
+    if vlayer_new.isValid():
+        QgsProject.instance().addMapLayers( [vlayer_new] )
+        return True
+    else:
+        return False
