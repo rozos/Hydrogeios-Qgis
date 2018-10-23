@@ -49,13 +49,13 @@ def unloadRaster(layerName):
 
 
 
-def loadShapefileToCanvas(path, layername):
+def loadShapefileToCanvas(prjpath, layerName):
     """Wraps the ftools function. It displayes an error message if something
     goes wrong."""
 
-    if isLayerLoaded(layername):
+    if isLayerLoaded(layerName):
         return True
-    pathFilename=os.path.join(path, layername+".shp")
+    pathFilename=os.path.join(prjpath, layerName+".shp")
     if not addShapeToCanvas(pathFilename):
         message="Error loading shapefile "+pathFilename
         QMessageBox.critical(None, 'Error', message, QMessageBox.Ok)
@@ -64,11 +64,11 @@ def loadShapefileToCanvas(path, layername):
 
 
 
-def loadRasterfileToCanvas(path, layername):
+def loadRasterfileToCanvas(prjpath, layerName):
     """Loads a raste to canvas."""
-    if isLayerLoaded(layername):
+    if isLayerLoaded(layerName):
         return True
-    pathFilename=os.path.join(path, layername+".tif")
+    pathFilename=os.path.join(prjpath, layerName+".tif")
     file_info = QFileInfo(pathFilename)
     if file_info.exists():
         layer_name = file_info.completeBaseName()
@@ -102,9 +102,9 @@ def isRasterLoaded(layerName):
 
 
 
-def shapefileExists(path, filename):
+def shapefileExists(prjpath, layerName):
     """Checks if a shapefile exists."""
-    pathFilename=os.path.join(path, filename)
+    pathFilename=os.path.join(prjpath, layerName)
     fileExists= os.path.isfile(pathFilename+".shp")
     return fileExists
 
@@ -414,14 +414,14 @@ def setFieldAttrValues(layerName, fieldName, values):
 
 
 
-def delExistingShapefile(path, filename):
+def delExistingShapefile(prjpath, filename):
     """ Delete an existing layer."""
-    if shapefileExists(path, filename):
+    if shapefileExists(prjpath, filename):
         message="Delete shapefile "+filename+"?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-        pathFilename=os.path.join(path, filename)
+        pathFilename=os.path.join(prjpath, filename)
         if not QgsVectorFileWriter.deleteShapeFile(pathFilename):
             message="Can't delete shapefile "+pathFilename
             QMessageBox.critical(None,'Err',message,QMessageBox.Ok)
@@ -478,33 +478,29 @@ def delField(layerName, fieldName):
 
 
 
-def createPointLayer(path, filename, points, fieldNames, fieldTypes,
+def createPointLayer(prjpath, layerName, points, fieldNames, fieldTypes,
                      attrValues):
     """Creates a shapefile with points and populates its attribute table"""
 
     # Check arguments
     message=""
     if len(fieldNames) != len(fieldTypes):
-        message="createPointLayer: "+ filename +"FieldNames.no <> FieldTypes.no"
+        message="createPointLayer: "+ layerName+"FieldNames.no <> FieldTypes.no"
     if len(fieldNames) > 1 and len(fieldNames)!=len(attrValues):
-        message="createPointLayer: "+ filename +"FieldNames.no <> attrValues.no"
+        message="createPointLayer: "+ layerName+"FieldNames.no <> attrValues.no"
     if len(message)!=0:
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
-    # Create QgsFields (a list of QgsFields)
-    myqgsfields=QgsFields()
-    for ifieldname, ifieldtype in zip (fieldNames, fieldTypes):
-        myqgsfields.append(QgsField(ifieldname, ifieldtype))
-
     # Delete existing layer
-    if shapefileExists(path, filename):
-        if not delExistingShapefile(path, filename):
+    unloadShapefile(layerName)
+    if shapefileExists(prjpath, layerName):
+        if not delExistingShapefile(prjpath, layerName):
             return False
 
-    # Create empty point layer and add attribute fields
-    pathFilename=os.path.join(path, filename)
-    writer= QgsVectorFileWriter(pathFilename, "utf8", myqgsfields,
+    # Create empty point layer
+    pathFilename=os.path.join(prjpath, layerName)
+    writer= QgsVectorFileWriter(pathFilename, "utf8", QgsFields(),
                                 QgsWkbTypes.Point, 
                                 QgsCoordinateReferenceSystem(h_const.projectcrs)
                                 , "ESRI Shapefile")
@@ -523,21 +519,25 @@ def createPointLayer(path, filename, points, fieldNames, fieldTypes,
         for j in range(0, len(fieldNames)):
             if len(attrValues[j])>i: rowValues.append(attrValues[j][i])
             else: rowValues.append(None)
-            feat.setAttributes(rowValues)
+        feat.setAttributes(rowValues)
         writer.addFeature(feat)
 
     # Delete the writer to flush features to disk (optional)
-    del writer
+    del writer 
+
+    # Add extra fields to attribute table
+    if not addFieldsToAttrTable(prjpath, layerName, fieldTypes, fieldNames):
+        return False
+
     return True
 
 
-
-def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
+def createVectorFromRaster(prjpath, rasterFileName, bandnum, outShapeFileName,
                            outShapeId):
     """Create a vector layer from a raster layer using values of provided
        band."""
     # Load existing raster
-    pathFilename=os.path.join( path, rasterFileName)
+    pathFilename=os.path.join( prjpath, rasterFileName)
     sourceRaster = gdal.Open(pathFilename)
     if not sourceRaster:
         message=pathFilename + "  not found!"
@@ -545,8 +545,8 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
         return False
 
     # Delete existing (if any) output shapefile
-    if shapefileExists(path, outShapeFileName):
-        if not delExistingShapefile(path, outShapeFileName):
+    if shapefileExists(prjpath, outShapeFileName):
+        if not delExistingShapefile(prjpath, outShapeFileName):
             return False
 
     # Turn raster into vector
@@ -557,7 +557,7 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
         return False
     bandArray = band.ReadAsArray()
     driver = ogr.GetDriverByName("ESRI Shapefile")
-    pathFilename=os.path.join( path, outShapeFileName)
+    pathFilename=os.path.join( prjpath, outShapeFileName)
     outDatasource = driver.CreateDataSource(pathFilename+ ".shp")
     if outDatasource==None:
         message="Could not create " + outShapeFileName
@@ -576,9 +576,9 @@ def createVectorFromRaster(path, rasterFileName, bandnum, outShapeFileName,
 
 
 
-def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
+def reclassifyRaster(prjpath, inRasterName, bandnum, minValue, tupleUpValues,
                      outRasterName):
-    """ Reclassify a raster to groups defined by rangeUpValues."""
+    """ Reclassify a raster to groups defined by tupleUpValues."""
 
     # Get raster
     inRaster=getRasterLayerByName(inRasterName)
@@ -587,9 +587,9 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
-    # Check path exists
-    if not os.path.isdir(path):
-        message= path + " does not exist!"
+    # Check prjpath exists
+    if not os.path.isdir(prjpath):
+        message= prjpath + " does not exist!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
@@ -609,16 +609,16 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
     i = 1
     lowerVal=0
     calcCommand=""
-    for upValue in rangeUpValues:
+    for upValue in tupleUpValues:
         calcCommand = calcCommand + '( ' + str(minValue) + bandNameAddStr
         calcCommand = calcCommand + str(upValue) + ')' + '*' + str(i)
-        if i!=len(rangeUpValues):
+        if i!=len(tupleUpValues):
             calcCommand = calcCommand + ' + '
             minValue = upValue
             i = i + 1
 
     # Process calculation with input extent and resolution
-    pathFilename=os.path.join( path, outRasterName) + '.tif'
+    pathFilename=os.path.join( prjpath, outRasterName) + '.tif'
     calc = QgsRasterCalculator(calcCommand, pathFilename, 'GTiff',
                                inRaster.extent(), inRaster.width(),
                                inRaster.height(), entries )
@@ -629,7 +629,7 @@ def reclassifyRaster(path, inRasterName, bandnum, minValue, rangeUpValues,
 
 
 
-def createDBF(path, fileName, fieldNames, fieldTypes, values):
+def createDBF(prjpath, fileName, fieldNames, fieldTypes, values):
     """Creates a new dbf file (or updates an existing) with the values provided
     in the values list (this is a list of lists in case of many fields."""
 
@@ -644,8 +644,8 @@ def createDBF(path, fileName, fieldNames, fieldTypes, values):
         return False
 
     # Delete existing
-    if shapefileExists(path, fileName):
-        if not delExistingShapefile(path, fileName):
+    if shapefileExists(prjpath, fileName):
+        if not delExistingShapefile(prjpath, fileName):
             return False
 
     # Create the list with the coordinates of dummy points
@@ -653,7 +653,7 @@ def createDBF(path, fileName, fieldNames, fieldTypes, values):
     coords=zip([0]*numvalues, [0]*numvalues)
 
     # Create dummy shapefile to create the required dbf file
-    ok=createPointLayer(path, fileName, coords, fieldNames, fieldTypes, values)
+    ok=createPointLayer(prjpath, fileName, coords, fieldNames, fieldTypes, values)
 
     return ok
 
@@ -774,15 +774,15 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     to which each point corresponds to."""
 
     if not layerNameTypeOK(polyLayerName, QgsWkbTypes.PolygonGeometry): 
-        print("linkPointLayerToPolygonLayer: wrong poly layer!")
+        print("linkPointLayerToPolygonLayer: " +polyLayerName+ " wrong layer!")
         return None
     if not layerNameTypeOK(pointLayerName, QgsWkbTypes.PointGeometry): 
-        print("linkPointLayerToPolygonLayer: wrong point layer!")
+        print("linkPointLayerToPolygonLayer: " +pointLayerName+ " wrong layer!")
         return None
 
     points=getLayerFeatures(pointLayerName)
     if points==None:
-        print("linkPointLayerToPolygonLayer: no points in layer!")
+        print("linkPointLayerToPolygonLayer: " +pointLayerName+ " no points!")
         return None
 
     polygonIds=[]
@@ -801,10 +801,10 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
 
 
 
-def dissolve(projectpath, dissolve_layer, outlayername):
+def dissolve(projectpath, dissolve_layer, outlayerName):
     layers=QgsProject.instance().mapLayersByName(dissolve_layer) 
     inlayer=os.path.join(projectpath, dissolve_layer+".shp")
-    outlayer=os.path.join(projectpath, outlayername+".shp")
+    outlayer=os.path.join(projectpath, outlayerName+".shp")
     try:
         processing.run('qgis:dissolve', {'FIELD': ['DN'], 'INPUT': inlayer, 
                         'OUTPUT':outlayer} )
@@ -818,6 +818,30 @@ def dissolve(projectpath, dissolve_layer, outlayername):
 
 def copyShapefile(origShapefile, copyShapefile):
     pass
+
+
+
+def addFieldsToAttrTable(prjpath, layerName, fieldTypes, fieldNames):
+
+    # Make sure the layer is loaded 
+    wasloaded=isLayerLoaded(layerName)
+    if not wasloaded:
+        if not loadShapefileToCanvas(prjpath, layerName):
+            print("Problem loading layer " + layerName + "!")
+            return False
+
+    # Make sure all required fields are there
+    for fieldname,fieldtype in zip(fieldNames, fieldTypes):
+        if addFieldToAttrTable(layerName, fieldname, fieldtype)==None:
+            print("Problem in field " + fieldname + "!")
+            return False
+
+    # Unload if it was not loaded
+    if not wasloaded:
+        if not loadShapefileToCanvas(prjpath, layerName):
+            return unloadShapefile(layerName)
+
+    return True
 
 
 

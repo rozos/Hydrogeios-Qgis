@@ -169,7 +169,7 @@ HRUFieldTypes=(QVariant.Int, QVariant.String, QVariant.String, QVariant.Double,
 HRUFieldId=HRUFieldNames[0]
 HRUFieldCode=HRUFieldNames[4]
 HRUFieldArea=HRUFieldNames[3]
-HRUundisFieldId="HRUundisID"
+#HRUundisFieldId="HRUundisID"
 
 
 # SubbasinHRU layer specifications
@@ -205,11 +205,11 @@ HRUrasterLayerName= "HRUraster"
 # Distance between groundwater cells
 distLayerName= "Distance"
 distFieldNames= ("CELL_1", "CELL_2", "DISTANCE" )
-distFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double )
+distFieldTypes= (QVariant.Int, QVariant.Int, QVariant.Double )
 
 
 # Edge between groundwater cells
 edgeLayerName= "Edge"
 edgeFieldNames= ("CELL_1", "CELL_2", "EDGE", "IMPERM")
-edgeFieldTypes= (QVariant.Double,QVariant.Double,QVariant.Double,
+edgeFieldTypes= (QVariant.Int, QVariant.Int, QVariant.Double,
                  QVariant.Double )

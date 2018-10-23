@@ -8,15 +8,15 @@ import h_topology
 
 
 
-def doAll(path):
+def doAll(prjpath):
     """Calls all functions that create/initialize the layers of a Hydrogeios 
     Project."""
-    if not initIrrigLayer(path):
+    if not initIrrigLayer(prjpath):
         message="initIrrigLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-    if not initSubbasinLayer(path):
+    if not initSubbasinLayer(prjpath):
         message="initSubbasinLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
@@ -27,32 +27,32 @@ def doAll(path):
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-    if not initGrdWatLayer(path):
+    if not initGrdWatLayer(prjpath):
         message="initGrdWatLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-    if not initSpringLayer(path):
+    if not initSpringLayer(prjpath):
         message="initSpringLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-    if not initBorehLayer(path):
+    if not initBorehLayer(prjpath):
         message="initBorehLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-    if not initRiverLayer(path):
+    if not initRiverLayer(prjpath):
         message="initRiverLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-    if not initAqueductLayer(path):
+    if not initAqueductLayer(prjpath):
         message="initAqueductLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
-    if not createRiverexitnodeLayer(path):
+    if not createRiverexitnodeLayer(prjpath):
         message="initRiverexitnodeLayer Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
@@ -67,13 +67,13 @@ def doAll(path):
 
 
 
-def initializeLayer(path, layerName, wkbtype, fieldNames, fieldTypes):
+def initializeLayer(prjpath, layerName, wkbtype, fieldNames, fieldTypes):
     """Create a new empty layer with the given fields in attribute table or
     (if already there) make sure the attribute table has all required fields"""
 
     # If layer does not exist create one
-    if not h_utils.shapefileExists(path, layerName): 
-        pathFilename=os.path.join(path, layerName)
+    if not h_utils.shapefileExists(prjpath, layerName): 
+        pathFilename=os.path.join(prjpath, layerName)
         writer= QgsVectorFileWriter(pathFilename, "utf8", QgsFields(), wkbtype,
                        QgsCoordinateReferenceSystem(h_const.projectcrs), 
                        "ESRI Shapefile")
@@ -84,46 +84,39 @@ def initializeLayer(path, layerName, wkbtype, fieldNames, fieldTypes):
         # Delete the writer to flush features to disk (optional)
         del writer
 
-    # Make sure the layer is loaded 
-    if not h_utils.isLayerLoaded(layerName):
-        if not h_utils.loadShapefileToCanvas(path, layerName):
-            print("Problem loading layer " + " layerName!")
-            return False
-
     # Make sure all required fields are there
-    for fieldname,fieldtype in zip(fieldNames, fieldTypes):
-        if h_utils.addFieldToAttrTable(layerName, fieldname, fieldtype)==None:
-            print("Problem in field " + fieldname + "!")
-            return False
+    if not h_utils.addFieldsToAttrTable(prjpath, layerName, fieldTypes, 
+                                        fieldNames):
+        return False
 
     return True
 
 
 
-def createOutletsLayer(path):
+def createOutletsLayer(prjpath):
     """Create a new point layer with the end nodes of the rivers segments."""
 
     # Get outlets of river segments
     endPnts= h_utils.getSegmentPoints(h_const.riverLayerName, "first")
 
-    ok= h_utils.createPointLayer(path, h_const.outletLayerName, endPnts,
+    ok= h_utils.createPointLayer(prjpath, h_const.outletLayerName, endPnts,
                           h_const.outletFieldNames, h_const.outletFieldTypes,
                           (endPntXs, endPntYs) )
     if not ok: return False
 
     # Make sure the layer is loaded 
     if not h_utils.isLayerLoaded(h_const.outletLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, h_const.outletLayerName)
+        ok=h_utils.loadShapefileToCanvas(prjpath, h_const.outletLayerName)
 
     return ok
 
 
 
-def initIrrigLayer(path):
+def initIrrigLayer(prjpath):
     """Initialize irrigation layer"""
 
     # Initialize layer
-    ok= initializeLayer(path, h_const.irrigLayerName, h_const.irrigWkbType,
+    ok= initializeLayer(prjpath, h_const.irrigLayerName, h_const.irrigWkbType,
                        h_const.irrigFieldNames, h_const.irrigFieldTypes)
     if not ok: return False
 
@@ -131,11 +124,11 @@ def initIrrigLayer(path):
 
 
 
-def initSubbasinLayer(path):
+def initSubbasinLayer(prjpath):
     """Initialize subbasin layer"""
 
     # Initialize layer
-    ok= initializeLayer(path, h_const.subbasLayerName, h_const.subbasWkbType,
+    ok= initializeLayer(prjpath, h_const.subbasLayerName, h_const.subbasWkbType,
                        h_const.subbasFieldNames, h_const.subbasFieldTypes)
     if not ok:
         print("Failed to initialize layer!")
@@ -180,15 +173,15 @@ def initSubbasinLayer(path):
 
     # Make sure the layer is loaded 
     if not h_utils.isLayerLoaded(h_const.subbasLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, h_const.subbasLayerName)
+        ok=h_utils.loadShapefileToCanvas(prjpath, h_const.subbasLayerName)
 
     return ok
 
 
 
-def initGrdWatLayer(path):
+def initGrdWatLayer(prjpath):
     """Initialize groundwater layer"""
-    ok= initializeLayer(path, h_const.grdwatLayerName, h_const.grdwatWkbType,
+    ok= initializeLayer(prjpath, h_const.grdwatLayerName, h_const.grdwatWkbType,
                        h_const.grdwatFieldNames, h_const.grdwatFieldTypes)
     if not ok: return False
 
@@ -200,27 +193,27 @@ def initGrdWatLayer(path):
 
 
 
-def initSpringLayer(path):
+def initSpringLayer(prjpath):
     """Initialize spring layer"""
-    ok= initializeLayer(path, h_const.springLayerName, h_const.springWkbType,
+    ok= initializeLayer(prjpath, h_const.springLayerName, h_const.springWkbType,
                        h_const.springFieldNames, h_const.springFieldTypes)
     if not ok: return False
     return True
 
 
 
-def initBorehLayer(path):
+def initBorehLayer(prjpath):
     """Initialize boreholes layer"""
-    ok= initializeLayer(path, h_const.borehLayerName, h_const.borehWkbType,
+    ok= initializeLayer(prjpath, h_const.borehLayerName, h_const.borehWkbType,
                        h_const.borehFieldNames, h_const.borehFieldTypes)
     if not ok: return False
     return True
 
 
 
-def initRiverLayer(path):
+def initRiverLayer(prjpath):
     """Initialize river layer"""
-    ok= initializeLayer(path, h_const.riverLayerName, h_const.riverWkbType,
+    ok= initializeLayer(prjpath, h_const.riverLayerName, h_const.riverWkbType,
                        h_const.riverFieldNames, h_const.riverFieldTypes)
     if not ok: return False 
 
@@ -237,9 +230,9 @@ def initRiverLayer(path):
 
 
 
-def initAqueductLayer(path):
+def initAqueductLayer(prjpath):
     """Initialize aqueduct layer"""
-    ok= initializeLayer(path, h_const.aquedLayerName, h_const.aquedWkbType,
+    ok= initializeLayer(prjpath, h_const.aquedLayerName, h_const.aquedWkbType,
                        h_const.aquedFieldNames, h_const.aquedFieldTypes)
     if not ok: return False 
 
@@ -247,7 +240,7 @@ def initAqueductLayer(path):
 
 
 
-def createRiverexitnodeLayer(path):
+def createRiverexitnodeLayer(prjpath):
     """Initialize/create Riverexitnode layer"""
 
     # Get outlets of river segments
@@ -260,14 +253,14 @@ def createRiverexitnodeLayer(path):
     riverexitnodeLayerName=h_const.riverexitnodeLayerName
     h_utils.unloadShapefile(riverexitnodeLayerName)
     points=list(set(duplpoints))
-    ok= h_utils.createPointLayer(path, riverexitnodeLayerName, points, 
+    ok= h_utils.createPointLayer(prjpath, riverexitnodeLayerName, points, 
                                  h_const.riverexitnodeFieldNames, 
                                  h_const.riverexitnodeFieldTypes, ([], [], [],))
     if not ok: return False
 
     # Load river exit, add Ids to attr. table, and unload
     if not h_utils.isLayerLoaded(riverexitnodeLayerName):
-        ok=h_utils.loadShapefileToCanvas(path, riverexitnodeLayerName)
+        ok=h_utils.loadShapefileToCanvas(prjpath, riverexitnodeLayerName)
         if not ok: return False
 
     ok= h_utils.addShapeIdsToAttrTable(h_const.riverexitnodeLayerName, 

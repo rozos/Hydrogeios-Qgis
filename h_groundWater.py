@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QVariant
 from qgis.core import *
+import os.path
 import math
 import itertools
 import processing
@@ -8,7 +9,7 @@ import h_const
 import h_utils
 
 
-def doAll(path):
+def doAll(prjpath):
     """This function calls all functions related to groundwater cells 
     processing."""
     # Name groundwater cells
@@ -30,8 +31,10 @@ def doAll(path):
         iNodes=res[0]
         jNodes=res[1]
         distances=res[2]
-        dummyCoords = zip([0]*len(iNodes), [0]*len(iNodes) )
-        ok=h_utils.createPointLayer(path, h_const.distLayerName, dummyCoords, 
+        dummyPoints=[]
+        for x,y in zip([0]*len(iNodes), [0]*len(iNodes) ):
+            dummyPoints.append(QgsPointXY(x,y))
+        ok=h_utils.createPointLayer(prjpath, h_const.distLayerName, dummyPoints,
                                 h_const.distFieldNames, h_const.distFieldTypes,
                                 [iNodes, jNodes, distances, ])
     else:
@@ -48,7 +51,7 @@ def doAll(path):
         jNodes=res[1]
         edges=res[2]
         dummyCoords = zip([0]*len(iNodes), [0]*len(iNodes) )
-        ok=h_utils.createPointLayer(path, h_const.edgeLayerName, dummyCoords, 
+        ok=h_utils.createPointLayer(prjpath, h_const.edgeLayerName, dummyCoords,
                                 h_const.edgeFieldNames,h_const.edgeFieldTypes,
                                 [iNodes, jNodes, edges, [] ])
     else:
@@ -89,13 +92,13 @@ def doAll(path):
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
     # Link the river with groundwater cells
-    if not createRiverGroundwater(path):
+    if not createRiverGroundwater(prjpath):
         message="createRiverGroundwater Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
         if reply==QMessageBox.No: return False
     # Link the SubbasinHRU with the groundwater cells
-    if not createGroundwaterSubbasinHRU(path):
+    if not createGroundwaterSubbasinHRU(prjpath):
         message="createGroundwaterSubbasinHRU Failed. Continue?"
         reply=QMessageBox.question(None, 'Delete', message,
                                    QMessageBox.Yes|QMessageBox.No )
@@ -245,7 +248,7 @@ def linkRiverNodeGroundwater():
 
 
 
-def createRiverGroundwater(path):
+def createRiverGroundwater(prjpath):
     """Use groundwater cells to clip the river segments to create a new layer.
     """
 
@@ -261,24 +264,25 @@ def createRiverGroundwater(path):
 
     # Delete existing shapefile
     h_utils.unloadShapefile(h_const.riverGrdwatLayerName)
-    if h_utils.shapefileExists(path, h_const.riverGrdwatLayerName ):
-        ok=h_utils.delExistingShapefile( path, h_const.riverGrdwatLayerName )
+    if h_utils.shapefileExists(prjpath, h_const.riverGrdwatLayerName ):
+        ok=h_utils.delExistingShapefile( prjpath, h_const.riverGrdwatLayerName )
         if not ok: return False
 
     # Intersect river with Groundwater
-    riverlayername=os.path.join(projectpath, h_const.riverLayerName+".shp")
-    grdwatlayername=os.path.join(projectpath, h_const.grdwatLayerName+".shp")
-    outlayername=os.path.join(projectpath, h_const.riverGrdwatLayerName+".shp")
+    riverlayername=os.path.join(prjpath, h_const.riverLayerName+".shp")
+    grdwatlayername=os.path.join(prjpath, h_const.grdwatLayerName+".shp")
+    outlayername=os.path.join(prjpath, h_const.riverGrdwatLayerName+".shp")
     try:
         processing.run('qgis:intersection', { 'INPUT': riverlayername,
                        'INPUT_FIELDS': [], 'OUTPUT': outlayername,
                        'OVERLAY': grdwatlayername, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
         print(str(e))
+        print("Intersecting %s with %s" % (riverlayername, grdwatlayername) )
     if not ok: return False
 
     # Load RiverGroundwater
-    h_utils.loadShapefileToCanvas(path, h_const.riverGrdwatLayerName)
+    h_utils.loadShapefileToCanvas(prjpath, h_const.riverGrdwatLayerName)
 
     # Update the length of the segments to the RiverGroundwater attr. table 
     ok= h_utils.addMeasureToAttrTable( h_const.riverGrdwatLayerName,
@@ -300,8 +304,8 @@ def createGroundwaterSubbasinHRU(prjpath):
 
     # Delete existing shapefile SubGroundHRU
     h_utils.unloadShapefile(h_const.grdwatSubbasHRULayerName)
-    if h_utils.shapefileExists(path, h_const.grdwatSubbasHRULayerName):
-       ok=h_utils.delExistingShapefile( path, h_const.grdwatSubbasHRULayerName )
+    if h_utils.shapefileExists(prjpath, h_const.grdwatSubbasHRULayerName):
+       ok=h_utils.delExistingShapefile(prjpath,h_const.grdwatSubbasHRULayerName)
        if not ok: return False
 
     # Intersect Groundwater with SubbasinHRU
@@ -314,10 +318,11 @@ def createGroundwaterSubbasinHRU(prjpath):
                        'OVERLAY': grdwatlayername, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
         print(str(e))
+        print("Intersecting %s with %s" % (subhrulayername, grdwatlayername) )
     if not ok: return False
 
     # Load SubGroundHRU
-    h_utils.loadShapefileToCanvas(path, h_const.grdwatSubbasHRULayerName)
+    h_utils.loadShapefileToCanvas(prjpath, h_const.grdwatSubbasHRULayerName)
 
     # Update the area values of the SubGroundHRU polygons in the attr. table
     ok= h_utils.addMeasureToAttrTable( h_const.grdwatSubbasHRULayerName,
