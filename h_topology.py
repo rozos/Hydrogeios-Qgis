@@ -74,21 +74,21 @@ def layerNamesTypesOK():
     
     # Check if River is a line layer
     if not h_utils.layerNameTypeOK(h_const.riverLayerName, 
-                                   h_const.riverLayerType):
+                                   h_const.riverGeomType):
         return False
 
     # Check if Irrigation is a poly layer
     if not h_utils.layerNameTypeOK(h_const.irrigLayerName, 
-                                   h_const.irrigLayerType):
+                                   h_const.irrigGeomType):
         return False
 
     # Check if Borehole is a point layer
     if not h_utils.layerNameTypeOK(h_const.borehLayerName, 
-                                   h_const.borehLayerType):
+                                   h_const.borehGeomType):
         return False
 
     # Check if DEM is OK
-    raster=ftools_utils.getRasterLayerByName(h_const.DEMlayerName)
+    raster=h_utils.getRasterLayerByName(h_const.DEMlayerName)
     if not raster:
         message=h_const.DEMlayerName + "  not loaded!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
@@ -127,7 +127,7 @@ def createHydrojunctionLayer(path):
         return False
 
     # Unload shapefile
-    if h_utils.isShapefileLoaded(h_const.hydrojncLayerName):
+    if h_utils.isLayerLoaded(h_const.hydrojncLayerName):
         h_utils.unloadShapefile(h_const.hydrojncLayerName)
     
     # Get upstream nodes of river segments
@@ -137,7 +137,7 @@ def createHydrojunctionLayer(path):
     # Add to the previous list the coords of downstream node of the 1st segm.
     rivExit= getRiverExit(path)
     if rivExit==False: return False
-    rivLastNodes= rivExit + rivLastNodes
+    rivLastNodes.insert(0, rivExit)
     
     # Get coordinates of river nodes
     rivXList=[]
@@ -152,8 +152,8 @@ def createHydrojunctionLayer(path):
     res=h_utils.getPolyLayerCentroids(h_const.irrigLayerName)
     if res==None: return False
     if res!=[]:
-        irgXList= list(zip(*res)[0])
-        irgYList= list(zip(*res)[1])
+        irgXList= [row[0] for row in res]
+        irgYList= [row[1] for row in res]
     
     # Get the coords and group_id of points of Borehole layer
     pointsXList,pointsYList= h_utils.getPointLayerCoords(h_const.borehLayerName)
@@ -229,12 +229,12 @@ def _linkRiverductHydrojunction(layerName, reversDirect):
     direction i.e. from exit to upstream nodes).""" 
 
     # Make sure River/Aqueduct layer is OK
-    if not h_utils.layerNameTypeOK(layerName, h_const.riverLayerType):
+    if not h_utils.layerNameTypeOK(layerName, h_const.riverGeomType):
         return False
 
     # Make sure Hydrojunction layer is OK
     if not h_utils.layerNameTypeOK(h_const.hydrojncLayerName, 
-                                   h_const.hydrojncLayerType):
+                                   h_const.hydrojncGeomType):
         return False
 
     # Get Hydrojunction layer points
@@ -277,7 +277,7 @@ def linkIrrigHydrojunction():
 
     # Make sure Irrigation layer is OK
     if not h_utils.layerNameTypeOK(h_const.irrigLayerName, 
-                                   h_const.irrigLayerType):
+                                   h_const.irrigGeomType):
         return False
 
     # Find to which hydrojucntion the centroid of each polygon corresponds to
@@ -302,7 +302,7 @@ def linkSpringHydrojunction():
 
     # Make sure Spring layer is OK
     if not h_utils.layerNameTypeOK(h_const.springLayerName, 
-                                   h_const.springLayerType):
+                                   h_const.springGeomType):
         return False
 
     # Find to which HydroJnct y pair corresponds each spring
@@ -328,7 +328,7 @@ def linkRiverexitnodeHydrojunction():
 
     # Make sure RiverExitNode layer is OK
     if not h_utils.layerNameTypeOK(h_const.riverexitnodeLayerName, 
-                                   h_const.riverexitnodeLayerType):
+                                   h_const.riverexitnodeGeomType):
         return False
 
     # Find to wich HydroJnct pair corresponds each river exit node
@@ -367,7 +367,7 @@ def _getHydrojunctIds(coords):
 
     # Make sure Hydrojunction layer is OK
     if not h_utils.layerNameTypeOK(h_const.hydrojncLayerName, 
-                                   h_const.hydrojncLayerType):
+                                   h_const.hydrojncGeomType):
         return False
 
     # Get Hydrojunction layer coordinates

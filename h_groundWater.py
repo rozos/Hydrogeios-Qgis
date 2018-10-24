@@ -50,8 +50,10 @@ def doAll(prjpath):
         iNodes=res[0]
         jNodes=res[1]
         edges=res[2]
-        dummyCoords = zip([0]*len(iNodes), [0]*len(iNodes) )
-        ok=h_utils.createPointLayer(prjpath, h_const.edgeLayerName, dummyCoords,
+        dummyPoints=[]
+        for x,y in zip([0]*len(iNodes), [0]*len(iNodes) ):
+            dummyPoints.append(QgsPointXY(x,y))
+        ok=h_utils.createPointLayer(prjpath, h_const.edgeLayerName, dummyPoints,
                                 h_const.edgeFieldNames,h_const.edgeFieldTypes,
                                 [iNodes, jNodes, edges, [] ])
     else:
@@ -269,16 +271,16 @@ def createRiverGroundwater(prjpath):
         if not ok: return False
 
     # Intersect river with Groundwater
-    riverlayername=os.path.join(prjpath, h_const.riverLayerName+".shp")
-    grdwatlayername=os.path.join(prjpath, h_const.grdwatLayerName+".shp")
-    outlayername=os.path.join(prjpath, h_const.riverGrdwatLayerName+".shp")
+    riverlayerpath=os.path.join(prjpath, h_const.riverLayerName+".shp")
+    grdwatlayerpath=os.path.join(prjpath, h_const.grdwatLayerName+".shp")
+    outlayerpath=os.path.join(prjpath, h_const.riverGrdwatLayerName+".shp")
     try:
-        processing.run('qgis:intersection', { 'INPUT': riverlayername,
-                       'INPUT_FIELDS': [], 'OUTPUT': outlayername,
-                       'OVERLAY': grdwatlayername, 'OVERLAY_FIELDS': [] } )
+        processing.run('qgis:intersection', { 'INPUT': riverlayerpath,
+                       'INPUT_FIELDS': [], 'OUTPUT': outlayerpath,
+                       'OVERLAY': grdwatlayerpath, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
         print(str(e))
-        print("Intersecting %s with %s" % (riverlayername, grdwatlayername) )
+        print("Intersecting %s with %s" % (riverlayerpath, grdwatlayerpath) )
     if not ok: return False
 
     # Load RiverGroundwater
@@ -308,17 +310,26 @@ def createGroundwaterSubbasinHRU(prjpath):
        ok=h_utils.delExistingShapefile(prjpath,h_const.grdwatSubbasHRULayerName)
        if not ok: return False
 
-    # Intersect Groundwater with SubbasinHRU
-    subhrulayername=os.path.join(prjpath, h_const.subbasHRULayerName+".shp")
-    grdwatlayername=os.path.join(prjpath, h_const.grdwatLayerName+".shp")
-    outlayername=os.path.join(prjpath, h_const.grdwatSubbasHRULayerName+".shp")
+    # Before intersect, fix SubbasinHRU geometry
+    subhrulayerpath=os.path.join(prjpath, h_const.subbasHRULayerName+".shp")
+    subhrufixlayerpath=os.path.join(prjpath,h_const.subbasHRULayerName+"_f.shp")
     try:
-        processing.run('qgis:intersection', { 'INPUT': subhrulayername,
-                       'INPUT_FIELDS': [], 'OUTPUT': outlayername,
-                       'OVERLAY': grdwatlayername, 'OVERLAY_FIELDS': [] } )
+        processing.run('qgis:fixgeometries', { 'INPUT': subhrulayerpath,
+                       'OUTPUT': subhrufixlayerpath} )
     except Exception as e:
         print(str(e))
-        print("Intersecting %s with %s" % (subhrulayername, grdwatlayername) )
+        return False
+
+    # Intersect Groundwater with SubbasinHRU
+    grdwatlayerpath=os.path.join(prjpath, h_const.grdwatLayerName+".shp")
+    outlayerpath=os.path.join(prjpath, h_const.grdwatSubbasHRULayerName+".shp")
+    try:
+        processing.run('qgis:intersection', { 'INPUT': subhrufixlayerpath,
+                       'INPUT_FIELDS': [], 'OUTPUT': outlayerpath,
+                       'OVERLAY': grdwatlayerpath, 'OVERLAY_FIELDS': [] } )
+    except Exception as e:
+        print(str(e))
+        print("Intersecting %s with %s" % (subhrufixlayerpath, grdwatlayerpath))
     if not ok: return False
 
     # Load SubGroundHRU

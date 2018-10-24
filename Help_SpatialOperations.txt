@@ -21,7 +21,7 @@ cnname= "CN"
 threshold= 50
 
 # Define CN grouping
-cngroups=(0.25, 0.60, 1.00,)
+cngroups=(44, 53, 100,)
 
 
 

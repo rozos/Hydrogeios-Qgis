@@ -44,10 +44,11 @@ def createSubbasinHRU(projectpath):
     # Intersect Subbasin with HRU
     subbasinlayername=os.path.join(projectpath, h_const.subbasLayerName+".shp")
     outlayername=os.path.join(projectpath, h_const.subbasHRULayerName+".shp")
+    hrulayername=os.path.join(projectpath, h_const.HRULayerName+".shp")
     try:
         processing.run('qgis:intersection', { 'INPUT': subbasinlayername,
                        'INPUT_FIELDS': [], 'OUTPUT': outlayername,
-                       'OVERLAY': hrufixedlayername, 'OVERLAY_FIELDS': [] } )
+                       'OVERLAY': hrulayername, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
         print(str(e))
         return False
@@ -62,7 +63,7 @@ def createSubbasinHRU(projectpath):
 
 
 
-def createHRU(path, CNrasterName, bandnum, tupleUpValues):
+def createHRU(prjpath, CNrasterName, bandnum, tupleUpValues):
     """Takes the HRU raster and creates a layer with multipolygon shapes.
     The classification into miltipolygon shapes is based on the provided
     ranges."""
@@ -74,7 +75,7 @@ def createHRU(path, CNrasterName, bandnum, tupleUpValues):
     h_utils.unloadShapefile(HRUunfixedLayerName)
 
     # Reclassify CNraster (id of CN classes instead of CN values)
-    ok=h_utils.reclassifyRaster(path, CNrasterName, bandnum, 0, tupleUpValues,
+    ok=h_utils.reclassifyRaster(prjpath,CNrasterName, bandnum, 0, tupleUpValues,
                                 h_const.HRUrasterLayerName)
 #   CHECK WHAT HAPPENS WHEN PROVIDED tupleUpValues ARE OUTSIDE CN VALUES !!!
     if not ok:
@@ -83,16 +84,16 @@ def createHRU(path, CNrasterName, bandnum, tupleUpValues):
         return False
 
     # Turn HRUraster into vector
-    ok=h_utils.createVectorFromRaster(path,h_const.HRUrasterLayerName+'.tif',1,
-                                      HRUunfixedLayerName, h_const.HRUFieldId)
+    ok=h_utils.createVectorFromRaster(prjpath,h_const.HRUrasterLayerName+'.tif',
+                                      1,HRUunfixedLayerName, h_const.HRUFieldId)
     if not ok:
         message="Creation of " + h_const.HRUrasterLayerName + " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
     # Fix HRU_u (unfixed)
-    hrulayerpath=os.path.join(projectpath, HRULayerName+".shp")
-    hruUnfixedlayerpath=os.path.join(projectpath, HRUunfixedLayerName+".shp")
+    hrulayerpath=os.path.join(prjpath, HRULayerName+".shp")
+    hruUnfixedlayerpath=os.path.join(prjpath, HRUunfixedLayerName+".shp")
     try:
         processing.run('qgis:fixgeometries', { 'INPUT': hruUnfixedlayerpath,
                        'OUTPUT': hrulayerpath} )
@@ -101,8 +102,8 @@ def createHRU(path, CNrasterName, bandnum, tupleUpValues):
         return False
 
 
-    # Load undissolved HRU shapefile created from HRUraster
-    h_utils.loadShapefileToCanvas(path, HRULayerName)
+    # Load HRU shapefile created from HRUraster
+    h_utils.loadShapefileToCanvas(prjpath, HRULayerName)
 
     # Delete pogyons generated from non-data pixels
     filterExpr=h_const.HRUFieldId+ "<0"

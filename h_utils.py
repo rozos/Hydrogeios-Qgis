@@ -500,7 +500,10 @@ def createPointLayer(prjpath, layerName, points, fieldNames, fieldTypes,
 
     # Create empty point layer
     pathFilename=os.path.join(prjpath, layerName)
-    writer= QgsVectorFileWriter(pathFilename, "utf8", QgsFields(),
+    QgsFieldsToAdd=QgsFields()
+    for iname, itype in zip(fieldNames, fieldTypes):
+        QgsFieldsToAdd.append(QgsField(iname, itype))
+    writer= QgsVectorFileWriter(pathFilename, "utf8", QgsFieldsToAdd,
                                 QgsWkbTypes.Point, 
                                 QgsCoordinateReferenceSystem(h_const.projectcrs)
                                 , "ESRI Shapefile")
@@ -524,10 +527,6 @@ def createPointLayer(prjpath, layerName, points, fieldNames, fieldTypes,
 
     # Delete the writer to flush features to disk (optional)
     del writer 
-
-    # Add extra fields to attribute table
-    if not addFieldsToAttrTable(prjpath, layerName, fieldTypes, fieldNames):
-        return False
 
     return True
 
@@ -653,7 +652,7 @@ def createDBF(prjpath, fileName, fieldNames, fieldTypes, values):
     coords=zip([0]*numvalues, [0]*numvalues)
 
     # Create dummy shapefile to create the required dbf file
-    ok=createPointLayer(prjpath, fileName, coords, fieldNames, fieldTypes, values)
+    ok=createPointLayer(prjpath, fileName, coords, fieldNames,fieldTypes,values)
 
     return ok
 
@@ -690,7 +689,7 @@ def addFieldToAttrTable(layerName, fieldName, fieldType):
                     str(fieldType) + "!"
             QMessageBox.critical(None,'Err',message,QMessageBox.Ok)
             print("Type " + field.typeName() + " field " + field.name() + "!")
-            return None
+            # return None # Comment-out until bug QGIS bug #20156 is resolved
     else:
         ok = provider.addAttributes( [ QgsField(fieldName,fieldType) ] )
         if not ok:
