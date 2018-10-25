@@ -42,14 +42,26 @@ def createSubbasinHRU(projectpath):
         return False
 
     # Intersect Subbasin with HRU
-    subbasinlayername=os.path.join(projectpath, h_const.subbasLayerName+".shp")
-    outlayername=os.path.join(projectpath, h_const.subbasHRULayerName+".shp")
+    subbasinlayername=os.path.join(projectpath,h_const.subbasLayerName+".shp")
     hrulayername=os.path.join(projectpath, h_const.HRULayerName+".shp")
+    outlayername=os.path.join(projectpath, h_const.subbasHRULayerName+"_u.shp")
     try:
         processing.run('qgis:intersection', { 'INPUT': subbasinlayername,
                        'INPUT_FIELDS': [], 'OUTPUT': outlayername,
                        'OVERLAY': hrulayername, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
+        print("intersecting %s with %s!", (subbasinlayername, hrulayerpath))
+        print(str(e))
+        return False
+    # Clean geometry
+    inlayername=outlayername
+    outlayername=os.path.join(projectpath, h_const.subbasHRULayerName+".shp")
+    try:
+        processing.run('qgis:fixgeometries', { 'INPUT': inlayername, 
+                       'INPUT_FIELDS': [], 'OUTPUT': outlayername,
+                       'OVERLAY': hrulayername, 'OVERLAY_FIELDS': [] } )
+    except Exception as e:
+        print("fixgeometry of %s!", (inlayername) )
         print(str(e))
         return False
 

@@ -279,8 +279,8 @@ def createRiverGroundwater(prjpath):
                        'INPUT_FIELDS': [], 'OUTPUT': outlayerpath,
                        'OVERLAY': grdwatlayerpath, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
-        print(str(e))
         print("Intersecting %s with %s" % (riverlayerpath, grdwatlayerpath) )
+        print(str(e))
     if not ok: return False
 
     # Load RiverGroundwater

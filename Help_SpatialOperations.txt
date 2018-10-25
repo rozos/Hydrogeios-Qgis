@@ -18,7 +18,7 @@ demname= "DEM"
 cnname= "CN"
 
 # Define delineation threshold
-threshold= 50
+threshold= 300
 
 # Define CN grouping
 cngroups=(44, 53, 100,)
@@ -60,10 +60,11 @@ TauDEM.autoDelineate(threshold, outlet="Outlet")
 
 
 # Convert raster layer of subbasin to an intermediate shapefile
-h_utils.createVectorFromRaster(projectpath, demname+'w.tif', 1, "Subbas", "DN")
+h_utils.createVectorFromRaster(projectpath, demname+'w.tif', 1, "Subbas_u", "DN")
 
 
-# Load intermediate layer to delete nodata polygons
+# Load intermediate layer to generalize and then delete nodata polygons
+h_utils.generalize(projectpath, "Subbas_u", "Subbas", 100)
 h_utils.loadShapefileToCanvas(projectpath, "Subbas")
 dnvals=h_utils.getFieldAttrValues("Subbas", "DN")
 nodataShapeId=h_utils.getElementIndexByVal(dnvals, h_const.nodataCode)

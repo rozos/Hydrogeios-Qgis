@@ -16,7 +16,8 @@ os.system(cmd)
 # clip the layer to the study area (data type is byte)
 
 
-# HRU
+# CN
 # Calculate DEM slope (Raster -> analysis -> Slope).
 # Combine raster layers to produce HRU (Raster -> Raster Calculator).
 #(( "CLC@1" = 12 OR "CLC@1" = 13 )*5 + ("CLC@1" != 12 AND "CLC@1" != 13)*2 ) *6 + (("Slope@1"<10)*1 +("Slope@1" >= 10)*4)*3 + 18 + 10
+# Resamble to eliminate islets (v.resamble, region cell size: 400 ?)

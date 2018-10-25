@@ -1,7 +1,7 @@
 from __future__ import division 
 import sys
 from qgis.core import *
-from PyQt5 import QtGui
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QVariant
 import ftools_utils
 import h_const
@@ -16,34 +16,34 @@ def build():
         return False
     if not layerConsistenciesOK() or not layerNamesTypesOK():
         message="Layers involved in topology are not OK. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not linkRiverHydrojunction():
         message="linkRiverHydrojunction failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not linkAqueductHydrojunction():
         message="linkAqueductHydrojunction failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not linkIrrigHydrojunction(): 
         message="linkIrrigHydrojunction failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not linkSpringHydrojunction():
         message="linkSpringHydrojunction failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     if not linkRiverexitnodeHydrojunction():
         message="linkRiverexitnodeHydrojunction failed. Continue?"
-        reply=QtGui.QMessageBox.question(None, 'Delete', message,
-                                   QtGui.QMessageBox.Yes|QtGui.QMessageBox.No )
-        if reply==QtGui.QMessageBox.No: return False
+        reply=QMessageBox.question(None, 'Delete', message,
+                                   QMessageBox.Yes|QMessageBox.No )
+        if reply==QMessageBox.No: return False
     return True
 
 
@@ -91,7 +91,7 @@ def layerNamesTypesOK():
     raster=h_utils.getRasterLayerByName(h_const.DEMlayerName)
     if not raster:
         message=h_const.DEMlayerName + "  not loaded!"
-        QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
 
     # All names and types are what expected to be
@@ -166,8 +166,8 @@ def createHydrojunctionLayer(path):
     if pointIds!=[]:
         if pointIds[0]==NULL:
             message="Group IDs not defined in " + h_const.borehLayerName
-            okBtn=QtGui.QMessageBox.Ok
-            QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+            okBtn=QMessageBox.Ok
+            QMessageBox.critical(None,'Error',message, okBtn)
             return False
         borGrpIds=set(pointIds)
         for grpid in borGrpIds:
@@ -192,12 +192,14 @@ def createHydrojunctionLayer(path):
                  [h_const.hydrojncTypeSpr]*len(sprXList) )
     # Get the z values of the [xCoords yCoords] points
     heights = []
-    coordinates=zip(xCoords, yCoords)
-    for xy in coordinates:
-        heights.append(h_utils.getCellValue(h_const.DEMlayerName, xy, 1) )
+    for x,y in zip(xCoords, yCoords):
+        heights.append(h_utils.getCellValue(h_const.DEMlayerName, (x,y), 1) )
     # Create the Hydrojunction layer
+    Points=[]
+    for x,y in zip(xCoords, yCoords):
+        Points.append(QgsPointXY(x,y))
     ok = h_utils.createPointLayer(path, h_const.hydrojncLayerName,
-                           coordinates, h_const.hydrojncFieldNames,
+                           Points, h_const.hydrojncFieldNames,
                            h_const.hydrojncFieldTypes, [range(0, len(xCoords)),
                            [], [], junctTypes, [], xCoords, yCoords, heights ] )
     if not ok: return False
@@ -211,17 +213,17 @@ def createHydrojunctionLayer(path):
 
 def linkRiverHydrojunction(): 
     "Builds topology of River"
-    return _linkRiverductHydrojunction(h_const.riverLayerName, True)
+    return _buildTopowithHydrjncIds(h_const.riverLayerName, True)
 
 
 
 def linkAqueductHydrojunction(): 
     "Builds topology of Aqueduct"
-    return _linkRiverductHydrojunction(h_const.aquedLayerName, False)
+    return _buildTopowithHydrjncIds(h_const.aquedLayerName, False)
 
 
 
-def _linkRiverductHydrojunction(layerName, reversDirect): 
+def _buildTopowithHydrjncIds(layerName, reversDirect): 
     """ This function builds the topology of River or Aqueduct layers
     (RiverDuct) assigning the appropriate Hydrojunction ids to FROM_NODE,
     TO_NODE fields. The arguments are the shapefile name (River or Aqueduct) 
@@ -350,15 +352,15 @@ def linkRiverexitnodeHydrojunction():
 def _hydroJunctionsSameLocationError(res):
     """Displays error message and pring to stderr some info."""
     message="Hydrojunctions on exactly same location!"
-    okBtn=QtGui.QMessageBox.Ok
-    QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+    okBtn=QMessageBox.Ok
+    QMessageBox.critical(None,'Error',message, okBtn)
     sys.stderr.write("Hydrojunction IDs on same location:"+str(res))
 
 def _nohydroJunctionsOnThisPointError(xy):
     """Displays error message and pring to stderr some info."""
     message="No hydrojunction with these coordinates!"
-    okBtn=QtGui.QMessageBox.Ok
-    QtGui.QMessageBox.critical(None,'Error',message, okBtn)
+    okBtn=QMessageBox.Ok
+    QMessageBox.critical(None,'Error',message, okBtn)
     sys.stderr.write("X,Y:"+str(xy))
 
 def _getHydrojunctIds(coords):
@@ -373,14 +375,18 @@ def _getHydrojunctIds(coords):
     # Get Hydrojunction layer coordinates
     [hydrojuncXlist, hydrojuncYlist]= \
                           h_utils.getPointLayerCoords(h_const.hydrojncLayerName)
-    hydrojunctionCoords= zip(hydrojuncXlist,hydrojuncYlist)
+    hydrojunctionCoords= []
+    for x,y in zip(hydrojuncXlist,hydrojuncYlist):
+        hydrojunctionCoords.append((x,y))
 
     # Find to wich hydrojunct. corresponds each coordinate of the provided list
     idsList= []
-    for xy in coords:
-        res= h_utils.getElementIndexByVal(hydrojunctionCoords, xy)
+    Xcoords = [row[0] for row in coords]
+    Ycoords = [row[1] for row in coords]
+    for x,y in zip(Xcoords,Ycoords):
+        res= h_utils.getElementIndexByVal(hydrojunctionCoords, (x,y) )
         if res==[]:
-            _nohydroJunctionsOnThisPointError(xy)
+            _nohydroJunctionsOnThisPointError((x,y))
             return False
         if (len(res)>1):
             _hydroJunctionsSameLocationError(res)

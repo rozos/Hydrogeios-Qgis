@@ -292,7 +292,7 @@ def getMinFeatureMeasure(layerName):
     a shapefile."""
     # Get the type
     layers=QgsProject.instance().mapLayersByName(layerName)
-    if len(layer)==0: return None 
+    if len(layers)==0: return None 
     layer=layers[0]
     layerType=layer.geometryType()
 
@@ -801,6 +801,7 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
 
 
 def dissolve(projectpath, dissolve_layer, outlayerName):
+    """Dissolve a polygon layer."""
     layers=QgsProject.instance().mapLayersByName(dissolve_layer) 
     inlayer=os.path.join(projectpath, dissolve_layer+".shp")
     outlayer=os.path.join(projectpath, outlayerName+".shp")
@@ -808,9 +809,41 @@ def dissolve(projectpath, dissolve_layer, outlayerName):
         processing.run('qgis:dissolve', {'FIELD': ['DN'], 'INPUT': inlayer, 
                         'OUTPUT':outlayer} )
     except Exception as e:
+        print("Dissolving " + inlayer + "!")
         print(str(e))
         return False
         
+    return True
+
+
+
+# Generalize
+def generalize(prjpath, inlayer, outlayer, size):
+    """Generalize polygon layer to simplify its geometry."""
+
+    inlayerpath=os.path.join(prjpath, inlayer+".shp")
+    outlayerpath=os.path.join(prjpath, outlayer+".shp")
+    errlayerpath=os.path.join(prjpath, "error.shp")
+    try:
+        processing.run('grass7:v.generalize', {'input': inlayerpath, 
+                        'threshold': size, 'output': outlayerpath,
+                        'error': errlayerpath, '-l' : True, 
+                        '-t' : False, 'GRASS_MIN_AREA_PARAMETER' : 0.0001, 
+                        'GRASS_OUTPUT_TYPE_PARAMETER' : 0, 
+                        'GRASS_REGION_PARAMETER' : None, 
+                        'GRASS_SNAP_TOLERANCE_PARAMETER' : -1, 
+                        'GRASS_VECTOR_DSCO' : '', 
+                        'GRASS_VECTOR_LCO' : '', 
+                        'alpha' : 1, 'angle_thresh' : 3, 'beta' : 1, 
+                        'betweeness_thresh' : 0, 'cats' : '', 
+                        'closeness_thresh' : 0, 'degree_thresh' : 0,
+                        'reduction' : 50, 'slide' : 0.5, 'type' : [0,1,2], 
+                        'where' : ''} )
+    except Exception as e:
+        print("Generalizing " + inlayerpath + "!")
+        print(str(e))
+        return False
+
     return True
 
 

@@ -53,6 +53,7 @@ hydrojncLayerName="HydroJunction"
 hydrojncFieldNames=("JUNCT_ID", "NAME", "DESCR", "JUNCT_TYPE", "TS_ID",
                     "X", "Y", "Z")
 hydrojncWkbType= QgsWkbTypes.Point
+hydrojncGeomType=QgsWkbTypes.PointGeometry
 hydrojncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                     QVariant.Int, QVariant.Int, QVariant.Double,
                     QVariant.Double, QVariant.Double)
