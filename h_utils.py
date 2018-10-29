@@ -800,6 +800,20 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
 
 
 
+def fixgeometry(prjpath, fixlayer, outlayer):
+    """Fix the geometry of a layer."""
+    inlayerpath=os.path.join(prjpath, fixlayer+".shp")
+    outlayerpath=os.path.join(prjpath, outlayer+".shp")
+    try:
+        processing.run('qgis:fixgeometries', { 'INPUT': inlayerpath,
+                       'OUTPUT': outlayerpath} )
+    except Exception as e:
+        print("fixgeometries of %s to %s!"% (inlayerpath, outlayerpath) )
+        print(str(e))
+        return False
+
+
+
 def dissolve(projectpath, dissolve_layer, dissolve_field, outlayerName):
     """Dissolve a polygon layer."""
     layers=QgsProject.instance().mapLayersByName(dissolve_layer) 
