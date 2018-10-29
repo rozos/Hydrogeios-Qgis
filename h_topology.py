@@ -3,7 +3,6 @@ import sys
 from qgis.core import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QVariant
-import ftools_utils
 import h_const
 import h_utils
 
