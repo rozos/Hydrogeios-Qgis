@@ -103,20 +103,13 @@ def createHRU(prjpath, CNrasterName, bandnum, tupleUpValues):
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
-    # Fix HRU_u (unfixed) produce HRU_f
-    hrulayerpath=os.path.join(prjpath, HRULayerName+"_f.shp")
-    hruUnfixedlayerpath=os.path.join(prjpath, HRUunfixedLayerName+".shp")
-    try:
-        processing.run('qgis:fixgeometries', { 'INPUT': hruUnfixedlayerpath,
-                       'OUTPUT': hrulayerpath} )
-    except Exception as e:
-        print("fixgeometry of %s to %s!"% (hruUnfixedlayerpath, hrulayerpath ) )
-        print(str(e))
-        return False
+    # Dissolve HRUunfixedLayerName
+    ok=h_utils.dissolve(prjpath, HRUunfixedLayerName, h_const.HRUFieldId,
+                        HRULayerName+"_d")
+    if not ok: return False
 
-    # Dissolve HRU_f to produce HRU
-    ok=h_utils.dissolve(prjpath, HRULayerName+"_f", h_const.HRUFieldId,
-                        h_const.HRULayerName)
+    # Fix dissolved HRUunfixedLayerName to produce HRU
+    ok=h_utils.fixgeometry(prjpath, HRULayerName+"_d", h_const.HRULayerName)
     if not ok: return False
 
     # Load HRU shapefile created from HRUraster
@@ -131,6 +124,8 @@ def createHRU(prjpath, CNrasterName, bandnum, tupleUpValues):
         return False
     if listIds!=[]:
         ok=h_utils.delSpecificShapes(HRULayerName, listIds)
-        if not ok: return False
+        if not ok: 
+            print("delSpecificShapes of %s!" % (HRULayerName) )
+            return False
 
     return True
