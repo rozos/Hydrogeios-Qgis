@@ -800,14 +800,14 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
 
 
 
-def dissolve(projectpath, dissolve_layer, outlayerName):
+def dissolve(projectpath, dissolve_layer, dissolve_field, outlayerName):
     """Dissolve a polygon layer."""
     layers=QgsProject.instance().mapLayersByName(dissolve_layer) 
     inlayer=os.path.join(projectpath, dissolve_layer+".shp")
     outlayer=os.path.join(projectpath, outlayerName+".shp")
     try:
-        processing.run('qgis:dissolve', {'FIELD': ['DN'], 'INPUT': inlayer, 
-                        'OUTPUT':outlayer} )
+        processing.run('qgis:dissolve', {'FIELD': [dissolve_field], 
+                       'INPUT': inlayer, 'OUTPUT':outlayer} )
     except Exception as e:
         print("Dissolving " + inlayer + "!")
         print(str(e))

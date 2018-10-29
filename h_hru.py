@@ -50,7 +50,7 @@ def createSubbasinHRU(projectpath):
                        'INPUT_FIELDS': [], 'OUTPUT': outlayername,
                        'OVERLAY': hrulayername, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
-        print("intersecting %s with %s!", (subbasinlayername, hrulayerpath))
+        print("intersecting %s with %s!"% (subbasinlayername, hrulayerpath))
         print(str(e))
         return False
     # Clean geometry
@@ -61,7 +61,7 @@ def createSubbasinHRU(projectpath):
                        'INPUT_FIELDS': [], 'OUTPUT': outlayername,
                        'OVERLAY': hrulayername, 'OVERLAY_FIELDS': [] } )
     except Exception as e:
-        print("fixgeometry of %s!", (inlayername) )
+        print("fixgeometry of %s!"% (inlayername) )
         print(str(e))
         return False
 
@@ -103,16 +103,21 @@ def createHRU(prjpath, CNrasterName, bandnum, tupleUpValues):
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
-    # Fix HRU_u (unfixed)
-    hrulayerpath=os.path.join(prjpath, HRULayerName+".shp")
+    # Fix HRU_u (unfixed) produce HRU_f
+    hrulayerpath=os.path.join(prjpath, HRULayerName+"_f.shp")
     hruUnfixedlayerpath=os.path.join(prjpath, HRUunfixedLayerName+".shp")
     try:
         processing.run('qgis:fixgeometries', { 'INPUT': hruUnfixedlayerpath,
                        'OUTPUT': hrulayerpath} )
     except Exception as e:
+        print("fixgeometry of %s to %s!"% (hruUnfixedlayerpath, hrulayerpath ) )
         print(str(e))
         return False
 
+    # Dissolve HRU_f to produce HRU
+    ok=h_utils.dissolve(prjpath, HRULayerName+"_f", h_const.HRUFieldId,
+                        h_const.HRULayerName)
+    if not ok: return False
 
     # Load HRU shapefile created from HRUraster
     h_utils.loadShapefileToCanvas(prjpath, HRULayerName)

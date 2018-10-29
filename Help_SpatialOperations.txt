@@ -72,7 +72,7 @@ h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 
 # Disolve Subbas layer to merge small polygons into mother polys
-h_utils.dissolve(projectpath, 'Subbas', h_const.subbasLayerName)
+h_utils.dissolve(projectpath, 'Subbas', 'DN', h_const.subbasLayerName)
 
 
 h_utils.unloadShapefile("Subbas")
