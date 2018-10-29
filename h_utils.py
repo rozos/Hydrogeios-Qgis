@@ -812,6 +812,8 @@ def fixgeometry(prjpath, fixlayer, outlayer):
         print(str(e))
         return False
 
+    return True
+
 
 
 def dissolve(projectpath, dissolve_layer, dissolve_field, outlayerName):
