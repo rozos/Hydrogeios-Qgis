@@ -92,6 +92,7 @@ h_initLayers.doAll(projectpath)
 # Create HRU
 h_utils.loadRasterfileToCanvas(projectpath, cnname)
 h_hru.createHRU(projectpath, cnname, 1, cngroups)
+h_initLayers.initializeLayer(projectpath, h_const.HRULayerName, h_const.HRUWkbType, h_const.HRUFieldNames, h_const.HRUFieldTypes)
 
 # Create Subbasin-HRU shapefile
 h_utils.loadShapefileToCanvas(projectpath, h_const.HRULayerName)
