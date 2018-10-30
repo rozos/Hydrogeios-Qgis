@@ -299,6 +299,8 @@ def createGroundwaterSubbasinHRU(prjpath):
     """Use groundwater cells to intersect the subbasinHRU polygons to create a 
     SubGroundHRU  layer."""
 
+    subbasHRUfixedLayerName=h_const.subbasHRULayerName+"_f"
+
     # Add to the attr. table of Groundwater a field that keeps the cells' id
     ok=h_utils.addShapeIdsToAttrTable(h_const.grdwatLayerName, 
                                  h_const.grdwatFieldId) 
@@ -311,16 +313,12 @@ def createGroundwaterSubbasinHRU(prjpath):
        if not ok: return False
 
     # Before intersect, fix SubbasinHRU geometry
-    subhrulayerpath=os.path.join(prjpath, h_const.subbasHRULayerName+".shp")
-    subhrufixlayerpath=os.path.join(prjpath,h_const.subbasHRULayerName+"_f.shp")
-    try:
-        processing.run('qgis:fixgeometries', { 'INPUT': subhrulayerpath,
-                       'OUTPUT': subhrufixlayerpath} )
-    except Exception as e:
-        print(str(e))
-        return False
+    ok= h_utils.fixgeometry(prjpath, h_const.subbasHRULayerName, 
+                        subbasHRUfixedLayerName) 
+    if not ok: return False
 
     # Intersect Groundwater with SubbasinHRU
+    subhrufixlayerpath=os.path.join(prjpath,subbasHRUfixedLayerName+".shp")
     grdwatlayerpath=os.path.join(prjpath, h_const.grdwatLayerName+".shp")
     outlayerpath=os.path.join(prjpath, h_const.grdwatSubbasHRULayerName+".shp")
     try:

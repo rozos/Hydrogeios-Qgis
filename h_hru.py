@@ -30,6 +30,7 @@ def createSubbasinHRU(projectpath):
 
     # Use the undissolved layer
     HRUfixedLayerName=h_const.HRULayerName+"_f"
+    subbasHRUunfixedLayerName=h_const.subbasHRULayerName+"_u"
 
     # Delete existing shapefile SubbasinHRU
     h_utils.unloadShapefile(h_const.subbasHRULayerName)
@@ -44,9 +45,9 @@ def createSubbasinHRU(projectpath):
         return False
 
     # Intersect Subbasin with HRU
-    subbasinlayerpath=os.path.join(projectpath,h_const.subbasLayerName+".shp")
+    subbasinlayerpath=os.path.join(projectpath, h_const.subbasLayerName+".shp")
     hrulayerpath=os.path.join(projectpath, HRUfixedLayerName+".shp")
-    outlayerpath=os.path.join(projectpath, h_const.subbasHRULayerName+"_u.shp")
+    outlayerpath=os.path.join(projectpath, subbasHRUunfixedLayerName+".shp")
     try:
         processing.run('qgis:intersection', { 'INPUT': subbasinlayerpath,
                        'INPUT_FIELDS': [], 'OUTPUT': outlayerpath,
@@ -55,17 +56,11 @@ def createSubbasinHRU(projectpath):
         print("intersecting %s with %s!"% (subbasinlayerpath, hrulayerpath))
         print(str(e))
         return False
+
     # Clean geometry
-    inlayerpath=outlayerpath
-    outlayerpath=os.path.join(projectpath, h_const.subbasHRULayerName+".shp")
-    try:
-        processing.run('qgis:fixgeometries', { 'INPUT': inlayerpath, 
-                       'INPUT_FIELDS': [], 'OUTPUT': outlayerpath,
-                       'OVERLAY': hrulayerpath, 'OVERLAY_FIELDS': [] } )
-    except Exception as e:
-        print("fixgeometry of %s!"% (inlayerpath) )
-        print(str(e))
-        return False
+    ok= h_utils.fixgeometry(projectpath, subbasHRUunfixedLayerName,
+                        h_const.subbasHRULayerName)
+    if not ok: return False 
 
     # Update the area values of the SubbasinHRU polygons in the attr. table
     h_utils.loadShapefileToCanvas(projectpath, h_const.subbasHRULayerName)
