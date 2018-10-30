@@ -58,6 +58,7 @@ hydrojncFieldTypes=(QVariant.Int, QVariant.String, QVariant.String,
                     QVariant.Int, QVariant.Int, QVariant.Double,
                     QVariant.Double, QVariant.Double)
 hydrojncFieldId=hydrojncFieldNames[0]
+hydrojncFieldJuncttype=hydrojncFieldNames[3]
 hydrojncTypeRiv=0
 hydrojncTypeAqu=1
 hydrojncTypeIrg=2
@@ -108,12 +109,14 @@ borehLayerName="Borehole"
 borehWkbType=QgsWkbTypes.Point
 borehGeomType=QgsWkbTypes.PointGeometry
 borehFieldNames=("NAME", "DESCR", "TYPE", "X", "Y", "Z", grdwatFieldId,
-                  subbasFieldId, "GROUP_ID", "PUMP_CAP", "PUMP_RAT", "DEPTH", )
+                  subbasFieldId, "GROUP_ID", hydrojncFieldId, "PUMP_CAP", 
+                  "PUMP_RAT", "DEPTH", )
 borehFieldTypes=(QVariant.String, QVariant.String, QVariant.Int,
                  QVariant.Double, QVariant.Double,  QVariant.Double,
-                 QVariant.Int, QVariant.Int, QVariant.Int, QVariant.Double,
-                 QVariant.Double,  QVariant.Double, )
+                 QVariant.Int, QVariant.Int, QVariant.Int, QVariant.Int,
+                 QVariant.Double, QVariant.Double,  QVariant.Double, )
 borehFieldGroupId = borehFieldNames[8]
+borehFieldJunctId = borehFieldNames[9]
 
 
 # Spring specifications

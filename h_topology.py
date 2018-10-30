@@ -349,6 +349,57 @@ def linkRiverexitnodeHydrojunction():
     return res
 
 
+
+def linkBoreholeHydrojunction():
+    """Finds to which hydrojunction corresponds each borehole node. Updates
+       the junct_id field of Borehole attribute table."""
+
+    # Make sure layer is OK
+    if not h_utils.layerNameTypeOK(h_const.borehLayerName, 
+                                   h_const.borehGeomType):
+        return False
+
+    # Get group ids of boreholes
+    groupids= h_utils.getFieldAttrValues(h_const.borehLayerName, 
+                                         h_const.borehFieldGroupId)
+    if groupids==None or groupids==[]:
+        message="Groups not defined in borehole layer!"
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
+        return False
+    uniqgroupids= list(set(groupids))
+
+    # Get junction id and types of hydrojunction
+    hydrojunctids= h_utils.getFieldAttrValues(h_const.hydrojncLayerName, 
+                                         h_const.hydrojncFieldId)
+    if hydrojunctids==None or hydrojunctids==[]:
+        message="No hydrojunciton ids found!"
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
+        return False
+    hydrojuncttypes= h_utils.getFieldAttrValues(h_const.hydrojncLayerName, 
+                                         h_const.hydrojncFieldJuncttype)
+    if hydrojuncttypes==None or hydrojuncttypes==[]:
+        message="No hydrojunciton types found!"
+        QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
+        return False
+
+    # Get the junction ids of borehole groups
+    boreholegroupsJunctId=[]
+    for juncttype, junctid in zip(hydrojuncttypes, hydrojunctids):
+        if juncttype==h_const.hydrojncTypeBor:
+            boreholegroupsJunctId.append(junctid)
+ 
+    # Correspond junction 
+    junctionIdofBoreholes=[]
+    for groupid in groupids:
+        i=h_utils.getElementIndexByVal(uniqgroupids, groupid)[0]
+        junctionIdofBoreholes.append(boreholegroupsJunctId[i])
+    h_utils.setFieldAttrValues(h_const.borehLayerName, 
+                              h_const.borehFieldJunctId , junctionIdofBoreholes)
+
+    return True
+ 
+
+
 def _hydroJunctionsSameLocationError(res):
     """Displays error message and pring to stderr some info."""
     message="Hydrojunctions on exactly same location!"
