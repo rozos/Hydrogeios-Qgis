@@ -805,7 +805,7 @@ def fixgeometry(prjpath, fixlayer, outlayer):
     inlayerpath=os.path.join(prjpath, fixlayer+".shp")
     outlayerpath=os.path.join(prjpath, outlayer+".shp")
     try:
-        processing.run('qgis:fixgeometries', { 'INPUT': inlayerpath,
+        processing.run('native:fixgeometries', { 'INPUT': inlayerpath,
                        'OUTPUT': outlayerpath} )
     except Exception as e:
         print("fixgeometries of %s to %s!"% (inlayerpath, outlayerpath) )

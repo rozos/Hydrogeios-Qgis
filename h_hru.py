@@ -28,6 +28,9 @@ def createSubbasinHRU(projectpath):
     """Use Subbasin polygons to intersect the HRU polygons to create a new
     layer that links Subbasin with HRU."""
 
+    # Use the undissolved layer
+    HRUfixedLayerName=h_const.HRULayerName+"_f"
+
     # Delete existing shapefile SubbasinHRU
     h_utils.unloadShapefile(h_const.subbasHRULayerName)
     if h_utils.shapefileExists(projectpath, h_const.subbasHRULayerName):
@@ -37,13 +40,12 @@ def createSubbasinHRU(projectpath):
     # Check Subbasin and HRU types
     if not h_utils.layerNameTypeOK(h_const.subbasLayerName,
                                    h_const.subbasGeomType) or \
-       not h_utils.layerNameTypeOK(h_const.HRULayerName,
-                                   h_const.HRUGeomType):
+       not h_utils.layerNameTypeOK(HRUfixedLayerName, h_const.HRUGeomType):
         return False
 
     # Intersect Subbasin with HRU
     subbasinlayerpath=os.path.join(projectpath,h_const.subbasLayerName+".shp")
-    hrulayerpath=os.path.join(projectpath, h_const.HRULayerName+".shp")
+    hrulayerpath=os.path.join(projectpath, HRUfixedLayerName+".shp")
     outlayerpath=os.path.join(projectpath, h_const.subbasHRULayerName+"_u.shp")
     try:
         processing.run('qgis:intersection', { 'INPUT': subbasinlayerpath,
@@ -83,6 +85,7 @@ def createHRU(prjpath, CNrasterName, bandnum, tupleUpValues):
     # Unload HRU
     HRULayerName=h_const.HRULayerName
     HRUunfixedLayerName=HRULayerName+'_u'
+    HRUfixedLayerName=HRULayerName+'_f'
     h_utils.unloadShapefile(HRULayerName)
     h_utils.unloadShapefile(HRUunfixedLayerName)
 
@@ -103,29 +106,31 @@ def createHRU(prjpath, CNrasterName, bandnum, tupleUpValues):
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
 
-    # Dissolve HRUunfixedLayerName
-    ok=h_utils.dissolve(prjpath, HRUunfixedLayerName, h_const.HRUFieldId,
-                        HRULayerName+"_d")
+    # Fix unfixed created HRU vector layer
+    ok=h_utils.fixgeometry(prjpath, HRUunfixedLayerName, HRUfixedLayerName)
     if not ok: return False
 
-    # Fix dissolved HRUunfixedLayerName to produce HRU
-    ok=h_utils.fixgeometry(prjpath, HRULayerName+"_d", h_const.HRULayerName)
-    if not ok: return False
-
-    # Load HRU shapefile created from HRUraster
-    h_utils.loadShapefileToCanvas(prjpath, HRULayerName)
+    # Load fixed HRU shapefile created from HRUraster
+    h_utils.loadShapefileToCanvas(prjpath, HRUfixedLayerName)
 
     # Delete pogyons generated from non-data pixels
     filterExpr=h_const.HRUFieldId+ "<0"
-    listIds=h_utils.getQueryShapeIds(HRULayerName, filterExpr)
+    listIds=h_utils.getQueryShapeIds(HRUfixedLayerName, filterExpr)
     if listIds==False:
-        message="Delete non-data of " + HRULayerName+ " failed!"
+        message="Delete non-data of " + HRUfixedLayerName+ " failed!"
         QtGui.QMessageBox.critical(None,'Error',message, QtGui.QMessageBox.Ok)
         return False
     if listIds!=[]:
-        ok=h_utils.delSpecificShapes(HRULayerName, listIds)
+        ok=h_utils.delSpecificShapes(HRUfixedLayerName, listIds)
         if not ok: 
-            print("delSpecificShapes of %s!" % (HRULayerName) )
+            print("delSpecificShapes of %s!" % (HRUfixedLayerName) )
             return False
+    h_utils.unloadShapefile(HRUfixedLayerName)
+
+    # Dissolve fixed HRU vector layer
+    ok=h_utils.dissolve(prjpath, HRUfixedLayerName, h_const.HRUFieldId,
+                        HRULayerName)
+    if not ok: return False
+
 
     return True
