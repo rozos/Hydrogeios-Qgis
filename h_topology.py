@@ -197,10 +197,11 @@ def createHydrojunctionLayer(path):
     Points=[]
     for x,y in zip(xCoords, yCoords):
         Points.append(QgsPointXY(x,y))
+    hydrojnctIds= range(0, len(xCoords))
     ok = h_utils.createPointLayer(path, h_const.hydrojncLayerName,
                            Points, h_const.hydrojncFieldNames,
-                           h_const.hydrojncFieldTypes, [range(0, len(xCoords)),
-                           [], [], junctTypes, [], xCoords, yCoords, heights ] )
+                           h_const.hydrojncFieldTypes, [ hydrojnctIds, [], [], 
+                           junctTypes, [], xCoords, yCoords, heights ] )
     if not ok: return False
 
     # Load hydrojunction layer
