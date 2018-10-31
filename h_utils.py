@@ -799,6 +799,27 @@ def linkPointLayerToPolygonLayer(pointLayerName, polyLayerName):
     return polygonIds
 
 
+def rasterstatistics(prjpath, DEMlayer, masklayer, outlayer):
+    """Calculate the average value of a raster layer over the provided polygons
+    in a mask layer."""
+    inlayerpath=os.path.join(prjpath, DEMlayer+".tif")
+    masklayerpath=os.path.join(prjpath, masklayer+".shp")
+    outlayerpath=os.path.join(prjpath, outlayer+".shp")
+    try:
+        processing.run('saga:rasterstatisticsforpolygons', { 'COUNT' : False, 
+                       'GRIDS' : [inlayerpath], 'MAX' : False, 'MEAN' : True, 
+                       'METHOD' : 1, 'MIN' : False, 'NAMING' : 1, 
+                       'POLYGONS' : masklayerpath, 'QUANTILE' : 0, 
+                       'RANGE' : False, 'RESULT' : outlayerpath, 
+                       'STDDEV' : False, 'SUM' : False, 'VAR' : False } )
+    except Exception as e:
+        print("rasterstatistics of %s on %s!"% (masklayer, inlayerpath) )
+        print(str(e))
+        return False
+
+    return True
+
+
 
 def fixgeometry(prjpath, fixlayer, outlayer):
     """Fix the geometry of a layer."""
@@ -866,6 +887,36 @@ def generalize(prjpath, inlayer, outlayer, size):
 
 def copyShapefile(origShapefile, copyShapefile):
     pass
+
+
+
+def renameField(prjpath, layerName, oldname, newname):
+
+    # Make sure the layer is loaded 
+    wasloaded=isLayerLoaded(layerName)
+    if not wasloaded:
+        if not loadShapefileToCanvas(prjpath, layerName):
+            print("Problem loading layer " + layerName + "!")
+            return False
+
+    # Get layer and rename field
+    layers=QgsProject.instance().mapLayersByName(layerName)
+    if len(layers)==0:
+        print("renameAttribute: not found Layer!")
+        return False
+    layer=layers[0]
+    for field in layer.fields():
+        if field.name() == oldname:
+            with edit(layer):
+                idx = layer.fields().indexFromName(field.name())
+                layer.renameAttribute(idx, newname)
+
+    # Unload if it was not loaded
+    if not wasloaded:
+        if not loadShapefileToCanvas(prjpath, layerName):
+            return unloadShapefile(layerName)
+
+    return True
 
 
 

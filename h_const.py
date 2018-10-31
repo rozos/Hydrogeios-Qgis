@@ -102,6 +102,7 @@ subbasFieldX=       subbasFieldNames[4]
 subbasFieldY=       subbasFieldNames[5]
 subbasFieldRivNode= subbasFieldNames[6]
 subbasFieldPrimLen= subbasFieldNames[10]
+subbasFieldMean=    subbasFieldNames[9]
 
 
 # Borehole layer specifications

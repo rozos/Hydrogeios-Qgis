@@ -72,7 +72,9 @@ h_utils.delSpecificShapes("Subbas", nodataShapeId)
 
 
 # Disolve Subbas layer to merge small polygons into mother polys
-h_utils.dissolve(projectpath, 'Subbas', 'DN', h_const.subbasLayerName)
+h_utils.dissolve(projectpath, 'Subbas', 'DN', 'Subbas_d')
+h_utils.rasterstatistics(projectpath, demname, 'Subbas_d', h_const.subbasLayerName)
+h_utils.renameField(projectpath, h_const.subbasLayerName, demname+" [MEAN]", h_const.subbasFieldMean)
 
 
 h_utils.unloadShapefile("Subbas")
