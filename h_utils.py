@@ -294,10 +294,10 @@ def getMinFeatureMeasure(layerName):
     layers=QgsProject.instance().mapLayersByName(layerName)
     if len(layers)==0: return None 
     layer=layers[0]
-    layerType=layer.geometryType()
+    layerGeomType=layer.geometryType()
 
     # Return 0 if it is point layer
-    if layerType==QgsLayerItem.Point: return 0
+    if layerGeomType==QgsWkbTypes.PointGeometry: return 0
 
     # Get features
     features= getLayerFeatures(layerName)
@@ -307,9 +307,9 @@ def getMinFeatureMeasure(layerName):
     inFeat= QgsFeature()
     minfeature=1e12 # An arbitrary large number
     while features.nextFeature(inFeat):
-        if layerType==QgsLayerItem.Polygon:
+        if layerGeomType==QgsWkbTypes.PolygonGeometry:
             minfeature=min(minfeature, inFeat.geometry().area() )
-        if layerType==QgsLayerItem.Line:
+        if layerGeomType==QgsWkbTypes.LineGeometry:
             minfeature=min(minfeature, inFeat.geometry().length() )
 
     return minfeature
@@ -727,8 +727,8 @@ def addMeasureToAttrTable(layerName, fieldName):
     layer=layers[0]
 
     # Check layer type
-    layerType=layer.geometryType()
-    if layerType==QgsLayerItem.Point:
+    layerGeomType=layer.geometryType()
+    if layerGeomType==QgsWkbTypes.PointGeometry:
         message= layerName + "is a point layer. Cannot add a measure!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
@@ -753,9 +753,9 @@ def addMeasureToAttrTable(layerName, fieldName):
     inFeat= QgsFeature()
     measures= []
     while features.nextFeature(inFeat):
-        if layerType==QgsLayerItem.Polygon:
+        if layerGeomType==QgsWkbTypes.PolygonGeometry:
             measures.append(inFeat.geometry().area() )
-        if layerType==QgsLayerItem.Line:
+        if layerGeomType==QgsWkbTypes.LineGeometry:
             measures.append(inFeat.geometry().length() )
     ok=setFieldAttrValues(layerName, fieldName, measures) 
     if not ok:
