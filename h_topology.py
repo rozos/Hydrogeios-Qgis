@@ -307,7 +307,7 @@ def linkSpringHydrojunction():
                                    h_const.springGeomType):
         return False
 
-    # Find to which HydroJnct y pair corresponds each spring
+    # Find to which HydroJnct pair corresponds each spring
     res = h_utils.getPointLayerCoords(h_const.springLayerName)
     if res==False: return False
     if res==None: 
