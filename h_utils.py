@@ -133,7 +133,7 @@ def layerFeaturesNumberOK(layerName, featuresNum):
     nfeats=getLayerFeaturesCount(layerName)
     if nfeats==None: return False
     if nfeats!=featuresNum:
-        message=layerName+" has not "+ str(featuresNum) + " features!"
+        message=layerName+" does not have "+ str(featuresNum) + " features!"
         QMessageBox.critical(None,'Error',message, QMessageBox.Ok)
         return False
     return True
