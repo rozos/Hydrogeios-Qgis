@@ -20,7 +20,7 @@ riverFieldNames=("RIVER_ID", "NAME", "DESCR", "FROM_NODE", "TO_NODE", "LENGTH",
 riverFieldTypes=(QVariant.Int, QVariant.String, QVariant.String, QVariant.Int,
                  QVariant.Int, QVariant.Double, QVariant.Double,QVariant.Double,
                  QVariant.Double, QVariant.Double, QVariant.Double,
-                 QVariant.Double, QVariant.Double, QVariant.Double,
+                 QVariant.Double, QVariant.Double, QVariant.Int,
                  QVariant.Double, QVariant.Double, )
 riverFieldId= riverFieldNames[0]
 riverFieldLength= riverFieldNames[5]
